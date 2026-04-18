@@ -14,13 +14,13 @@ const TIERS = [
   {
     key: "basic",
     name: "Sadhaka",
-    price: "$9",
+    price: "₹99",
     features: ["Everything in Seeker", "AI birth reading", "One remedial practice"],
   },
   {
     key: "premium",
     name: "Jyotishi",
-    price: "$29",
+    price: "₹999",
     features: ["Everything in Sadhaka", "Visual Kundali chart", "Detailed 700-word reading", "Seven life domains"],
     popular: true,
   },

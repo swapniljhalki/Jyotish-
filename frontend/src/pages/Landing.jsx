@@ -19,7 +19,7 @@ const tiers = [
   {
     key: "basic",
     name: "Sadhaka",
-    price: "$9",
+    price: "₹99",
     period: "/ reading",
     tagline: "Your birth, read by the stars",
     features: [
@@ -35,7 +35,7 @@ const tiers = [
   {
     key: "premium",
     name: "Jyotishi",
-    price: "$29",
+    price: "₹999",
     period: "/ reading",
     tagline: "The full Kundali, illuminated",
     features: [
