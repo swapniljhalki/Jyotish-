@@ -45,12 +45,18 @@ Vedic astrology website with 3 pricing tiers:
 3. **Jyotishi** (premium subscriber) — wants the full kundali chart + deep reading
 4. **Admin** — operations: manage users, inspect email delivery, adjust tiers
 
+## Phase 3 (Feb 18, 2026) — Readings Archive + Public Share — ✅ SHIPPED
+- New backend endpoints: `GET /api/readings`, `GET /api/readings/{id}`, `DELETE /api/readings/{id}`, `POST /api/readings/{id}/share`, `GET /api/public/readings/{token}`.
+- Readings inserts now carry `summary {ascendant, sun_sign, moon_sign}` and `is_shared: false` for quick list previews + public render.
+- New pages: `/readings` (archive list), `/readings/:id` (detail w/ Share toggle + copy-link), `/r/:token` (public page, no auth, with conversion CTA to register).
+- Basic & Premium result cards link into archive with "Open in archive & share →".
+- All 65/65 tests passing (44 prior + 21 new).
+
 ## Prioritised Backlog
-- **P1**: Real email delivery (Resend integration) — currently mocked
+- **P1**: Real email delivery (Resend) — currently mocked
 - **P1**: Real payment (Stripe) — currently mocked
-- **P2**: Save & revisit past readings (UI surfaces `db.readings` history)
-- **P2**: Share-a-reading public link (shareability → organic growth)
 - **P2**: Swap deterministic kundali math for real Swiss Ephemeris bindings
+- **P2**: Share-image generation (OG card PNG for the `/r/:token` pages → social previews)
 - **P3**: Dasha (planetary periods) calculation & timeline view
 - **P3**: Transit alerts (daily horoscope based on stored chart)
 - **P3**: Multi-lingual support (Hindi / Tamil / Telugu)
