@@ -1,5 +1,5 @@
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import { AuthProvider } from "./context/AuthContext";
@@ -15,6 +15,11 @@ import Nakshatras from "./pages/Nakshatras";
 import BasicTier from "./pages/BasicTier";
 import PremiumTier from "./pages/PremiumTier";
 import Pricing from "./pages/Pricing";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import AuthCallback from "./pages/AuthCallback";
+import Admin from "./pages/Admin";
 
 function Shell({ children }) {
   return (
@@ -26,40 +31,41 @@ function Shell({ children }) {
   );
 }
 
+/**
+ * Top-level router that intercepts the Emergent Google OAuth hash callback
+ * (URL fragment like `#session_id=...`) BEFORE any other route renders.
+ */
+function Router() {
+  const location = useLocation();
+  if (location.hash && location.hash.includes("session_id=")) {
+    return <AuthCallback />;
+  }
+  return (
+    <Routes>
+      <Route path="/" element={<Shell><Landing /></Shell>} />
+      <Route path="/login" element={<Shell><Login /></Shell>} />
+      <Route path="/register" element={<Shell><Register /></Shell>} />
+      <Route path="/forgot-password" element={<Shell><ForgotPassword /></Shell>} />
+      <Route path="/reset-password" element={<Shell><ResetPassword /></Shell>} />
+      <Route path="/verify-email" element={<Shell><VerifyEmail /></Shell>} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/grahas" element={<Shell><Grahas /></Shell>} />
+      <Route path="/nakshatras" element={<Shell><Nakshatras /></Shell>} />
+      <Route path="/pricing" element={<Shell><Pricing /></Shell>} />
+      <Route path="/basic" element={<Shell><ProtectedRoute><BasicTier /></ProtectedRoute></Shell>} />
+      <Route path="/premium" element={<Shell><ProtectedRoute><PremiumTier /></ProtectedRoute></Shell>} />
+      <Route path="/admin" element={<Shell><ProtectedRoute><Admin /></ProtectedRoute></Shell>} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <AuthProvider>
           <Toaster theme="dark" position="top-right" richColors />
-          <Routes>
-            <Route path="/" element={<Shell><Landing /></Shell>} />
-            <Route path="/login" element={<Shell><Login /></Shell>} />
-            <Route path="/register" element={<Shell><Register /></Shell>} />
-            <Route path="/grahas" element={<Shell><Grahas /></Shell>} />
-            <Route path="/nakshatras" element={<Shell><Nakshatras /></Shell>} />
-            <Route path="/pricing" element={<Shell><Pricing /></Shell>} />
-            <Route
-              path="/basic"
-              element={
-                <Shell>
-                  <ProtectedRoute>
-                    <BasicTier />
-                  </ProtectedRoute>
-                </Shell>
-              }
-            />
-            <Route
-              path="/premium"
-              element={
-                <Shell>
-                  <ProtectedRoute>
-                    <PremiumTier />
-                  </ProtectedRoute>
-                </Shell>
-              }
-            />
-          </Routes>
+          <Router />
         </AuthProvider>
       </BrowserRouter>
     </div>

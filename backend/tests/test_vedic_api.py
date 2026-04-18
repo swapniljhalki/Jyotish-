@@ -148,7 +148,7 @@ class TestAuthRegister:
         assert data["tier"] == "free", f"Expected tier=free, got {data['tier']}"
         assert data["name"] == "New Seeker"
         assert "id" in data
-        assert "token" in data
+        assert "access_token" in data
         print(f"✓ Registered new user: {data['email']} with tier={data['tier']}")
     
     def test_register_duplicate_email(self, api_client, registered_user, test_user_email):
@@ -177,7 +177,7 @@ class TestAuthLogin:
         data = response.json()
         assert data["email"] == test_user_email.lower()
         assert "tier" in data
-        assert "token" in data
+        assert "access_token" in data
         # Check cookie was set
         assert "access_token" in api_client.cookies
         print(f"✓ Login successful for {data['email']}, cookie set")

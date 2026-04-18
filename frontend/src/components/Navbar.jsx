@@ -60,6 +60,11 @@ export default function Navbar() {
                   {user.tier}
                 </span>
               </div>
+              {user.role === "admin" && (
+                <Link to="/admin" data-testid="nav-admin-link" className="hidden md:block text-[10px] font-accent text-[#FFD700] hover:text-[#FF9933]">
+                  ADMIN
+                </Link>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

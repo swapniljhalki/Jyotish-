@@ -6,19 +6,22 @@ load_dotenv(ROOT_DIR / ".env")
 
 import os
 import uuid
+import secrets
 import logging
 import bcrypt
 import jwt
+import httpx
 from datetime import datetime, timezone, timedelta, date as date_type, time as time_type
 from typing import Optional
 
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
-from pydantic import BaseModel, Field, EmailStr
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, Header
+from pydantic import BaseModel, EmailStr
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from astrology_data import GRAHAS, NAKSHATRAS, get_graha, get_nakshatra
 from kundali import compute_chart
+from email_service import send_email
 
 # --- logging ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -26,38 +29,87 @@ logger = logging.getLogger(__name__)
 
 # --- mongo ---
 mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+mongo = AsyncIOMotorClient(mongo_url)
+db = mongo[os.environ["DB_NAME"]]
 
 # --- jwt ---
 JWT_ALGO = "HS256"
+ACCESS_TTL_MIN = 15
+REFRESH_TTL_DAYS = 7
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_WINDOW_MIN = 15
+RESET_TOKEN_TTL_HOURS = 1
+VERIFY_TOKEN_TTL_HOURS = 24
+
+EMERGENT_AUTH_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
 
 def _secret() -> str:
     return os.environ["JWT_SECRET"]
 
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
 
 def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
-def create_access_token(user_id: str, email: str) -> str:
-    payload = {
-        "sub": user_id, "email": email,
-        "exp": datetime.now(timezone.utc) + timedelta(days=7),
-        "type": "access",
-    }
+
+def _encode(payload: dict) -> str:
     return jwt.encode(payload, _secret(), algorithm=JWT_ALGO)
 
-def set_auth_cookie(response: Response, token: str):
+
+def create_access_token(user_id: str, email: str) -> str:
+    return _encode({
+        "sub": user_id, "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TTL_MIN),
+        "type": "access",
+    })
+
+
+def create_refresh_token(user_id: str) -> str:
+    return _encode({
+        "sub": user_id,
+        "exp": datetime.now(timezone.utc) + timedelta(days=REFRESH_TTL_DAYS),
+        "type": "refresh",
+    })
+
+
+def set_auth_cookies(response: Response, access: str, refresh: str):
     response.set_cookie(
-        key="access_token", value=token, httponly=True, secure=False,
-        samesite="lax", max_age=7 * 24 * 3600, path="/",
+        key="access_token", value=access, httponly=True, secure=False,
+        samesite="lax", max_age=ACCESS_TTL_MIN * 60, path="/",
     )
+    response.set_cookie(
+        key="refresh_token", value=refresh, httponly=True, secure=False,
+        samesite="lax", max_age=REFRESH_TTL_DAYS * 24 * 3600, path="/",
+    )
+
+
+def clear_auth_cookies(response: Response):
+    response.delete_cookie("access_token", path="/")
+    response.delete_cookie("refresh_token", path="/")
+
+
+def public_user(u: dict) -> dict:
+    """Scrub sensitive fields for API response."""
+    return {
+        "id": u["id"],
+        "email": u["email"],
+        "name": u["name"],
+        "tier": u.get("tier", "free"),
+        "role": u.get("role", "user"),
+        "email_verified": u.get("email_verified", False),
+        "auth_provider": u.get("auth_provider", "email"),
+        "created_at": u["created_at"],
+    }
+
 
 # --- app ---
 app = FastAPI(title="Vedic Astrology API")
 api = APIRouter(prefix="/api")
+admin_api = APIRouter(prefix="/api/admin")
 
 app.add_middleware(
     CORSMiddleware,
@@ -74,25 +126,39 @@ class RegisterIn(BaseModel):
     password: str
     name: str
 
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
 
-class UserOut(BaseModel):
-    id: str
-    email: str
-    name: str
-    tier: str
-    created_at: str
 
 class SubscribeIn(BaseModel):
-    tier: str  # "free" | "basic" | "premium"
+    tier: str
+
 
 class AstroIn(BaseModel):
-    date_of_birth: str  # YYYY-MM-DD
-    time_of_birth: str  # HH:MM
+    date_of_birth: str
+    time_of_birth: str
     place_of_birth: str
     full_name: Optional[str] = None
+
+
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordIn(BaseModel):
+    token: str
+    new_password: str
+
+
+class VerifyEmailIn(BaseModel):
+    token: str
+
+
+class AdminUserPatch(BaseModel):
+    tier: Optional[str] = None
+    role: Optional[str] = None
 
 
 # --- auth helpers ---
@@ -106,6 +172,8 @@ async def get_current_user(request: Request) -> dict:
         raise HTTPException(status_code=401, detail="Not authenticated")
     try:
         payload = jwt.decode(token, _secret(), algorithms=[JWT_ALGO])
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=401, detail="Invalid token type")
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
@@ -116,10 +184,43 @@ async def get_current_user(request: Request) -> dict:
     return user
 
 
+async def require_admin(user: dict = Depends(get_current_user)) -> dict:
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
+
 def require_tier(user: dict, min_tier: str):
     order = {"free": 0, "basic": 1, "premium": 2}
     if order.get(user.get("tier", "free"), 0) < order[min_tier]:
         raise HTTPException(status_code=403, detail=f"This requires the {min_tier.capitalize()} tier. Please upgrade.")
+
+
+# --- brute-force helpers ---
+async def check_lockout(identifier: str):
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=LOCKOUT_WINDOW_MIN)).isoformat()
+    count = await db.login_attempts.count_documents({
+        "identifier": identifier, "ts": {"$gte": cutoff}, "success": False,
+    })
+    if count >= LOCKOUT_THRESHOLD:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many failed attempts. Try again in {LOCKOUT_WINDOW_MIN} minutes.",
+        )
+
+
+async def record_attempt(identifier: str, success: bool):
+    await db.login_attempts.insert_one({
+        "identifier": identifier, "success": success,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    })
+    if success:
+        await db.login_attempts.delete_many({"identifier": identifier, "success": False})
+
+
+def _ident(request: Request, email: str) -> str:
+    ip = request.client.host if request.client else "unknown"
+    return f"{ip}:{email.lower()}"
 
 
 # --- health ---
@@ -128,66 +229,233 @@ async def root():
     return {"message": "Vedic Astrology API", "ok": True}
 
 
-# --- auth endpoints ---
+# --- Auth: register ---
 @api.post("/auth/register")
-async def register(body: RegisterIn, response: Response):
+async def register(body: RegisterIn, request: Request, response: Response):
     email = body.email.lower()
     if await db.users.find_one({"email": email}):
         raise HTTPException(status_code=400, detail="Email already registered")
     user_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
-        "id": user_id,
-        "email": email,
-        "name": body.name.strip(),
+        "id": user_id, "email": email, "name": body.name.strip(),
         "password_hash": hash_password(body.password),
-        "tier": "free",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "tier": "free", "role": "user",
+        "email_verified": False,
+        "auth_provider": "email",
+        "created_at": now,
     }
-    await db.users.insert_one(doc)
-    token = create_access_token(user_id, email)
-    set_auth_cookie(response, token)
-    return {
-        "id": user_id, "email": email, "name": doc["name"],
-        "tier": "free", "created_at": doc["created_at"], "token": token,
-    }
+    await db.users.insert_one(doc.copy())
+
+    # Fire verification email
+    await _issue_verification(email, request)
+
+    access = create_access_token(user_id, email)
+    refresh = create_refresh_token(user_id)
+    set_auth_cookies(response, access, refresh)
+    return {**public_user(doc), "access_token": access}
 
 
+# --- Auth: login ---
 @api.post("/auth/login")
-async def login(body: LoginIn, response: Response):
+async def login(body: LoginIn, request: Request, response: Response):
     email = body.email.lower()
+    ident = _ident(request, email)
+    await check_lockout(ident)
     user = await db.users.find_one({"email": email})
-    if not user or not verify_password(body.password, user["password_hash"]):
+    if not user or not user.get("password_hash") or not verify_password(body.password, user["password_hash"]):
+        await record_attempt(ident, False)
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token(user["id"], email)
-    set_auth_cookie(response, token)
-    return {
-        "id": user["id"], "email": user["email"], "name": user["name"],
-        "tier": user.get("tier", "free"), "created_at": user["created_at"], "token": token,
-    }
+    await record_attempt(ident, True)
+    access = create_access_token(user["id"], email)
+    refresh = create_refresh_token(user["id"])
+    set_auth_cookies(response, access, refresh)
+    return {**public_user(user), "access_token": access}
 
 
+# --- Auth: refresh ---
+@api.post("/auth/refresh")
+async def refresh_token(request: Request, response: Response):
+    token = request.cookies.get("refresh_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="No refresh token")
+    try:
+        payload = jwt.decode(token, _secret(), algorithms=[JWT_ALGO])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    access = create_access_token(user["id"], user["email"])
+    new_refresh = create_refresh_token(user["id"])
+    set_auth_cookies(response, access, new_refresh)
+    return {"access_token": access}
+
+
+# --- Auth: logout ---
 @api.post("/auth/logout")
 async def logout(response: Response, user: dict = Depends(get_current_user)):
-    response.delete_cookie("access_token", path="/")
+    clear_auth_cookies(response)
     return {"ok": True}
 
 
 @api.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
-    return user
+    return public_user(user)
 
 
-# --- subscription (mock) ---
+# --- Auth: forgot / reset password ---
+@api.post("/auth/forgot-password")
+async def forgot_password(body: ForgotPasswordIn, request: Request):
+    email = body.email.lower()
+    user = await db.users.find_one({"email": email})
+    # Always respond 200 to avoid email enumeration; only emit token if user exists.
+    if user and user.get("auth_provider", "email") == "email":
+        token = secrets.token_urlsafe(32)
+        expires = datetime.now(timezone.utc) + timedelta(hours=RESET_TOKEN_TTL_HOURS)
+        await db.password_reset_tokens.insert_one({
+            "token": token, "user_id": user["id"],
+            "expires_at": expires, "used": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        origin = request.headers.get("origin") or ""
+        link = f"{origin}/reset-password?token={token}"
+        await send_email(
+            db, to=email, kind="password_reset",
+            subject="Reset your Jyotish Vedic password",
+            body=f"Hi {user['name']},\n\nReset your password via this link (valid {RESET_TOKEN_TTL_HOURS}h):\n{link}\n\nIf you did not request this, ignore it.",
+        )
+    return {"ok": True, "message": "If that email exists, a reset link has been sent."}
+
+
+@api.post("/auth/reset-password")
+async def reset_password(body: ResetPasswordIn):
+    rec = await db.password_reset_tokens.find_one({"token": body.token})
+    if not rec or rec.get("used"):
+        raise HTTPException(status_code=400, detail="Invalid or used reset token")
+    exp = rec["expires_at"]
+    if isinstance(exp, str):
+        exp = datetime.fromisoformat(exp)
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Reset token expired")
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=422, detail="Password must be at least 6 characters")
+    await db.users.update_one(
+        {"id": rec["user_id"]},
+        {"$set": {"password_hash": hash_password(body.new_password)}},
+    )
+    await db.password_reset_tokens.update_one({"token": body.token}, {"$set": {"used": True}})
+    return {"ok": True}
+
+
+# --- Auth: email verification ---
+async def _issue_verification(email: str, request: Request):
+    user = await db.users.find_one({"email": email})
+    if not user or user.get("email_verified"):
+        return
+    token = secrets.token_urlsafe(32)
+    expires = datetime.now(timezone.utc) + timedelta(hours=VERIFY_TOKEN_TTL_HOURS)
+    await db.email_verification_tokens.insert_one({
+        "token": token, "user_id": user["id"],
+        "expires_at": expires, "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    origin = request.headers.get("origin") or ""
+    link = f"{origin}/verify-email?token={token}"
+    await send_email(
+        db, to=email, kind="email_verification",
+        subject="Verify your Jyotish Vedic email",
+        body=f"Hi {user['name']},\n\nConfirm your email (valid {VERIFY_TOKEN_TTL_HOURS}h):\n{link}",
+    )
+
+
+@api.post("/auth/send-verification")
+async def send_verification(request: Request, user: dict = Depends(get_current_user)):
+    if user.get("email_verified"):
+        return {"ok": True, "already_verified": True}
+    await _issue_verification(user["email"], request)
+    return {"ok": True}
+
+
+@api.post("/auth/verify-email")
+async def verify_email(body: VerifyEmailIn):
+    rec = await db.email_verification_tokens.find_one({"token": body.token})
+    if not rec or rec.get("used"):
+        raise HTTPException(status_code=400, detail="Invalid or used verification token")
+    exp = rec["expires_at"]
+    if isinstance(exp, str):
+        exp = datetime.fromisoformat(exp)
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Verification token expired")
+    await db.users.update_one({"id": rec["user_id"]}, {"$set": {"email_verified": True}})
+    await db.email_verification_tokens.update_one({"token": body.token}, {"$set": {"used": True}})
+    return {"ok": True}
+
+
+# --- Auth: Emergent-managed Google OAuth ---
+# REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+@api.post("/auth/google/session")
+async def google_session(response: Response, x_session_id: str = Header(None)):
+    if not x_session_id:
+        raise HTTPException(status_code=400, detail="Missing X-Session-ID header")
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        try:
+            r = await client.get(
+                EMERGENT_AUTH_SESSION_URL,
+                headers={"X-Session-ID": x_session_id},
+            )
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Auth provider error: {e}")
+    if r.status_code != 200:
+        raise HTTPException(status_code=401, detail="Invalid session id")
+    data = r.json()
+    email = data["email"].lower()
+    name = data.get("name") or email.split("@")[0]
+    picture = data.get("picture")
+
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        update = {"name": name, "picture": picture, "email_verified": True}
+        if not existing.get("auth_provider"):
+            update["auth_provider"] = "google"
+        await db.users.update_one({"id": existing["id"]}, {"$set": update})
+        user = await db.users.find_one({"id": existing["id"]}, {"_id": 0, "password_hash": 0})
+    else:
+        user_id = str(uuid.uuid4())
+        user = {
+            "id": user_id, "email": email, "name": name, "picture": picture,
+            "tier": "free", "role": "user",
+            "email_verified": True,
+            "auth_provider": "google",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.users.insert_one(user.copy())
+
+    access = create_access_token(user["id"], email)
+    refresh = create_refresh_token(user["id"])
+    set_auth_cookies(response, access, refresh)
+    return {**public_user(user), "access_token": access}
+
+
+# --- Subscription (mock) ---
 @api.post("/subscribe")
 async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
     if body.tier not in ("free", "basic", "premium"):
         raise HTTPException(status_code=400, detail="Invalid tier")
     await db.users.update_one({"id": user["id"]}, {"$set": {"tier": body.tier}})
     updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
-    return updated
+    return public_user(updated)
 
 
-# --- free tier content ---
+# --- Free tier content ---
 @api.get("/grahas")
 async def list_grahas():
     return {"grahas": GRAHAS}
@@ -245,7 +513,7 @@ async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
         raise HTTPException(status_code=502, detail=f"AI service error: {e}")
 
 
-# --- basic tier ---
+# --- Basic tier ---
 @api.post("/astrology/basic")
 async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "basic")
@@ -271,7 +539,6 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
         f"(4) one practical remedy (mantra / daily practice). Finish with a short blessing."
     )
     advice = await _ask_claude(system, user_msg, f"basic-{user['id']}")
-
     reading_id = str(uuid.uuid4())
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "basic",
@@ -288,7 +555,7 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
     }
 
 
-# --- premium tier ---
+# --- Premium tier ---
 @api.post("/astrology/premium")
 async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "premium")
@@ -320,7 +587,6 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         f"End with a short closing blessing in Sanskrit with English translation."
     )
     advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
-
     reading_id = str(uuid.uuid4())
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "premium",
@@ -330,12 +596,69 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
     return {"id": reading_id, "chart": chart, "advice": advice}
 
 
+# --- Admin endpoints ---
+@admin_api.get("/users")
+async def admin_list_users(admin: dict = Depends(require_admin)):
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    return {"users": [public_user(u) for u in users]}
+
+
+@admin_api.patch("/users/{user_id}")
+async def admin_patch_user(user_id: str, body: AdminUserPatch, admin: dict = Depends(require_admin)):
+    updates = {}
+    if body.tier is not None:
+        if body.tier not in ("free", "basic", "premium"):
+            raise HTTPException(status_code=400, detail="Invalid tier")
+        updates["tier"] = body.tier
+    if body.role is not None:
+        if body.role not in ("user", "admin"):
+            raise HTTPException(status_code=400, detail="Invalid role")
+        updates["role"] = body.role
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = await db.users.update_one({"id": user_id}, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    u = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    return public_user(u)
+
+
+@admin_api.delete("/users/{user_id}")
+async def admin_delete_user(user_id: str, admin: dict = Depends(require_admin)):
+    if user_id == admin["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own admin account")
+    result = await db.users.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"ok": True}
+
+
+@admin_api.get("/emails")
+async def admin_list_emails(admin: dict = Depends(require_admin)):
+    emails = await db.email_outbox.find({}, {"_id": 0}).sort("sent_at", -1).to_list(200)
+    return {"emails": emails}
+
+
 # --- startup ---
 @app.on_event("startup")
 async def startup_event():
     await db.users.create_index("email", unique=True)
     await db.users.create_index("id", unique=True)
     await db.readings.create_index("user_id")
+    try:
+        await db.login_attempts.create_index("identifier")
+    except Exception as e:
+        logger.warning(f"login_attempts index: {e}")
+    try:
+        await db.password_reset_tokens.create_index("token", unique=True)
+        await db.password_reset_tokens.create_index("expires_at", expireAfterSeconds=0)
+    except Exception as e:
+        logger.warning(f"password_reset_tokens index: {e}")
+    try:
+        await db.email_verification_tokens.create_index("token", unique=True)
+        await db.email_verification_tokens.create_index("expires_at", expireAfterSeconds=0)
+    except Exception as e:
+        logger.warning(f"email_verification_tokens index: {e}")
 
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@vedic.com")
     admin_pw = os.environ.get("ADMIN_PASSWORD", "admin123")
@@ -343,15 +666,29 @@ async def startup_event():
     if not existing:
         await db.users.insert_one({
             "id": str(uuid.uuid4()), "email": admin_email, "name": "Admin",
-            "password_hash": hash_password(admin_pw), "tier": "premium", "role": "admin",
+            "password_hash": hash_password(admin_pw),
+            "tier": "premium", "role": "admin",
+            "email_verified": True, "auth_provider": "email",
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
         logger.info(f"Admin user seeded: {admin_email}")
+    else:
+        # Ensure existing admin has role + email_verified (backfill for older users)
+        updates = {}
+        if existing.get("role") != "admin":
+            updates["role"] = "admin"
+        if not existing.get("email_verified"):
+            updates["email_verified"] = True
+        if "auth_provider" not in existing:
+            updates["auth_provider"] = "email"
+        if updates:
+            await db.users.update_one({"id": existing["id"]}, {"$set": updates})
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    client.close()
+    mongo.close()
 
 
 app.include_router(api)
+app.include_router(admin_api)

@@ -5,6 +5,7 @@ import { formatApiError } from "../lib/api";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Sparkles } from "lucide-react";
+import GoogleButton from "../components/GoogleButton";
 
 export default function Register() {
   const { register } = useAuth();
@@ -109,6 +110,7 @@ export default function Register() {
                 Sign in
               </Link>
             </p>
+            <GoogleButton label="Continue with Google" />
           </div>
         </form>
       </div>

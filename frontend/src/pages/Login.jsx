@@ -5,6 +5,7 @@ import { formatApiError } from "../lib/api";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Sparkles } from "lucide-react";
+import GoogleButton from "../components/GoogleButton";
 
 export default function Login() {
   const { login } = useAuth();
@@ -98,12 +99,15 @@ export default function Login() {
             >
               {loading ? "Consulting stars..." : "Sign In"}
             </button>
-            <p className="text-sm text-zinc-400 font-body text-center">
-              New seeker?{" "}
+            <div className="flex justify-between text-sm font-body">
+              <Link to="/forgot-password" className="text-zinc-400 hover:text-[#FF9933]" data-testid="login-forgot-link">
+                Forgot password?
+              </Link>
               <Link to="/register" className="text-[#FF9933] hover:text-[#FFD700]" data-testid="login-to-register">
                 Begin your journey
               </Link>
-            </p>
+            </div>
+            <GoogleButton label="Sign in with Google" />
           </div>
         </form>
       </div>
