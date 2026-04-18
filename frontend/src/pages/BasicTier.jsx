@@ -3,9 +3,7 @@ import api from "../lib/api";
 import { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-import BirthForm from "../components/BirthForm";
-
-export default function BasicTier() {
+import BirthForm from "../components/BirthForm";export default function BasicTier() {
   const { user } = useAuth();
   const [result, setResult] = useState(null);
   const [err, setErr] = useState("");
@@ -81,6 +79,11 @@ export default function BasicTier() {
             </div>
             <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap">
               {result.advice}
+            </div>
+            <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
+              <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="basic-open-in-archive">
+                Open in archive & share →
+              </Link>
             </div>
           </div>
         )}

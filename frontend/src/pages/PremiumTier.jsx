@@ -113,6 +113,11 @@ export default function PremiumTier() {
               >
                 {result.advice}
               </div>
+              <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
+                <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
+                  Open in archive & share →
+                </Link>
+              </div>
             </div>
           </div>
         )}

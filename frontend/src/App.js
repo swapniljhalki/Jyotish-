@@ -20,6 +20,9 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import AuthCallback from "./pages/AuthCallback";
 import Admin from "./pages/Admin";
+import ReadingsList from "./pages/ReadingsList";
+import ReadingDetail from "./pages/ReadingDetail";
+import PublicReading from "./pages/PublicReading";
 
 function Shell({ children }) {
   return (
@@ -55,6 +58,9 @@ function Router() {
       <Route path="/basic" element={<Shell><ProtectedRoute><BasicTier /></ProtectedRoute></Shell>} />
       <Route path="/premium" element={<Shell><ProtectedRoute><PremiumTier /></ProtectedRoute></Shell>} />
       <Route path="/admin" element={<Shell><ProtectedRoute><Admin /></ProtectedRoute></Shell>} />
+      <Route path="/readings" element={<Shell><ProtectedRoute><ReadingsList /></ProtectedRoute></Shell>} />
+      <Route path="/readings/:id" element={<Shell><ProtectedRoute><ReadingDetail /></ProtectedRoute></Shell>} />
+      <Route path="/r/:token" element={<PublicReading />} />
     </Routes>
   );
 }

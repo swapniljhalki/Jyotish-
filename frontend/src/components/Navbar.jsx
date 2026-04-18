@@ -8,6 +8,7 @@ const navItems = [
   { to: "/nakshatras", label: "Nakshatras" },
   { to: "/basic", label: "Basic Reading" },
   { to: "/premium", label: "Premium Kundali" },
+  { to: "/readings", label: "My Readings", authOnly: true },
   { to: "/pricing", label: "Pricing" },
 ];
 
@@ -32,7 +33,7 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8">
-          {navItems.map((item) => (
+          {navItems.filter((item) => !item.authOnly || user).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

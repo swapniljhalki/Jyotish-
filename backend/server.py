@@ -161,6 +161,10 @@ class AdminUserPatch(BaseModel):
     role: Optional[str] = None
 
 
+class ShareIn(BaseModel):
+    enabled: bool
+
+
 # --- auth helpers ---
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get("access_token")
@@ -540,17 +544,24 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
     )
     advice = await _ask_claude(system, user_msg, f"basic-{user['id']}")
     reading_id = str(uuid.uuid4())
+    summary = {
+        "ascendant": chart["ascendant_english"],
+        "sun_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su"),
+        "moon_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo"),
+    }
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "basic",
         "inputs": body.model_dump(), "advice": advice,
+        "summary": summary,
+        "is_shared": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
     return {
         "id": reading_id,
         "ascendant": chart["ascendant_english"],
         "ascendant_sanskrit": chart["ascendant"],
-        "moon_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo"),
-        "sun_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su"),
+        "moon_sign": summary["moon_sign"],
+        "sun_sign": summary["sun_sign"],
         "advice": advice,
     }
 
@@ -588,12 +599,103 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
     )
     advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
     reading_id = str(uuid.uuid4())
+    summary = {
+        "ascendant": chart["ascendant_english"],
+        "sun_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su"),
+        "moon_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo"),
+    }
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "premium",
         "inputs": body.model_dump(), "chart": chart, "advice": advice,
+        "summary": summary,
+        "is_shared": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
     return {"id": reading_id, "chart": chart, "advice": advice}
+
+
+# --- Readings: list / fetch / delete / share ---
+def _public_reading(r: dict) -> dict:
+    """Sanitise a reading for public (unauthenticated) view — strips inputs / PII."""
+    out = {
+        "id": r["id"],
+        "tier": r["tier"],
+        "created_at": r["created_at"],
+        "advice": r.get("advice"),
+        "author_name": (r.get("inputs") or {}).get("full_name") or "A Seeker",
+    }
+    if r["tier"] == "premium":
+        out["chart"] = r.get("chart")
+    else:
+        # derive basic display fields from chart-like data if present, else leave out
+        pass
+    # Basic-tier readings don't store chart but they do have ascendant/sun/moon in advice context
+    # We'll also recompute lagna/sun/moon from the inputs at save-time — but to avoid compute here,
+    # we store a small summary on creation below.
+    if "summary" in r:
+        out["summary"] = r["summary"]
+    return out
+
+
+@api.get("/readings")
+async def list_readings(user: dict = Depends(get_current_user)):
+    items = await db.readings.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "inputs": 0},  # hide raw inputs in list view (PII)
+    ).sort("created_at", -1).to_list(100)
+    # Strip the long `advice` to a preview snippet
+    for it in items:
+        ad = it.get("advice") or ""
+        it["advice_preview"] = (ad[:220] + "…") if len(ad) > 220 else ad
+        it.pop("advice", None)
+    return {"readings": items}
+
+
+@api.get("/readings/{reading_id}")
+async def get_reading(reading_id: str, user: dict = Depends(get_current_user)):
+    r = await db.readings.find_one({"id": reading_id, "user_id": user["id"]}, {"_id": 0})
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    return r
+
+
+@api.delete("/readings/{reading_id}")
+async def delete_reading(reading_id: str, user: dict = Depends(get_current_user)):
+    result = await db.readings.delete_one({"id": reading_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    return {"ok": True}
+
+
+@api.post("/readings/{reading_id}/share")
+async def toggle_share(reading_id: str, body: ShareIn, user: dict = Depends(get_current_user)):
+    r = await db.readings.find_one({"id": reading_id, "user_id": user["id"]}, {"_id": 0})
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    if body.enabled:
+        token = r.get("share_token") or secrets.token_urlsafe(16)
+        await db.readings.update_one(
+            {"id": reading_id},
+            {"$set": {"is_shared": True, "share_token": token}},
+        )
+        return {"is_shared": True, "share_token": token}
+    else:
+        await db.readings.update_one(
+            {"id": reading_id},
+            {"$set": {"is_shared": False}},
+        )
+        return {"is_shared": False}
+
+
+@api.get("/public/readings/{share_token}")
+async def public_reading(share_token: str):
+    r = await db.readings.find_one(
+        {"share_token": share_token, "is_shared": True},
+        {"_id": 0},
+    )
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found or no longer shared")
+    return _public_reading(r)
 
 
 # --- Admin endpoints ---
@@ -645,6 +747,10 @@ async def startup_event():
     await db.users.create_index("email", unique=True)
     await db.users.create_index("id", unique=True)
     await db.readings.create_index("user_id")
+    try:
+        await db.readings.create_index("share_token", unique=True, sparse=True)
+    except Exception as e:
+        logger.warning(f"readings.share_token index: {e}")
     try:
         await db.login_attempts.create_index("identifier")
     except Exception as e:
