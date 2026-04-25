@@ -1,12 +1,21 @@
-"""Deterministic Vedic kundali (birth-chart) calculator.
+"""Real Parashari (sidereal Vedic) kundali computation using Swiss Ephemeris.
 
-This is a simplified symbolic placement (not a true ephemeris) — each graha
-is placed into one of the 12 houses based on a seeded offset per date/time.
-Produces a stable, reproducible chart per (date, time, place) so users get the
-same chart every run, and enough variety to feel astrologically meaningful.
+- Sidereal mode: Lahiri ayanamsa (Indian government standard, the most common in Parashari Jyotish)
+- Houses: Whole-sign (the Parashari standard — first house = whole sign of ascendant)
+- Ephemeris: Moshier semi-analytical model (no .se1 files required, sub-arcsecond accuracy)
+- Inputs: local birth datetime + lat/lon + tz_name (resolved from place via geocode)
 """
-from datetime import date, time
-from typing import List, Dict
+from datetime import datetime, timezone
+from typing import Optional
+from zoneinfo import ZoneInfo
+
+import swisseph as swe
+from timezonefinder import TimezoneFinder
+
+# Configure Swiss Ephemeris once at import time
+swe.set_sid_mode(swe.SIDM_LAHIRI)
+
+_TF = TimezoneFinder()
 
 RASHIS = [
     "Mesha", "Vrishabha", "Mithuna", "Karka", "Simha", "Kanya",
@@ -17,101 +26,138 @@ RASHIS_EN = [
     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
 ]
 
-# Approximate mean motion offsets (days to complete one rashi = 30°)
-# These are rough symbolic periods, tuned to spread planets realistically.
-GRAHA_CYCLES = {
-    "Su": 365.25 / 12,      # Sun — 1 sign/month
-    "Mo": 27.32 / 12,       # Moon — very fast
-    "Ma": 687 / 12,         # Mars
-    "Me": 88 / 12,          # Mercury (sidereal)
-    "Ju": 4332 / 12,        # Jupiter
-    "Ve": 225 / 12,         # Venus
-    "Sa": 10759 / 12,       # Saturn
-    "Ra": -6798 / 12,       # Rahu (retrograde node)
-    "Ke": -6798 / 12,       # Ketu (opposite Rahu)
-}
+PLANETS = [
+    ("Su", "Sun", swe.SUN),
+    ("Mo", "Moon", swe.MOON),
+    ("Ma", "Mars", swe.MARS),
+    ("Me", "Mercury", swe.MERCURY),
+    ("Ju", "Jupiter", swe.JUPITER),
+    ("Ve", "Venus", swe.VENUS),
+    ("Sa", "Saturn", swe.SATURN),
+    ("Ra", "Rahu", swe.MEAN_NODE),  # mean lunar node (north)
+]
+FLAGS = swe.FLG_SIDEREAL | swe.FLG_SPEED | swe.FLG_MOSEPH
 
-GRAHA_NAMES = {
-    "Su": "Sun", "Mo": "Moon", "Ma": "Mars", "Me": "Mercury",
-    "Ju": "Jupiter", "Ve": "Venus", "Sa": "Saturn", "Ra": "Rahu", "Ke": "Ketu",
-}
-
-# Epoch J2000-ish — symbolic starting positions (rashi index 0..11) for each graha
-# on 2000-01-01. Chosen to be deterministic and pleasing.
-EPOCH = date(2000, 1, 1)
-EPOCH_POSITIONS = {
-    "Su": 8,   # Sagittarius-ish
-    "Mo": 3,
-    "Ma": 6,
-    "Me": 8,
-    "Ju": 1,
-    "Ve": 10,
-    "Sa": 1,
-    "Ra": 3,
-    "Ke": 9,
-}
+# 27 nakshatras span the zodiac (each 13°20' = 800 arc-minutes)
+NAKSHATRA_NAMES = [
+    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
+    "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni",
+    "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha",
+    "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha",
+    "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
+    "Uttara Bhadrapada", "Revati",
+]
 
 
-def _normalize_rashi(idx: float) -> int:
-    return int(idx) % 12
+def resolve_timezone(lat: float, lon: float) -> Optional[str]:
+    """IANA tz name (e.g. 'Asia/Kolkata') for the given coordinates."""
+    return _TF.timezone_at(lat=lat, lng=lon) or _TF.closest_timezone_at(lat=lat, lng=lon)
 
 
-def compute_ascendant(dob: date, tob: time) -> int:
-    """Ascendant (Lagna) advances roughly 1 rashi every 2 hours."""
-    minutes = tob.hour * 60 + tob.minute
-    # base shift from day-of-year for some spread
-    doy = dob.timetuple().tm_yday
-    idx = (minutes // 120) + (doy // 30)
-    return idx % 12
+def _nakshatra(longitude: float) -> dict:
+    span = 360.0 / 27
+    idx = int(longitude // span) % 27
+    pada = int((longitude - idx * span) // (span / 4)) + 1  # 1..4
+    return {"name": NAKSHATRA_NAMES[idx], "index": idx + 1, "pada": pada}
 
 
-def compute_graha_positions(dob: date, tob: time) -> List[Dict]:
-    """Return a list of 9 grahas with their rashi + house placements."""
-    days_since_epoch = (dob - EPOCH).days + (tob.hour * 60 + tob.minute) / 1440.0
-    asc = compute_ascendant(dob, tob)
+def compute_chart_from_local(
+    local_year: int, local_month: int, local_day: int,
+    local_hour: int, local_minute: int,
+    lat: float, lon: float,
+    place_name: str,
+    tz_name: Optional[str] = None,
+) -> dict:
+    """Compute a sidereal/Parashari chart for the given local birth time + place."""
+    if tz_name is None:
+        tz_name = resolve_timezone(lat, lon)
+    if tz_name is None:
+        # Fallback to UTC; chart will still compute but ascendant accuracy depends on time
+        tz_name = "UTC"
+    tz = ZoneInfo(tz_name)
+    local_dt = datetime(local_year, local_month, local_day,
+                        local_hour, local_minute, tzinfo=tz)
+    ut_dt = local_dt.astimezone(timezone.utc)
+    ut_decimal = ut_dt.hour + ut_dt.minute / 60.0 + ut_dt.second / 3600.0
+    jd = swe.julday(ut_dt.year, ut_dt.month, ut_dt.day, ut_decimal)
 
-    out = []
-    for code, cycle_days in GRAHA_CYCLES.items():
-        base = EPOCH_POSITIONS[code]
-        advance = days_since_epoch / cycle_days  # in rashi units
-        rashi_idx = _normalize_rashi(base + advance)
-        # House is rashi relative to ascendant (1..12)
-        house = ((rashi_idx - asc) % 12) + 1
-        # Degree within sign — deterministic
-        degree = ((days_since_epoch / cycle_days) * 30) % 30
-        out.append({
-            "code": code,
-            "name": GRAHA_NAMES[code],
-            "rashi_index": rashi_idx,
-            "rashi": RASHIS[rashi_idx],
-            "rashi_english": RASHIS_EN[rashi_idx],
+    # Ascendant via whole-sign houses (use 'W' = whole-sign)
+    cusps, ascmc = swe.houses_ex(jd, lat, lon, b"W", FLAGS)
+    asc_lon = ascmc[0] % 360
+    asc_idx = int(asc_lon // 30)
+
+    # Planets
+    planets = []
+    rahu_lon = None
+    for code, name, pid in PLANETS:
+        pos, _ = swe.calc_ut(jd, pid, FLAGS)
+        lon_deg = pos[0] % 360
+        speed = pos[3]
+        rashi = int(lon_deg // 30)
+        deg_in_sign = lon_deg - rashi * 30
+        house = ((rashi - asc_idx) % 12) + 1
+        nak = _nakshatra(lon_deg)
+        planets.append({
+            "code": code, "name": name,
+            "longitude": round(lon_deg, 4),
+            "rashi_index": rashi,
+            "rashi": RASHIS[rashi],
+            "rashi_english": RASHIS_EN[rashi],
+            "degree": round(deg_in_sign, 2),
             "house": house,
-            "degree": round(degree, 2),
-            "retrograde": code in ("Ra", "Ke"),
+            "retrograde": speed < 0,
+            "nakshatra": nak["name"],
+            "nakshatra_index": nak["index"],
+            "nakshatra_pada": nak["pada"],
         })
-    return out
+        if code == "Ra":
+            rahu_lon = lon_deg
 
+    # Ketu = 180° opposite Rahu (always retrograde, no separate calc needed)
+    if rahu_lon is not None:
+        ketu_lon = (rahu_lon + 180) % 360
+        rashi = int(ketu_lon // 30)
+        deg_in_sign = ketu_lon - rashi * 30
+        house = ((rashi - asc_idx) % 12) + 1
+        nak = _nakshatra(ketu_lon)
+        planets.append({
+            "code": "Ke", "name": "Ketu",
+            "longitude": round(ketu_lon, 4),
+            "rashi_index": rashi,
+            "rashi": RASHIS[rashi],
+            "rashi_english": RASHIS_EN[rashi],
+            "degree": round(deg_in_sign, 2),
+            "house": house,
+            "retrograde": True,
+            "nakshatra": nak["name"],
+            "nakshatra_index": nak["index"],
+            "nakshatra_pada": nak["pada"],
+        })
 
-def compute_chart(dob: date, tob: time, pob: str) -> Dict:
-    asc = compute_ascendant(dob, tob)
-    planets = compute_graha_positions(dob, tob)
-
-    # Group planets by house (string keys for JSON/BSON compatibility)
-    houses = {str(i): [] for i in range(1, 13)}
+    # Houses (string keys for BSON)
+    houses_map = {str(i): [] for i in range(1, 13)}
     for p in planets:
-        houses[str(p["house"])].append(p["code"])
+        houses_map[str(p["house"])].append(p["code"])
 
-    # house_signs[i] = rashi index in house i (1-based)
-    house_signs = {str(i): (asc + i - 1) % 12 for i in range(1, 13)}
+    house_signs = {str(i): (asc_idx + i - 1) % 12 for i in range(1, 13)}
 
+    asc_nak = _nakshatra(asc_lon)
     return {
-        "ascendant_index": asc,
-        "ascendant": RASHIS[asc],
-        "ascendant_english": RASHIS_EN[asc],
-        "place_of_birth": pob,
-        "date_of_birth": dob.isoformat(),
-        "time_of_birth": tob.strftime("%H:%M"),
+        "engine": "swiss-ephemeris-lahiri-whole-sign",
+        "ascendant_index": asc_idx,
+        "ascendant": RASHIS[asc_idx],
+        "ascendant_english": RASHIS_EN[asc_idx],
+        "ascendant_longitude": round(asc_lon, 4),
+        "ascendant_degree": round(asc_lon - asc_idx * 30, 2),
+        "ascendant_nakshatra": asc_nak["name"],
+        "ascendant_nakshatra_pada": asc_nak["pada"],
+        "place_of_birth": place_name,
+        "latitude": round(lat, 4),
+        "longitude": round(lon, 4),
+        "timezone": tz_name,
+        "date_of_birth": local_dt.date().isoformat(),
+        "time_of_birth": local_dt.strftime("%H:%M"),
         "planets": planets,
-        "houses": houses,
+        "houses": houses_map,
         "house_signs": house_signs,
     }

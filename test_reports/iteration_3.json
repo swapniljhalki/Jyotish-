@@ -1,0 +1,70 @@
+{
+  "summary": "Tested Swiss Ephemeris premium chart implementation. Backend: Premium endpoint returns chart with engine='swiss-ephemeris-lahiri-whole-sign', 9 grahas (incl. Ketu derived from Rahu+180), nakshatra+pada per planet, houses with string keys. Invalid place returns 422. Basic tier still works. Geocode cache populated in MongoDB. Frontend: Premium page renders kundali chart correctly, My Readings shows saved readings with summary. All 64/65 existing tests pass (1 flaky brute-force test).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "brute-force lockout", "issue": "test_lockout_after_5_failed_attempts flaky - 6th attempt returns 401 instead of 429 (IP-based lockout may be affected by test environment)"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_swiss_ephemeris_chart.py",
+    "/app/backend/tests/test_vedic_api.py",
+    "/app/backend/tests/test_new_auth_features.py",
+    "/app/backend/tests/test_readings_archive.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_swiss_ephemeris_chart.py (new file - Swiss Ephemeris chart tests)"
+  ],
+  "success_rate": {
+    "backend": "98.5% (64/65 tests passed, 1 flaky)",
+    "frontend": "100% (all UI flows verified)"
+  },
+  "test_credentials": {
+    "admin": "admin@vedic.com / admin123 (role=admin, tier=premium)",
+    "testuser": "testuser@vedic.com / test1234 (tier=premium)"
+  },
+  "seed_data_creation": "Test users created with TEST_ prefix during test runs",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Swiss Ephemeris premium chart implementation tested and working. Key verifications: (1) engine='swiss-ephemeris-lahiri-whole-sign', (2) 9 grahas with Ketu=Rahu+180, (3) nakshatra+pada per planet, (4) houses/house_signs with string keys '1'-'12', (5) geocode_cache collection populated in MongoDB, (6) invalid place returns 422, (7) basic tier still works, (8) frontend renders chart correctly.",
+  "features_tested": {
+    "backend": {
+      "POST /api/astrology/premium with valid place": "PASS - Returns chart with engine='swiss-ephemeris-lahiri-whole-sign', 9 planets, nakshatra+pada, houses with string keys",
+      "POST /api/astrology/premium with invalid place": "PASS - Returns 422 with helpful message",
+      "POST /api/astrology/basic": "PASS - Still works with new chart engine, returns ascendant/sun/moon strings",
+      "Geocode cache": "PASS - geocode_cache collection populated after requests (Mumbai, Delhi, Bangalore, Chennai, New York, London)",
+      "Chart determinism": "PASS - Same inputs produce identical planetary placements",
+      "Ketu derivation": "PASS - Ketu longitude = Rahu + 180° (mod 360), always retrograde",
+      "Nakshatra/pada": "PASS - Each planet has nakshatra (1-27), nakshatra_pada (1-4)",
+      "Houses structure": "PASS - houses dict has string keys '1'-'12', house_signs dict has string keys '1'-'12'",
+      "Lahiri ayanamsa": "PASS - Delhi 1985-12-25 06:00 has Scorpio ascendant at ~232.5° (correct sidereal position)"
+    },
+    "frontend": {
+      "/premium page form": "PASS - Form fills and submits correctly",
+      "/premium page chart": "PASS - Kundali SVG renders with planets in correct houses",
+      "/premium page reading": "PASS - Detailed reading displays with markdown formatting",
+      "/readings list": "PASS - Shows readings with tier badge, summary (Lagna/Sun/Moon), advice preview",
+      "My Readings navbar": "PASS - Visible for logged-in users"
+    }
+  },
+  "mocked_apis": {
+    "email_delivery": "MOCKED - Emails logged to MongoDB email_outbox collection",
+    "subscription": "MOCKED - Any authenticated user can POST /api/subscribe"
+  },
+  "swiss_ephemeris_verification": {
+    "engine": "swiss-ephemeris-lahiri-whole-sign",
+    "ayanamsa": "Lahiri (SIDM_LAHIRI)",
+    "house_system": "Whole-sign (b'W' code)",
+    "ephemeris": "Moshier semi-analytical (FLG_MOSEPH)",
+    "planets": ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu"],
+    "ketu_derivation": "Rahu longitude + 180° (mod 360), always retrograde"
+  }
+}

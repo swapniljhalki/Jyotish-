@@ -20,7 +20,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from astrology_data import GRAHAS, NAKSHATRAS, get_graha, get_nakshatra
-from kundali import compute_chart
+from kundali import compute_chart_from_local
+from geocode import geocode_place
 from email_service import send_email
 
 # --- logging ---
@@ -503,6 +504,23 @@ def _parse_inputs(body: AstroIn):
     return dob, tob, pob
 
 
+async def _build_chart(body: AstroIn) -> dict:
+    """Geocode place + compute Parashari chart (Swiss Ephemeris, Lahiri, whole-sign)."""
+    dob, tob, pob = _parse_inputs(body)
+    loc = await geocode_place(db, pob)
+    if not loc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Could not locate '{pob}'. Please use a more specific place (e.g. 'Mumbai, India').",
+        )
+    return compute_chart_from_local(
+        dob.year, dob.month, dob.day,
+        tob.hour, tob.minute,
+        loc["lat"], loc["lon"],
+        loc["display_name"],
+    )
+
+
 async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     chat = LlmChat(
@@ -521,8 +539,7 @@ async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
 @api.post("/astrology/basic")
 async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "basic")
-    dob, tob, pob = _parse_inputs(body)
-    chart = compute_chart(dob, tob, pob)
+    chart = await _build_chart(body)
 
     system = (
         "You are an experienced Vedic astrologer (Jyotishi) writing for a modern audience. "
@@ -535,7 +552,7 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
         f"- Name: {body.full_name or 'Seeker'}\n"
         f"- Date of birth: {body.date_of_birth}\n"
         f"- Time of birth: {body.time_of_birth}\n"
-        f"- Place of birth: {pob}\n\n"
+        f"- Place of birth: {body.place_of_birth}\n\n"
         f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']}).\n"
         f"Sun in {next(p['rashi_english'] for p in chart['planets'] if p['code']=='Su')}, "
         f"Moon in {next(p['rashi_english'] for p in chart['planets'] if p['code']=='Mo')}.\n\n"
@@ -570,12 +587,12 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
 @api.post("/astrology/premium")
 async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "premium")
-    dob, tob, pob = _parse_inputs(body)
-    chart = compute_chart(dob, tob, pob)
+    chart = await _build_chart(body)
 
     planet_lines = "\n".join(
         f"- {p['name']}: {p['rashi_english']} ({p['rashi']}) "
-        f"{p['degree']}°, house {p['house']}{' (R)' if p['retrograde'] else ''}"
+        f"{p['degree']}°, house {p['house']}, nakshatra {p.get('nakshatra','—')}"
+        f" pada {p.get('nakshatra_pada','')}{' (R)' if p['retrograde'] else ''}"
         for p in chart["planets"]
     )
 
@@ -588,7 +605,7 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
     user_msg = (
         f"Generate a DETAILED Vedic kundali interpretation.\n\n"
         f"Native: {body.full_name or 'Seeker'}\n"
-        f"DOB: {body.date_of_birth} | TOB: {body.time_of_birth} | POB: {pob}\n"
+        f"DOB: {body.date_of_birth} | TOB: {body.time_of_birth} | POB: {body.place_of_birth}\n"
         f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']})\n\n"
         f"Planetary placements:\n{planet_lines}\n\n"
         f"Write the reading with these sections, each 2–4 sentences:\n"
