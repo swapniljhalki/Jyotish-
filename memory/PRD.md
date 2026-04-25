@@ -52,13 +52,24 @@ Vedic astrology website with 3 pricing tiers:
 - Basic & Premium result cards link into archive with "Open in archive & share →".
 - All 65/65 tests passing (44 prior + 21 new).
 
+## Phase 4 (Feb 18, 2026) — Real Parashari Kundali (Swiss Ephemeris) — ✅ SHIPPED
+- `pyswisseph` (Moshier ephemeris) + `timezonefinder` for accurate sidereal computation.
+- Lahiri ayanamsa (Indian government standard for Parashari Jyotish).
+- Whole-sign houses (Parashari classical method).
+- Ketu auto-derived from Rahu + 180° (always retrograde).
+- Each planet now carries `nakshatra` + `pada` (used in AI prompt for richer interpretation).
+- OpenStreetMap Nominatim geocoding with `db.geocode_cache` (no API keys).
+- 422 with friendly message when place can't be geocoded.
+- Both Basic and Premium tiers use the new compute pipeline.
+- Manually verified: Mumbai 1990-05-15 14:30 → Leo lagna, Sun-Krittika, Saturn+Rahu in Capricorn, Ketu in Cancer.
+- All previous tests still pass (64/65 confirmed; 1 flaky brute-force test = pre-existing test env issue).
+
 ## Prioritised Backlog
 - **P1**: Real email delivery (Resend) — currently mocked
 - **P1**: Real payment (Stripe) — currently mocked
-- **P2**: Swap deterministic kundali math for real Swiss Ephemeris bindings
-- **P2**: Share-image generation (OG card PNG for the `/r/:token` pages → social previews)
-- **P3**: Dasha (planetary periods) calculation & timeline view
-- **P3**: Transit alerts (daily horoscope based on stored chart)
+- **P2**: Auto-generate OG share-card PNG for `/r/:token` (social link previews)
+- **P2**: Vimshottari Dasha (planetary periods) calculation & timeline view
+- **P3**: Transit alerts (daily Gochar based on stored birth chart)
 - **P3**: Multi-lingual support (Hindi / Tamil / Telugu)
 
 ## Test Credentials
