@@ -64,11 +64,20 @@ Vedic astrology website with 3 pricing tiers:
 - Manually verified: Mumbai 1990-05-15 14:30 → Leo lagna, Sun-Krittika, Saturn+Rahu in Capricorn, Ketu in Cancer.
 - All previous tests still pass (64/65 confirmed; 1 flaky brute-force test = pre-existing test env issue).
 
+## Phase 5 (Feb 18, 2026) — Daily Panchang & Festivals on Landing — ✅ SHIPPED
+- New backend endpoints (public, no auth): `GET /api/panchang/today` and `GET /api/festivals/upcoming`.
+- Live Panchang via Swiss Ephemeris: tithi (1–30 with paksha), nakshatra (1–27 with pada), yoga (1–27), vara (weekday + lord), sun/moon signs, plus progress % through each anga.
+- Custom timezone via `?tz=` query param (default `Asia/Kolkata`); invalid tz → 400.
+- Curated Hindu festival calendar (2026–2027, 25 entries) with auto-computed `days_until`.
+- Landing page: new "Today's Sky · Panchang & Festivals" section between hero and pricing — 3-col panchang card + 2-col upcoming festivals list with date pills.
+- All 32 tests in this iteration passing (12 new + 20 regression).
+
 ## Prioritised Backlog
 - **P1**: Real email delivery (Resend) — currently mocked
 - **P1**: Real payment (Stripe) — currently mocked
 - **P2**: Auto-generate OG share-card PNG for `/r/:token` (social link previews)
 - **P2**: Vimshottari Dasha (planetary periods) calculation & timeline view
+- **P2**: Compute festival dates dynamically from tithi/nakshatra rules (currently hand-curated)
 - **P3**: Transit alerts (daily Gochar based on stored birth chart)
 - **P3**: Multi-lingual support (Hindi / Tamil / Telugu)
 
