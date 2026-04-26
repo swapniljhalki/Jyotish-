@@ -1,0 +1,83 @@
+{
+  "summary": "Tested new Panchang & Festivals feature. Backend: Both /api/panchang/today and /api/festivals/upcoming endpoints working correctly with all required fields. Panchang returns tithi (name, index 1-30, paksha, progress), nakshatra (name, index 1-27, pada 1-4, progress), yoga (name, index 1-27, progress), vara (sanskrit, english, lord), sun_sign, moon_sign. Festivals returns date, name, description, days_until, weekday. Custom timezone works, invalid timezone returns 400, limit param clamped 1-20. Frontend: PanchangSection renders correctly with all data-testid attributes. Section appears between hero and pricing. All 12 new backend tests pass, 20 regression tests pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Initial page load",
+        "issue": "Panchang/festivals data takes ~5-10 seconds to load on first visit, showing 'consulting the heavens...' loading state. This is expected behavior but could be improved with skeleton loading.",
+        "affected_selectors": ["[data-testid='panchang-card']", "[data-testid='festivals-card']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_panchang_festivals.py",
+    "/app/backend/tests/test_vedic_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_panchang_festivals.py (new file - 12 tests for panchang/festivals endpoints)"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 new tests + 20 regression tests passed)",
+    "frontend": "100% (11/11 UI elements verified)"
+  },
+  "test_credentials": {
+    "admin": "admin@vedic.com / admin123 (role=admin, tier=premium)"
+  },
+  "seed_data_creation": "None - endpoints are public and use computed/static data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Panchang & Festivals feature fully tested. Key verifications: (1) GET /api/panchang/today returns live Swiss Ephemeris computed data with default Asia/Kolkata timezone, (2) Custom timezone via ?tz= param works, invalid tz returns 400, (3) GET /api/festivals/upcoming returns curated Hindu festivals 2026-2027, (4) limit param clamped 1-20, default 6, (5) Frontend PanchangSection loads data after ~5-10s, all data-testid attributes present, (6) Section positioned between hero and pricing on Landing page.",
+  "features_tested": {
+    "backend": {
+      "GET /api/panchang/today (default tz)": "PASS - Returns date, timezone=Asia/Kolkata, tithi (name, index 1-30, paksha Shukla|Krishna, progress 0-100), nakshatra (name, index 1-27, pada 1-4, progress), yoga (name, index 1-27, progress), vara (sanskrit, english, lord), sun_sign, moon_sign",
+      "GET /api/panchang/today?tz=America/New_York": "PASS - Respects custom timezone, returns different tithi/nakshatra due to time difference",
+      "GET /api/panchang/today?tz=Invalid/Timezone": "PASS - Returns 400 with 'Invalid timezone' error",
+      "GET /api/festivals/upcoming (default)": "PASS - Returns up to 6 festivals with date, name, description, days_until>=0, weekday",
+      "GET /api/festivals/upcoming?limit=4": "PASS - Returns exactly 4 festivals",
+      "GET /api/festivals/upcoming?limit=100": "PASS - Clamped to 20 festivals",
+      "GET /api/festivals/upcoming?limit=0": "PASS - Clamped to 1 festival",
+      "Both endpoints public (no auth)": "PASS - No authentication required"
+    },
+    "frontend": {
+      "data-testid='panchang-section'": "PASS - Section renders between hero and pricing",
+      "data-testid='panchang-card'": "PASS - Contains all panchang sub-fields",
+      "data-testid='panchang-tithi'": "PASS - Shows Dashami, Shukla Paksha, index 10",
+      "data-testid='panchang-nakshatra'": "PASS - Shows Magha, Pada 3",
+      "data-testid='panchang-yoga'": "PASS - Shows Vriddhi, #11",
+      "data-testid='panchang-vara'": "PASS - Shows Ravivara, Sunday, ruled by Surya",
+      "data-testid='panchang-sun'": "PASS - Shows Sun in Aries",
+      "data-testid='panchang-moon'": "PASS - Shows Moon in Leo",
+      "data-testid='festivals-card'": "PASS - Contains upcoming festivals",
+      "data-testid='festivals-list'": "PASS - List of festival rows",
+      "data-testid='festival-row-0'": "PASS - First festival: Akshaya Tritiya, IN 5 DAYS"
+    }
+  },
+  "mocked_apis": {
+    "email_delivery": "MOCKED - Emails logged to MongoDB email_outbox collection",
+    "subscription": "MOCKED - Any authenticated user can POST /api/subscribe"
+  },
+  "panchang_verification": {
+    "date": "2026-04-26",
+    "tithi": "Dashami (Shukla Paksha, index 10, progress 74.3%)",
+    "nakshatra": "Magha (index 10, pada 3, progress 65.5%)",
+    "yoga": "Vriddhi (index 11, progress 54.2%)",
+    "vara": "Ravivara (Sunday, lord Surya)",
+    "sun_sign": "Aries",
+    "moon_sign": "Leo",
+    "engine": "Swiss Ephemeris with Lahiri ayanamsa"
+  },
+  "festivals_verification": {
+    "next_festival": "Akshaya Tritiya (2026-05-01, 5 days away)",
+    "total_festivals_in_list": "20 (2026-2027 Hindu festivals)",
+    "source": "Curated static list (not computed)"
+  }
+}

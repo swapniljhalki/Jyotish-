@@ -22,6 +22,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from astrology_data import GRAHAS, NAKSHATRAS, get_graha, get_nakshatra
 from kundali import compute_chart_from_local
 from geocode import geocode_place
+from panchang import compute_panchang, get_upcoming_festivals
 from email_service import send_email
 
 # --- logging ---
@@ -464,6 +465,20 @@ async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
 @api.get("/grahas")
 async def list_grahas():
     return {"grahas": GRAHAS}
+
+
+@api.get("/panchang/today")
+async def panchang_today(tz: str = "Asia/Kolkata"):
+    try:
+        return compute_panchang(tz_name=tz)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid timezone: {e}")
+
+
+@api.get("/festivals/upcoming")
+async def festivals_upcoming(limit: int = 6):
+    limit = max(1, min(20, limit))
+    return {"festivals": get_upcoming_festivals(limit=limit)}
 
 
 @api.get("/grahas/{graha_id}")

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Sparkles, Star, Moon, Sun, Check, ArrowRight } from "lucide-react";
+import PanchangSection from "../components/PanchangSection";
 
 const tiers = [
   {
@@ -103,6 +104,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* PANCHANG + FESTIVALS */}
+      <PanchangSection />
 
       {/* PRICING */}
       <section className="relative cosmic-bg py-24 md:py-32">
