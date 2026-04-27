@@ -72,14 +72,23 @@ Vedic astrology website with 3 pricing tiers:
 - Landing page: new "Today's Sky · Panchang & Festivals" section between hero and pricing — 3-col panchang card + 2-col upcoming festivals list with date pills.
 - All 32 tests in this iteration passing (12 new + 20 regression).
 
+## Phase 6 (Feb 19, 2026) — Dynamic Drik-aligned Festival Engine — ✅ SHIPPED
+- Replaced curated `_FESTIVALS` array with on-the-fly tithi-rule computation in `compute_festivals_for_range`.
+- Each festival carries a Drik `kala_hour` (sunrise / midday / afternoon / sunset / moonrise / midnight) — the tithi must prevail at THAT hour to qualify.
+- Sankranti rule: Sun must cross the target sidereal rashi BEFORE sunset to celebrate same day, else next day.
+- Tithi-kshaya (skipped tithi) handling for sunrise-based festivals — Sharad Navratri 2027 correctly resolved.
+- Amanta lunar-month rashi tracked via sunrise-tithi-drop detection.
+- All 11 Drik 2026 reference dates match exactly: Makar Sankranti 01-14, Maha Shivaratri 02-15, Holi 03-04, Ram Navami 03-27, Raksha Bandhan 08-28, Krishna Janmashtami 09-04, Ganesh Chaturthi 09-14, Vijayadashami 10-20, Diwali 11-08, Govardhan 11-10, Bhai Dooj 11-11.
+- New parametrized test: `/app/backend/tests/test_dynamic_festivals_2026.py` (16 tests). 64/65 backend tests pass.
+
 ## Prioritised Backlog
 - **P1**: Real email delivery (Resend) — currently mocked
 - **P1**: Real payment (Stripe) — currently mocked
 - **P2**: Auto-generate OG share-card PNG for `/r/:token` (social link previews)
 - **P2**: Vimshottari Dasha (planetary periods) calculation & timeline view
-- **P2**: Compute festival dates dynamically from tithi/nakshatra rules (currently hand-curated)
 - **P3**: Transit alerts (daily Gochar based on stored birth chart)
 - **P3**: Multi-lingual support (Hindi / Tamil / Telugu)
+- **P3**: Investigate flaky brute-force lockout test (state leakage between iterations)
 
 ## Test Credentials
 See `/app/memory/test_credentials.md`.
