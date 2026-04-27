@@ -1,0 +1,88 @@
+{
+  "summary": "Verified the new DYNAMIC festival computation in /app/backend/panchang.py. All 11 Drik-Panchang 2026 reference dates align exactly (Holi=Mar 4, Ram Navami=Mar 27, Raksha Bandhan=Aug 28, Krishna Janmashtami=Sep 4, Ganesh Chaturthi=Sep 14, Vijayadashami=Oct 20, Diwali=Nov 8, Govardhan Puja=Nov 10, Bhai Dooj=Nov 11, Makar Sankranti=Jan 14, Maha Shivaratri=Feb 15). /api/panchang/today and /api/festivals/upcoming endpoints both healthy; regression suites (auth, readings archive, admin) also pass. 64/65 total tests pass — the 1 failure is a pre-existing brute-force-lockout flaky test unrelated to panchang changes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/auth/login (brute force lockout)",
+        "issue": "test_lockout_after_5_failed_attempts expects 429 on 6th bad login but got 401. Pre-existing issue (not caused by panchang changes); likely lockout counter not tripping because account state from prior iterations already altered it, or the lockout path isn't wired to the tested email. Unrelated to current review request."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_dynamic_festivals_2026.py",
+    "/app/backend/tests/test_panchang_festivals.py",
+    "/app/backend/tests/test_vedic_api.py",
+    "/app/backend/tests/test_readings_archive.py",
+    "/app/backend/tests/test_new_auth_features.py",
+    "/app/test_reports/pytest/pytest_results.xml",
+    "/app/test_reports/pytest/pytest_regression.xml"
+  ],
+  "action_items": [
+    "(Optional, not blocking) Investigate pre-existing brute-force lockout test — appears flaky or state-dependent between iterations. Not related to panchang changes."
+  ],
+  "critical_code_review_comments": [
+    "panchang.py: compute_festivals_for_range recomputes compute_panchang many times per day (sunrise/noon/sunset/late and per-festival kala_hour); cold-start 400-day scan takes ~1s. Caching in _festival_cache already mitigates — fine.",
+    "panchang.py L253-254: `if cur_sunrise_t > 1` condition means if cur=1 no kshaya is marked, which is correct (no skipped tithi). Edge logic looks sound.",
+    "panchang.py: Kshaya handling only applies to kala_hour==6 (sunrise-based festivals). Festivals at midday/sunset/midnight won't inherit kshaya fallback — acceptable per Drik convention, but document explicitly.",
+    "server.py L472: HTTPException detail concatenates raw exception. Minor — prefer sanitized message."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_dynamic_festivals_2026.py (NEW — 16 tests: 11 parametrized Drik-date alignment + calendar shape + endpoint sort/monotonic days_until)"
+  ],
+  "success_rate": {
+    "backend": "98.5% (64/65 tests passed; sole failure is pre-existing unrelated brute-force lockout)",
+    "frontend": "N/A (backend-only testing requested)"
+  },
+  "test_credentials": {
+    "admin": "admin@vedic.com / admin123",
+    "user": "testuser@vedic.com / test1234"
+  },
+  "seed_data_creation": "None — panchang/festival endpoints are public and computed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Dynamic festival logic in /app/backend/panchang.py verified against Drik Panchang for 2026 — all 11 reference dates match exactly. New parametrized suite at /app/backend/tests/test_dynamic_festivals_2026.py imports panchang module directly AND hits /api/festivals/upcoming for end-to-end coverage. Run with REACT_APP_BACKEND_URL env var exported. Full 2026 calendar: Makar Sankranti 01-14, Vasant Panchami 01-23, Maha Shivaratri 02-15, Holika Dahan 03-03, Holi 03-04, Ram Navami 03-27, Hanuman Jayanti 04-02, Baisakhi 04-14, Akshaya Tritiya 04-20, Buddha Purnima 05-01, Guru Purnima 07-29, Raksha Bandhan 08-28, Krishna Janmashtami 09-04, Ganesh Chaturthi 09-14, Navratri 10-11, Vijayadashami 10-20, Karwa Chauth 10-29, Dhanteras 11-07, Diwali/Naraka Chaturdashi 11-08, Govardhan 11-10, Bhai Dooj 11-11, Dev Uthani Ekadashi 11-21. Brute-force lockout test intermittent — may need isolation or state reset hook.",
+  "features_verified": {
+    "dynamic_festival_logic": {
+      "drik_2026_alignment_all_11": "PASS (parametrized)",
+      "calendar_is_chronologically_sorted": "PASS",
+      "no_unexpected_duplicates_per_year": "PASS",
+      "compute_festivals_for_range_equals_get_festivals_for_year": "PASS",
+      "kala_hour_rules": "Observed (sunrise/midday/afternoon/sunset/midnight per festival)",
+      "sankranti_sunset_rule": "Verified — Makar Sankranti correctly 01-14 in 2026",
+      "tithi_kshaya_handling": "Code path exists; 2026 results match Drik"
+    },
+    "panchang_endpoint": {
+      "GET /api/panchang/today (default tz)": "PASS",
+      "GET /api/panchang/today?tz=America/New_York": "PASS",
+      "GET /api/panchang/today?tz=Europe/London": "PASS",
+      "GET /api/panchang/today?tz=Invalid/Bad": "PASS (400)",
+      "No-auth public access": "PASS"
+    },
+    "festivals_endpoint": {
+      "GET /api/festivals/upcoming?limit=8 sorted & monotonic": "PASS",
+      "limit clamp [1,20]": "PASS",
+      "all required fields (date,name,description,days_until,weekday)": "PASS",
+      "No-auth public access": "PASS"
+    },
+    "regression_flows": {
+      "JWT login admin@vedic.com/admin123": "PASS",
+      "GET /api/auth/me": "PASS",
+      "POST /api/astrology/basic & /api/astrology/premium": "PASS",
+      "Readings archive GET/POST share/public": "PASS (18 tests)",
+      "Admin GET /api/admin/users, /api/admin/emails, PATCH, DELETE": "PASS",
+      "Registration + verification email + reset flow": "PASS"
+    }
+  },
+  "mocked_apis": {
+    "email_delivery": "MOCKED — emails logged to MongoDB email_outbox",
+    "subscription": "MOCKED — POST /api/subscribe accepts any tier for authenticated users",
+    "google_oauth": "MOCKED via Emergent auth service (not exercised in this run)"
+  },
+  "rca_of_the_issue": "No critical issues. Dynamic festival computation matches Drik Panchang for 2026 across all 11 tested festivals. The single test failure (brute-force lockout) is unrelated to the feature under review and was already flaky in prior iterations — the `alice@vedic.com` account is annotated as 'locked out from prior test' in test_credentials.md, suggesting state leakage between test runs."
+}

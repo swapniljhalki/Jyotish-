@@ -132,28 +132,35 @@ def compute_panchang(target: date | None = None, tz_name: str = "Asia/Kolkata",
 #   Pausha=8 (Sagittarius), Magha=9 (Capricorn), Phalguna=10 (Aquarius)
 
 TITHI_FESTIVALS = [
-    # (name, description, tithi 1..30, lunar_month_rashi)
-    ("Vasant Panchami", "Saraswati puja — invocation of knowledge and the arts.", 5, 9),
-    ("Maha Shivaratri", "The great night of Shiva — fasting, jagran, abhisheka of the lingam.", 29, 9),
-    ("Holika Dahan", "Bonfire on the eve of Holi — the burning of evil.", 15, 10),
-    ("Holi", "The festival of colours — celebrating divine love and the arrival of spring.", 16, 10),
-    ("Ram Navami", "Birth of Lord Rama — the seventh avatar of Vishnu.", 9, 11),
-    ("Hanuman Jayanti", "Birth of Lord Hanuman — the embodiment of devotion and strength.", 15, 11),
-    ("Akshaya Tritiya", "Eternally auspicious day — every action multiplies in merit.", 3, 0),
-    ("Buddha Purnima", "Birth, enlightenment and mahaparinirvana of Gautama Buddha.", 15, 0),
-    ("Guru Purnima", "Honouring the spiritual teacher and Veda Vyasa.", 15, 2),
-    ("Raksha Bandhan", "The sacred thread of protection between siblings.", 15, 3),
-    ("Ganesh Chaturthi", "Arrival of Lord Ganesha — remover of obstacles.", 4, 4),
-    ("Krishna Janmashtami", "Birth of Lord Krishna at midnight in Mathura.", 23, 3),
-    ("Sharad Navratri begins", "Nine nights of the Devi — fasting and goddess worship.", 1, 5),
-    ("Vijayadashami / Dussehra", "Victory of Rama over Ravana — triumph of dharma.", 10, 5),
-    ("Karwa Chauth", "Married women's fast for the long life of their husbands.", 19, 5),
-    ("Dhanteras", "Worship of Dhanvantari and Lakshmi — beginning of Diwali.", 28, 5),
-    ("Naraka Chaturdashi", "Choti Diwali — destruction of the demon Narakasura.", 29, 5),
-    ("Diwali", "Festival of lights — Lakshmi puja, the return of Rama to Ayodhya.", 30, 5),
-    ("Govardhan Puja", "Krishna lifts mount Govardhan — gratitude to nature.", 1, 6),
-    ("Bhai Dooj", "Sisters' tilak for brothers — sacred sibling bond.", 2, 6),
-    ("Tulsi Vivah", "Symbolic marriage of Tulsi to Vishnu — onset of the wedding season.", 11, 6),
+    # (name, description, tithi 1..30, lunar_month_rashi, kala_hour)
+    # kala_hour = local hour at which the festival tithi must prevail (Drik):
+    #   6  = Suryodaya / sunrise (default)
+    #   12 = Madhyahna / midday
+    #   15 = Aparahna / afternoon
+    #   18 = Pradosh / sunset
+    #   20 = Chandrodaya / moonrise (Karwa Chauth)
+    #   23 = Nishita / midnight
+    ("Vasant Panchami", "Saraswati puja — invocation of knowledge and the arts.", 5, 9, 6),
+    ("Maha Shivaratri", "The great night of Shiva — fasting, jagran, abhisheka of the lingam.", 29, 9, 23),
+    ("Holika Dahan", "Bonfire on the eve of Holi — the burning of evil.", 15, 10, 6),
+    ("Holi", "The festival of colours — celebrating divine love and the arrival of spring.", 16, 10, 6),
+    ("Ram Navami", "Birth of Lord Rama — the seventh avatar of Vishnu.", 9, 11, 6),
+    ("Hanuman Jayanti", "Birth of Lord Hanuman — the embodiment of devotion and strength.", 15, 11, 6),
+    ("Akshaya Tritiya", "Eternally auspicious day — every action multiplies in merit.", 3, 0, 6),
+    ("Buddha Purnima", "Birth, enlightenment and mahaparinirvana of Gautama Buddha.", 15, 0, 6),
+    ("Guru Purnima", "Honouring the spiritual teacher and Veda Vyasa.", 15, 2, 6),
+    ("Raksha Bandhan", "The sacred thread of protection between siblings.", 15, 3, 6),
+    ("Krishna Janmashtami", "Birth of Lord Krishna at midnight in Mathura.", 23, 3, 23),
+    ("Ganesh Chaturthi", "Arrival of Lord Ganesha — remover of obstacles.", 4, 4, 12),
+    ("Sharad Navratri begins", "Nine nights of the Devi — fasting and goddess worship.", 1, 5, 6),
+    ("Vijayadashami / Dussehra", "Victory of Rama over Ravana — triumph of dharma.", 10, 5, 15),
+    ("Karwa Chauth", "Married women's fast for the long life of their husbands.", 19, 5, 20),
+    ("Dhanteras", "Worship of Dhanvantari and Lakshmi — beginning of Diwali.", 28, 5, 6),
+    ("Naraka Chaturdashi", "Choti Diwali — destruction of the demon Narakasura.", 29, 5, 6),
+    ("Diwali", "Festival of lights — Lakshmi puja, the return of Rama to Ayodhya.", 30, 5, 18),
+    ("Govardhan Puja", "Krishna lifts mount Govardhan — gratitude to nature.", 1, 6, 6),
+    ("Bhai Dooj", "Sisters' tilak for brothers — sacred sibling bond.", 2, 6, 6),
+    ("Dev Uthani Ekadashi", "Vishnu awakens; Tulsi Vivah season begins.", 11, 6, 6),
 ]
 
 # Solar (sankranti) festivals: triggered when Sun enters a specific sidereal rashi
@@ -173,23 +180,16 @@ _SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
           "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
 
 
-def _tithi_in_day_window(d: date, target_tithi: int,
-                         tz_name: str = "Asia/Kolkata") -> bool:
-    """True if `target_tithi` (1..30) prevails at any time during local day `d`,
-    using the Drik convention that the day's tithi covers from sunrise (~06:00)
-    to next sunrise."""
-    t_start = compute_panchang(d, tz_name=tz_name, hour=6)["tithi"]["index"]
-    t_end = compute_panchang(d + timedelta(days=1), tz_name=tz_name, hour=6)["tithi"]["index"]
-    if t_start == t_end:
-        return target_tithi == t_start
-    if t_start < t_end:
-        return t_start <= target_tithi <= t_end
-    # t_start > t_end → wraparound (e.g. 30 → 1 → 2)
-    return target_tithi >= t_start or target_tithi <= t_end
-
-
 def _sunrise_tithi(d: date, tz_name: str = "Asia/Kolkata") -> int:
     return compute_panchang(d, tz_name=tz_name, hour=6)["tithi"]["index"]
+
+
+def _tithi_at(d: date, hour: int, tz_name: str = "Asia/Kolkata") -> int:
+    return compute_panchang(d, tz_name=tz_name, hour=hour)["tithi"]["index"]
+
+
+def _sun_rashi_at(d: date, hour: int, tz_name: str = "Asia/Kolkata") -> int:
+    return _SIGNS.index(compute_panchang(d, tz_name=tz_name, hour=hour)["sun_sign"])
 
 
 def compute_festivals_for_range(start: date, end: date,
@@ -229,8 +229,7 @@ def compute_festivals_for_range(start: date, end: date,
 
     d = start
     while d <= end:
-        p = compute_panchang(d, tz_name=tz_name)
-        sun_rashi = _SIGNS.index(p["sun_sign"])
+        sun_rashi_sunrise = _sun_rashi_at(d, 6, tz_name=tz_name)
         cur_sunrise_t = _sunrise_tithi(d, tz_name=tz_name)
 
         # New Amanta lunar month: today's sunrise tithi is LESS than yesterday's
@@ -238,32 +237,60 @@ def compute_festivals_for_range(start: date, end: date,
         # crossing). We read Sun rashi from YESTERDAY's noon, which is closer
         # to the actual Amavasya/Pratipada moment and gives correct lunar-month
         # names in Adhik Mas (leap month) years where Sun is on a rashi boundary.
-        if prev_sunrise_tithi is not None and cur_sunrise_t < prev_sunrise_tithi:
-            yesterday_sun = compute_panchang(d - timedelta(days=1), tz_name=tz_name)["sun_sign"]
-            current_lunar_month_rashi = _SIGNS.index(yesterday_sun)
+        yesterday_sunrise_t = prev_sunrise_tithi
+        if yesterday_sunrise_t is not None and cur_sunrise_t < yesterday_sunrise_t:
+            current_lunar_month_rashi = _sun_rashi_at(d - timedelta(days=1), 12, tz_name=tz_name)
         prev_sunrise_tithi = cur_sunrise_t
 
-        # Tithi-based festivals: window check + lunar month must match
+        # Tithi-based festivals: tithi must prevail at the festival's Drik kala
+        # hour. Kshaya tithi (skipped — never visible at sunrise of any day) is
+        # observed on the day where the missing tithi *would have* started.
         if current_lunar_month_rashi is not None:
-            for name, desc, target_tithi, target_lm in TITHI_FESTIVALS:
+            kshaya_set: set[int] = set()
+            if yesterday_sunrise_t is not None:
+                # Wraparound at new moon: prev=30, cur=2 → tithi 1 was kshaya
+                if cur_sunrise_t < yesterday_sunrise_t:
+                    if cur_sunrise_t > 1:
+                        kshaya_set.update(range(1, cur_sunrise_t))
+                # Mid-month skip: prev=10, cur=12 → tithi 11 was kshaya
+                elif cur_sunrise_t - yesterday_sunrise_t > 1:
+                    kshaya_set.update(range(yesterday_sunrise_t + 1, cur_sunrise_t))
+
+            for name, desc, target_tithi, target_lm, kala_hour in TITHI_FESTIVALS:
                 if target_lm != current_lunar_month_rashi:
                     continue
-                if not _tithi_in_day_window(d, target_tithi, tz_name=tz_name):
+                match = _tithi_at(d, kala_hour, tz_name=tz_name) == target_tithi
+                if not match and kala_hour == 6 and target_tithi in kshaya_set:
+                    match = True  # kshaya tithi rule for sunrise-based festivals
+                if not match:
                     continue
                 key = (name, d.year)
                 if key not in seen:
                     seen.add(key)
                     found.append({"date": d.isoformat(), "name": name, "description": desc})
 
-        # Sankranti — captured on day Sun crosses into a target rashi
-        if sun_prev_rashi is not None and sun_prev_rashi != sun_rashi:
+        # Sankranti — Sun's sidereal rashi changes during the day. Drik rule:
+        # if Sun crosses BEFORE sunset (~18:00 IST), celebrate same day; else next.
+        if sun_prev_rashi is not None:
+            sun_eod = _sun_rashi_at(d, 18, tz_name=tz_name)  # at sunset
+            sun_late = _sun_rashi_at(d, 23, tz_name=tz_name)  # late evening
+
             for name, desc, target_rashi in SANKRANTI_FESTIVALS:
-                if sun_rashi == target_rashi:
+                # Crossing before sunset on day d → today
+                if sun_rashi_sunrise != target_rashi and sun_eod == target_rashi:
                     key = (name, d.year)
                     if key not in seen:
                         seen.add(key)
                         found.append({"date": d.isoformat(), "name": name, "description": desc})
-        sun_prev_rashi = sun_rashi
+                # Crossing AFTER sunset on day d → tomorrow
+                elif sun_eod != target_rashi and sun_late == target_rashi:
+                    nxt = d + timedelta(days=1)
+                    if nxt <= end:
+                        key = (name, nxt.year)
+                        if key not in seen:
+                            seen.add(key)
+                            found.append({"date": nxt.isoformat(), "name": name, "description": desc})
+        sun_prev_rashi = sun_rashi_sunrise
         d += timedelta(days=1)
 
     # Fixed Gregorian-date festivals
