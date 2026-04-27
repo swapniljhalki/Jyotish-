@@ -81,6 +81,13 @@ Vedic astrology website with 3 pricing tiers:
 - All 11 Drik 2026 reference dates match exactly: Makar Sankranti 01-14, Maha Shivaratri 02-15, Holi 03-04, Ram Navami 03-27, Raksha Bandhan 08-28, Krishna Janmashtami 09-04, Ganesh Chaturthi 09-14, Vijayadashami 10-20, Diwali 11-08, Govardhan 11-10, Bhai Dooj 11-11.
 - New parametrized test: `/app/backend/tests/test_dynamic_festivals_2026.py` (16 tests). 64/65 backend tests pass.
 
+## Phase 7 (Feb 19, 2026) — Vedic Numerology — ✅ SHIPPED
+- New module `/app/backend/numerology.py` — Mulank (root), Bhagyank (destiny), Naamank (Chaldean name) with planet, traits, gemstone, mantra, lucky days/colours/numbers, career & challenges per number 1–9.
+- New endpoints: `POST /api/numerology` (public, calculation only) and `POST /api/numerology/reading` (premium-only, Claude Sonnet 4.5 ~250-word reading weaving all three numbers).
+- New page `/numerology` with form + 3 NumberCards + tier-aware AI reading section.
+- Navbar link between Nakshatras and Basic Reading.
+- 13/13 backend tests pass; full frontend flow verified.
+
 ## Prioritised Backlog
 - **P1**: Real email delivery (Resend) — currently mocked
 - **P1**: Real payment (Stripe) — currently mocked
