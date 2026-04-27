@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import KundaliChart from "../components/KundaliChart";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -43,11 +43,16 @@ export default function PublicReading() {
       {/* Minimal top bar */}
       <div className="border-b border-[rgba(212,175,55,0.15)] bg-[#0A0D14]/90 backdrop-blur">
         <div className="max-w-5xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group">
-            <Sparkles className="h-5 w-5 text-[#FFD700]" />
-            <span className="font-heading text-2xl">
-              <span className="text-gold-gradient font-semibold">Jyotish</span>
-              <span className="text-zinc-400"> • Vedic</span>
+          <Link to="/" className="flex items-center gap-3 group">
+            <img
+              src="/snw-logo.jpg"
+              alt="Satish Numero World"
+              className="h-9 w-9 rounded-full object-cover ring-1 ring-[rgba(212,175,55,0.4)]"
+            />
+            <span className="font-heading text-xl md:text-2xl">
+              <span className="text-gold-gradient font-semibold">Satish</span>
+              <span className="text-zinc-200"> Numero</span>
+              <span className="text-zinc-400"> World</span>
             </span>
           </Link>
           <Link to="/register">

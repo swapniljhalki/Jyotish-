@@ -7,7 +7,14 @@ export default function Footer() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-zinc-400">
           <div>
-            <h4 className="font-heading text-lg text-[#FFD700] mb-3">Jyotish • Vedic</h4>
+            <div className="flex items-center gap-3 mb-3">
+              <img
+                src="/snw-logo.jpg"
+                alt="Satish Numero World"
+                className="h-10 w-10 rounded-full object-cover ring-1 ring-[rgba(212,175,55,0.4)]"
+              />
+              <h4 className="font-heading text-lg text-[#FFD700] leading-tight">Satish Numero World</h4>
+            </div>
             <p className="font-body leading-relaxed">
               Ancient sidereal wisdom, read through a modern lens. Charts computed deterministically;
               interpretations offered as guidance — not destiny.
@@ -30,7 +37,7 @@ export default function Footer() {
           </div>
         </div>
         <p className="mt-10 text-xs text-zinc-600 font-body text-center">
-          © {new Date().getFullYear()} Jyotish Vedic. All sacred rights reserved.
+          © {new Date().getFullYear()} Satish Numero World. All sacred rights reserved.
         </p>
       </div>
     </footer>
