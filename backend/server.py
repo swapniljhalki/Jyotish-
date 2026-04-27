@@ -23,6 +23,7 @@ from astrology_data import GRAHAS, NAKSHATRAS, get_graha, get_nakshatra
 from kundali import compute_chart_from_local
 from geocode import geocode_place
 from panchang import compute_panchang, get_upcoming_festivals
+from numerology import compute_numerology
 from email_service import send_email
 
 # --- logging ---
@@ -479,6 +480,61 @@ async def panchang_today(tz: str = "Asia/Kolkata"):
 async def festivals_upcoming(limit: int = 6):
     limit = max(1, min(20, limit))
     return {"festivals": get_upcoming_festivals(limit=limit)}
+
+
+# --- Numerology (calculation: free / public; AI reading: premium-only) ---
+class NumerologyIn(BaseModel):
+    full_name: str
+    date_of_birth: str  # YYYY-MM-DD
+
+
+def _parse_dob(dob_str: str) -> date_type:
+    try:
+        return date_type.fromisoformat(dob_str)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="date_of_birth must be YYYY-MM-DD")
+
+
+@api.post("/numerology")
+async def numerology_calc(body: NumerologyIn):
+    name = (body.full_name or "").strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="full_name is required")
+    return compute_numerology(_parse_dob(body.date_of_birth), name)
+
+
+@api.post("/numerology/reading")
+async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_current_user)):
+    require_tier(user, "premium")
+    name = (body.full_name or "").strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="full_name is required")
+    profile = compute_numerology(_parse_dob(body.date_of_birth), name)
+
+    system = (
+        "You are a Vedic numerologist (ank-jyotishi) writing a personal reading for a modern "
+        "audience. Use a warm, encouraging but honest tone. Reference traditional terminology "
+        "(Mulank, Bhagyank, Naamank, ruling graha) with brief translations. Aim for ~250 words "
+        "in 4 short sections with Markdown headings."
+    )
+    user_msg = (
+        f"Provide a Vedic numerology reading for:\n"
+        f"- Name: {name}\n"
+        f"- Date of birth: {body.date_of_birth}\n\n"
+        f"Mulank (Root): {profile['mulank']['number']} — ruled by {profile['mulank']['planet']} "
+        f"({profile['mulank']['planet_english']}).\n"
+        f"Bhagyank (Destiny): {profile['bhagyank']['number']} — ruled by {profile['bhagyank']['planet']} "
+        f"({profile['bhagyank']['planet_english']}).\n"
+        f"Naamank (Name): {profile['naamank']['number']} — ruled by "
+        f"{profile['naamank'].get('planet','—')} "
+        f"({profile['naamank'].get('planet_english','—')}).\n\n"
+        f"Cover, with brief Markdown headings: (1) Core nature from Mulank, "
+        f"(2) Life path & destiny from Bhagyank, (3) Public/professional vibration from "
+        f"Naamank, (4) One practical remedial mantra/colour/day to harmonise these vibrations."
+    )
+    advice = await _ask_claude(system, user_msg, f"numerology-{user['id']}")
+
+    return {**profile, "advice": advice}
 
 
 @api.get("/grahas/{graha_id}")

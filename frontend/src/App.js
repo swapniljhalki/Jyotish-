@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Grahas from "./pages/Grahas";
 import Nakshatras from "./pages/Nakshatras";
+import Numerology from "./pages/Numerology";
 import BasicTier from "./pages/BasicTier";
 import PremiumTier from "./pages/PremiumTier";
 import Pricing from "./pages/Pricing";
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/grahas" element={<Shell><Grahas /></Shell>} />
       <Route path="/nakshatras" element={<Shell><Nakshatras /></Shell>} />
+      <Route path="/numerology" element={<Shell><Numerology /></Shell>} />
       <Route path="/pricing" element={<Shell><Pricing /></Shell>} />
       <Route path="/basic" element={<Shell><ProtectedRoute><BasicTier /></ProtectedRoute></Shell>} />
       <Route path="/premium" element={<Shell><ProtectedRoute><PremiumTier /></ProtectedRoute></Shell>} />

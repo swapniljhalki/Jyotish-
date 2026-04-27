@@ -6,6 +6,7 @@ import { Sparkles, LogOut, User as UserIcon } from "lucide-react";
 const navItems = [
   { to: "/grahas", label: "Grahas" },
   { to: "/nakshatras", label: "Nakshatras" },
+  { to: "/numerology", label: "Numerology" },
   { to: "/basic", label: "Basic Reading" },
   { to: "/premium", label: "Premium Kundali" },
   { to: "/readings", label: "My Readings", authOnly: true },
