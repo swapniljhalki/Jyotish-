@@ -88,6 +88,14 @@ Vedic astrology website with 3 pricing tiers:
 - Navbar link between Nakshatras and Basic Reading.
 - 13/13 backend tests pass; full frontend flow verified.
 
+## Phase 8 (Feb 19, 2026) — Daily Rashifal Tile — ✅ SHIPPED
+- New module `/app/backend/rashifal.py` — single batched Claude call generates 12 forecasts (~50 words each) seeded with today's panchang. Cached in-memory by (date, tz) so subsequent calls cost zero LLM credits.
+- Deterministic offline `_fallback_forecasts` keeps the tile usable if the LLM is unavailable.
+- New endpoint: `GET /api/rashifal/today?tz=...` (public).
+- New component `/app/frontend/src/components/RashifalTile.jsx` — 12 rashi pills, default selection = today's Moon-rashi, click-to-switch forecast view with theme + lucky colour + lucky number.
+- Wired into `PanchangSection` as a full-width tile below panchang + festivals.
+- 6/6 backend tests + full frontend Playwright flow verified.
+
 ## Prioritised Backlog
 - **P1**: Real email delivery (Resend) — currently mocked
 - **P1**: Real payment (Stripe) — currently mocked
