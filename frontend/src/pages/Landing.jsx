@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Sparkles, Star, Moon, Sun, Check, ArrowRight } from "lucide-react";
 import PanchangSection from "../components/PanchangSection";
+import RashifalTile from "../components/RashifalTile";
 
 const tiers = [
   {
@@ -62,44 +63,52 @@ export default function Landing() {
         <div className="absolute inset-0 starfield opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A0D14]/40 to-[#0A0D14]" />
 
-        <div className="relative max-w-7xl mx-auto px-6 md:px-12 py-28 md:py-40">
-          <div className="max-w-3xl fade-up">
-            <div className="mandala-border inline-flex items-center gap-2 text-[#D4AF37] mb-8">
-              <span className="font-accent text-[10px]">Sidereal Vedic Jyotish</span>
-            </div>
-            <h1 className="font-heading text-5xl md:text-7xl font-medium leading-[1.05] tracking-tight text-zinc-50" data-testid="hero-title">
-              The ancient sky,<br />
-              <span className="text-gold-gradient italic">read for you.</span>
-            </h1>
-            <p className="mt-8 text-lg text-zinc-300 font-body leading-relaxed max-w-xl">
-              Three doors into the wisdom of Jyotish — the sacred science of light.
-              Learn the grahas, meet your nakshatra, or receive a full kundali interpretation
-              crafted by AI in the voice of a classical astrologer.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <Link to={user ? "/basic" : "/register"} data-testid="hero-cta-primary">
-                <button className="btn-saffron">
-                  Cast a Reading <ArrowRight className="h-4 w-4" />
-                </button>
-              </Link>
-              <Link to="/grahas" data-testid="hero-cta-secondary">
-                <button className="px-8 py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body">
-                  Explore Free Wisdom
-                </button>
-              </Link>
+        <div className="relative max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+            {/* Hero copy — left */}
+            <div className="lg:col-span-7 fade-up">
+              <div className="mandala-border inline-flex items-center gap-2 text-[#D4AF37] mb-8">
+                <span className="font-accent text-[10px]">Sidereal Vedic Jyotish</span>
+              </div>
+              <h1 className="font-heading text-5xl md:text-7xl font-medium leading-[1.05] tracking-tight text-zinc-50" data-testid="hero-title">
+                The ancient sky,<br />
+                <span className="text-gold-gradient italic">read for you.</span>
+              </h1>
+              <p className="mt-8 text-lg text-zinc-300 font-body leading-relaxed max-w-xl">
+                Three doors into the wisdom of Jyotish — the sacred science of light.
+                Learn the grahas, meet your nakshatra, or receive a full kundali interpretation
+                crafted by AI in the voice of a classical astrologer.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Link to={user ? "/basic" : "/register"} data-testid="hero-cta-primary">
+                  <button className="btn-saffron">
+                    Cast a Reading <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+                <Link to="/grahas" data-testid="hero-cta-secondary">
+                  <button className="px-8 py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body">
+                    Explore Free Wisdom
+                  </button>
+                </Link>
+              </div>
+
+              <div className="mt-16 grid grid-cols-3 gap-6 max-w-xl">
+                {[
+                  { icon: Sun, label: "9 Grahas" },
+                  { icon: Moon, label: "27 Nakshatras" },
+                  { icon: Star, label: "12 Bhavas" },
+                ].map(({ icon: Icon, label }, i) => (
+                  <div key={label} className={`flex items-center gap-3 fade-up delay-${(i + 1) * 100}`}>
+                    <Icon className="h-5 w-5 text-[#FFD700]" />
+                    <span className="font-accent text-[11px] text-zinc-400">{label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="mt-16 grid grid-cols-3 gap-6 max-w-xl">
-              {[
-                { icon: Sun, label: "9 Grahas" },
-                { icon: Moon, label: "27 Nakshatras" },
-                { icon: Star, label: "12 Bhavas" },
-              ].map(({ icon: Icon, label }, i) => (
-                <div key={label} className={`flex items-center gap-3 fade-up delay-${(i + 1) * 100}`}>
-                  <Icon className="h-5 w-5 text-[#FFD700]" />
-                  <span className="font-accent text-[11px] text-zinc-400">{label}</span>
-                </div>
-              ))}
+            {/* Daily Rashifal — top right */}
+            <div className="lg:col-span-5 lg:sticky lg:top-24">
+              <RashifalTile compact />
             </div>
           </div>
         </div>
