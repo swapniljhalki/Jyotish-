@@ -24,6 +24,7 @@ from kundali import compute_chart_from_local
 from geocode import geocode_place
 from panchang import compute_panchang, get_upcoming_festivals
 from numerology import compute_numerology
+from rashifal import get_daily_rashifal
 from email_service import send_email
 
 # --- logging ---
@@ -480,6 +481,15 @@ async def panchang_today(tz: str = "Asia/Kolkata"):
 async def festivals_upcoming(limit: int = 6):
     limit = max(1, min(20, limit))
     return {"festivals": get_upcoming_festivals(limit=limit)}
+
+
+@api.get("/rashifal/today")
+async def rashifal_today(tz: str = "Asia/Kolkata"):
+    try:
+        panchang = compute_panchang(tz_name=tz)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid timezone: {e}")
+    return await get_daily_rashifal(panchang, tz_name=tz)
 
 
 # --- Numerology (calculation: free / public; AI reading: premium-only) ---

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 import { Sparkles, Calendar, Sun, Moon } from "lucide-react";
+import RashifalTile from "./RashifalTile";
 
 function ProgressBar({ value }) {
   return (
@@ -135,6 +136,9 @@ export default function PanchangSection() {
               </ul>
             )}
           </div>
+
+          {/* Rashifal — full row spanning 5 cols below */}
+          <RashifalTile />
         </div>
       </div>
     </section>
