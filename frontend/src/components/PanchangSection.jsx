@@ -20,7 +20,7 @@ export default function PanchangSection() {
 
   useEffect(() => {
     api.get("/panchang/today").then((r) => setP(r.data)).catch(() => {});
-    api.get("/festivals/upcoming?limit=5").then((r) => setFestivals(r.data.festivals)).catch(() => {});
+    api.get("/festivals/upcoming?limit=8").then((r) => setFestivals(r.data.festivals)).catch(() => {});
   }, []);
 
   return (
@@ -36,9 +36,9 @@ export default function PanchangSection() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-8">
-          {/* Panchang card — 3 cols */}
-          <div className="lg:col-span-3 premium-card p-8 fade-up" data-testid="panchang-card">
+        <div className="grid lg:grid-cols-1 gap-8">
+          {/* Combined Panchang + Festivals card — full width */}
+          <div className="premium-card p-8 fade-up" data-testid="panchang-card">
             {p ? (
               <>
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
@@ -51,7 +51,7 @@ export default function PanchangSection() {
                   <span className="text-[10px] font-accent text-zinc-500">{p.timezone}</span>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6">
                   <div data-testid="panchang-tithi">
                     <div className="font-accent text-[10px] text-zinc-500 mb-1">Tithi</div>
                     <div className="font-heading text-2xl text-[#FFD700]">{p.tithi.name}</div>
@@ -73,7 +73,7 @@ export default function PanchangSection() {
                   <div data-testid="panchang-vara">
                     <div className="font-accent text-[10px] text-zinc-500 mb-1">Vara</div>
                     <div className="font-heading text-2xl text-zinc-100">{p.vara.sanskrit}</div>
-                    <div className="text-xs text-zinc-400 font-body italic">{p.vara.english} · ruled by {p.vara.lord}</div>
+                    <div className="text-xs text-zinc-400 font-body italic">{p.vara.english}</div>
                   </div>
                   <div className="flex items-center gap-2" data-testid="panchang-sun">
                     <Sun className="h-5 w-5 text-[#FF9933]" />
@@ -90,6 +90,54 @@ export default function PanchangSection() {
                     </div>
                   </div>
                 </div>
+
+                {/* Divider between panchang and festivals */}
+                <div className="my-8 ornate-divider">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    <Calendar className="inline h-3 w-3 mr-1.5 -mt-0.5" />
+                    Upcoming Festivals
+                  </span>
+                </div>
+
+                {/* Horizontal festival strip */}
+                {festivals.length === 0 ? (
+                  <div className="text-zinc-500 font-body text-sm italic text-center py-4">
+                    No festivals on the horizon.
+                  </div>
+                ) : (
+                  <div
+                    className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 snap-x snap-mandatory scrollbar-thin"
+                    data-testid="festivals-list"
+                  >
+                    {festivals.map((f, i) => (
+                      <div
+                        key={f.date}
+                        className="flex-shrink-0 w-64 snap-start glass-card p-5 fade-up hover:-translate-y-1 hover:border-[#FF9933] transition-all"
+                        style={{ animationDelay: `${i * 60}ms` }}
+                        data-testid={`festival-row-${i}`}
+                      >
+                        <div className="flex items-baseline gap-3 mb-2">
+                          <div className="flex-shrink-0 text-center">
+                            <div className="font-accent text-[10px] text-[#D4AF37]">
+                              {new Date(f.date).toLocaleDateString("en-IN", { month: "short" }).toUpperCase()}
+                            </div>
+                            <div className="font-heading text-3xl text-[#FFD700] leading-none">
+                              {new Date(f.date).getDate()}
+                            </div>
+                            <div className="text-[9px] font-body text-zinc-500 mt-1">{f.weekday.slice(0, 3)}</div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-heading text-base text-zinc-50 leading-tight line-clamp-2">{f.name}</div>
+                            <div className="text-[10px] font-accent text-[#FF9933] mt-1">
+                              {f.days_until === 0 ? "TODAY" : `IN ${f.days_until} DAY${f.days_until === 1 ? "" : "S"}`}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-zinc-400 font-body line-clamp-2">{f.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             ) : (
               <div className="font-accent text-xs text-[#D4AF37] animate-pulse text-center py-12">
@@ -98,46 +146,7 @@ export default function PanchangSection() {
             )}
           </div>
 
-          {/* Festivals — 2 cols */}
-          <div className="lg:col-span-2 glass-card p-8 fade-up delay-100" data-testid="festivals-card">
-            <div className="flex items-center gap-2 mb-6">
-              <Calendar className="h-4 w-4 text-[#D4AF37]" />
-              <span className="font-accent text-xs text-[#D4AF37]">Upcoming Festivals</span>
-            </div>
-            {festivals.length === 0 ? (
-              <div className="text-zinc-500 font-body text-sm italic">No festivals on the horizon.</div>
-            ) : (
-              <ul className="space-y-4" data-testid="festivals-list">
-                {festivals.map((f, i) => (
-                  <li
-                    key={f.date}
-                    className="flex gap-4 pb-4 border-b border-[rgba(212,175,55,0.1)] last:border-0 last:pb-0 fade-up"
-                    style={{ animationDelay: `${i * 80}ms` }}
-                    data-testid={`festival-row-${i}`}
-                  >
-                    <div className="flex-shrink-0 w-14 text-center">
-                      <div className="font-accent text-[10px] text-[#D4AF37]">
-                        {new Date(f.date).toLocaleDateString("en-IN", { month: "short" }).toUpperCase()}
-                      </div>
-                      <div className="font-heading text-2xl text-[#FFD700] leading-none">
-                        {new Date(f.date).getDate()}
-                      </div>
-                      <div className="text-[9px] font-body text-zinc-500 mt-1">{f.weekday.slice(0, 3)}</div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-heading text-lg text-zinc-50 leading-tight">{f.name}</div>
-                      <p className="text-xs text-zinc-400 font-body mt-1 line-clamp-2">{f.description}</p>
-                      <div className="text-[10px] font-accent text-zinc-500 mt-1">
-                        {f.days_until === 0 ? "TODAY" : `IN ${f.days_until} DAY${f.days_until === 1 ? "" : "S"}`}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Rashifal — full row spanning 5 cols below */}
+          {/* Rashifal — full width below */}
           <RashifalTile />
         </div>
       </div>
