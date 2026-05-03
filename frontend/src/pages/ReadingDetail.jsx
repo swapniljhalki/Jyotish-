@@ -124,7 +124,7 @@ export default function ReadingDetail() {
             <div className="space-y-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Kundali</span>
+                  <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
                 </div>
                 <KundaliChart chart={r.chart} />
                 <div className="mt-4 text-center">

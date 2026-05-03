@@ -65,7 +65,7 @@ export default function PremiumTier() {
             <div className="space-y-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Kundali Chart</span>
+                  <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
                 </div>
                 <KundaliChart chart={result.chart} />
                 <div className="mt-4 text-center">
