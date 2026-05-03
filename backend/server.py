@@ -839,6 +839,33 @@ async def admin_list_emails(admin: dict = Depends(require_admin)):
     return {"emails": emails}
 
 
+@admin_api.get("/readings")
+async def admin_list_readings(admin: dict = Depends(require_admin)):
+    """List all readings across all users (admin view)."""
+    readings = await db.readings.find({}, {"_id": 0, "advice": 0}).sort("created_at", -1).to_list(1000)
+    user_ids = list({r["user_id"] for r in readings if r.get("user_id")})
+    users_cursor = db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1, "email": 1, "name": 1})
+    users_by_id = {u["id"]: u async for u in users_cursor}
+    for r in readings:
+        u = users_by_id.get(r.get("user_id"), {})
+        r["user_email"] = u.get("email")
+        r["user_name"] = u.get("name")
+    return {"readings": readings}
+
+
+@admin_api.get("/readings/{reading_id}")
+async def admin_get_reading(reading_id: str, admin: dict = Depends(require_admin)):
+    """Fetch a single reading (admin, cross-user) including the full advice."""
+    r = await db.readings.find_one({"id": reading_id}, {"_id": 0})
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    user = await db.users.find_one({"id": r.get("user_id")}, {"_id": 0, "email": 1, "name": 1})
+    if user:
+        r["user_email"] = user.get("email")
+        r["user_name"] = user.get("name")
+    return r
+
+
 # --- startup ---
 @app.on_event("startup")
 async def startup_event():
@@ -864,29 +891,39 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"email_verification_tokens index: {e}")
 
+    # Primary admin
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@vedic.com")
     admin_pw = os.environ.get("ADMIN_PASSWORD", "admin123")
-    existing = await db.users.find_one({"email": admin_email})
+    await _seed_admin(admin_email, admin_pw, "Admin")
+
+    # Separate readings-admin — dedicated reviewer account
+    readings_admin_email = os.environ.get("READINGS_ADMIN_EMAIL", "readings-admin@vedic.com")
+    readings_admin_pw = os.environ.get("READINGS_ADMIN_PASSWORD", "readings123")
+    await _seed_admin(readings_admin_email, readings_admin_pw, "Readings Admin")
+
+
+async def _seed_admin(email: str, password: str, name: str):
+    existing = await db.users.find_one({"email": email})
     if not existing:
         await db.users.insert_one({
-            "id": str(uuid.uuid4()), "email": admin_email, "name": "Admin",
-            "password_hash": hash_password(admin_pw),
+            "id": str(uuid.uuid4()), "email": email, "name": name,
+            "password_hash": hash_password(password),
             "tier": "premium", "role": "admin",
             "email_verified": True, "auth_provider": "email",
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
-        logger.info(f"Admin user seeded: {admin_email}")
-    else:
-        # Ensure existing admin has role + email_verified (backfill for older users)
-        updates = {}
-        if existing.get("role") != "admin":
-            updates["role"] = "admin"
-        if not existing.get("email_verified"):
-            updates["email_verified"] = True
-        if "auth_provider" not in existing:
-            updates["auth_provider"] = "email"
-        if updates:
-            await db.users.update_one({"id": existing["id"]}, {"$set": updates})
+        logger.info(f"Admin user seeded: {email}")
+        return
+    # Backfill: ensure role=admin + email_verified
+    updates = {}
+    if existing.get("role") != "admin":
+        updates["role"] = "admin"
+    if not existing.get("email_verified"):
+        updates["email_verified"] = True
+    if "auth_provider" not in existing:
+        updates["auth_provider"] = "email"
+    if updates:
+        await db.users.update_one({"id": existing["id"]}, {"$set": updates})
 
 
 @app.on_event("shutdown")

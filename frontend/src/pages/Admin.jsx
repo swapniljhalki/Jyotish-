@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Button } from "../components/ui/button";
-import { Trash2, Mail, Users as UsersIcon } from "lucide-react";
+import { Trash2, Mail, Users as UsersIcon, BookOpen } from "lucide-react";
 
 export default function Admin() {
   const { user, loading } = useAuth();
   const [users, setUsers] = useState([]);
   const [emails, setEmails] = useState([]);
+  const [readings, setReadings] = useState([]);
+  const [readingDetail, setReadingDetail] = useState(null);
   const [err, setErr] = useState("");
 
   const loadUsers = async () => {
@@ -27,9 +29,25 @@ export default function Admin() {
       setEmails(data.emails);
     } catch (e) { setErr(formatApiError(e.response?.data?.detail) || e.message); }
   };
+  const loadReadings = async () => {
+    try {
+      const { data } = await api.get("/admin/readings");
+      setReadings(data.readings);
+    } catch (e) { setErr(formatApiError(e.response?.data?.detail) || e.message); }
+  };
+  const openReading = async (id) => {
+    try {
+      const { data } = await api.get(`/admin/readings/${id}`);
+      setReadingDetail(data);
+    } catch (e) { toast.error(formatApiError(e.response?.data?.detail) || e.message); }
+  };
 
   useEffect(() => {
-    if (user?.role === "admin") { loadUsers(); loadEmails(); }
+    if (user?.role === "admin") {
+      loadUsers();
+      loadEmails();
+      loadReadings();
+    }
   }, [user]);
 
   if (loading || user === null) return null;
@@ -67,6 +85,9 @@ export default function Admin() {
           <TabsList className="bg-[#121824] border border-[rgba(212,175,55,0.2)]">
             <TabsTrigger value="users" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-users">
               <UsersIcon className="h-4 w-4 mr-2" /> Users ({users.length})
+            </TabsTrigger>
+            <TabsTrigger value="readings" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-readings">
+              <BookOpen className="h-4 w-4 mr-2" /> All Readings ({readings.length})
             </TabsTrigger>
             <TabsTrigger value="emails" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-emails">
               <Mail className="h-4 w-4 mr-2" /> Email Outbox ({emails.length})
@@ -130,6 +151,67 @@ export default function Admin() {
             </div>
           </TabsContent>
 
+          <TabsContent value="readings" className="mt-6">
+            <div className="glass-card p-4 md:p-6" data-testid="admin-readings-table">
+              {readings.length === 0 ? (
+                <p className="text-zinc-500 font-body italic text-center py-10">No readings yet.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-[rgba(212,175,55,0.2)]">
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Date</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">User</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Tier</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Ascendant</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Sun</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Moon</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Shared</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {readings.map((r) => (
+                      <TableRow key={r.id} className="border-[rgba(212,175,55,0.1)]" data-testid={`admin-reading-row-${r.id}`}>
+                        <TableCell className="text-zinc-300 font-body text-xs whitespace-nowrap">
+                          {new Date(r.created_at).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-zinc-200 font-body text-sm">
+                          <div>{r.user_name || "—"}</div>
+                          <div className="text-xs text-zinc-500">{r.user_email || "(deleted user)"}</div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={
+                            r.tier === "premium"
+                              ? "text-[#FFD700] font-accent text-xs"
+                              : "text-[#FF9933] font-accent text-xs"
+                          }>
+                            {r.tier}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-zinc-300 font-body text-sm">{r.summary?.ascendant || "—"}</TableCell>
+                        <TableCell className="text-zinc-300 font-body text-sm">{r.summary?.sun_sign || "—"}</TableCell>
+                        <TableCell className="text-zinc-300 font-body text-sm">{r.summary?.moon_sign || "—"}</TableCell>
+                        <TableCell className="text-xs">
+                          {r.is_shared ? <span className="text-green-400">✓</span> : <span className="text-zinc-500">—</span>}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost" size="sm"
+                            onClick={() => openReading(r.id)}
+                            className="text-[#FF9933] hover:text-[#FFD700] hover:bg-transparent text-xs"
+                            data-testid={`admin-reading-view-${r.id}`}
+                          >
+                            View
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </TabsContent>
+
           <TabsContent value="emails" className="mt-6">
             <div className="space-y-3" data-testid="admin-emails-list">
               {emails.length === 0 && (
@@ -155,6 +237,90 @@ export default function Admin() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Reading detail modal */}
+        {readingDetail && (
+          <div
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setReadingDetail(null)}
+            data-testid="admin-reading-modal"
+          >
+            <div
+              className="bg-[#0F1320] border border-[rgba(212,175,55,0.3)] rounded-lg max-w-3xl w-full max-h-[85vh] overflow-auto p-6 md:p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between mb-4 gap-4">
+                <div>
+                  <div className="font-accent text-[10px] text-[#D4AF37] mb-1 uppercase tracking-widest">
+                    {readingDetail.tier} reading
+                  </div>
+                  <h3 className="font-heading text-2xl text-zinc-50">
+                    {readingDetail.user_name || "Unknown"}{" "}
+                    <span className="text-zinc-500 text-base font-body">({readingDetail.user_email || "deleted user"})</span>
+                  </h3>
+                  <div className="text-xs text-zinc-500 font-body mt-1">
+                    {new Date(readingDetail.created_at).toLocaleString()}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReadingDetail(null)}
+                  className="text-zinc-400 hover:text-[#FF9933]"
+                  data-testid="admin-reading-close"
+                >
+                  Close
+                </Button>
+              </div>
+
+              {readingDetail.inputs && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 rounded border border-[rgba(212,175,55,0.15)] bg-[#0A0D14] text-xs font-body">
+                  {Object.entries(readingDetail.inputs).map(([k, v]) => (
+                    <div key={k}>
+                      <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{k.replace(/_/g, " ")}</div>
+                      <div className="text-zinc-200 mt-0.5 break-words">{String(v || "—")}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {readingDetail.summary && (
+                <div className="grid grid-cols-3 gap-4 mb-6 text-center">
+                  <div>
+                    <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                    <div className="font-heading text-lg text-[#FFD700]">{readingDetail.summary.ascendant || "—"}</div>
+                  </div>
+                  <div>
+                    <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                    <div className="font-heading text-lg text-[#FF9933]">{readingDetail.summary.sun_sign || "—"}</div>
+                  </div>
+                  <div>
+                    <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                    <div className="font-heading text-lg text-[#D4AF37]">{readingDetail.summary.moon_sign || "—"}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap" data-testid="admin-reading-advice">
+                {readingDetail.advice || <span className="text-zinc-500 italic">No advice text recorded.</span>}
+              </div>
+
+              {readingDetail.is_shared && readingDetail.share_token && (
+                <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-sm">
+                  <span className="font-accent text-[10px] text-[#D4AF37] mr-2">PUBLIC LINK</span>
+                  <Link
+                    to={`/r/${readingDetail.share_token}`}
+                    className="text-[#FF9933] hover:text-[#FFD700] font-body break-all"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    /r/{readingDetail.share_token}
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
