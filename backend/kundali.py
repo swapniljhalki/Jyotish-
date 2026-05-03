@@ -164,6 +164,25 @@ def compute_chart_from_local(
 
     house_signs = {str(i): (asc_idx + i - 1) % 12 for i in range(1, 13)}
 
+    # --- Chandra Lagna (Moon-sign) chart ---
+    # Treat the Moon's rashi as the 1st house; redistribute all planets accordingly.
+    moon = next((p for p in planets if p["code"] == "Mo"), None)
+    chandra_chart = None
+    if moon:
+        moon_idx = moon["rashi_index"]
+        ch_houses_map = {str(i): [] for i in range(1, 13)}
+        for p in planets:
+            ch = ((p["rashi_index"] - moon_idx) % 12) + 1
+            ch_houses_map[str(ch)].append(p["code"])
+        ch_house_signs = {str(i): (moon_idx + i - 1) % 12 for i in range(1, 13)}
+        chandra_chart = {
+            "ascendant_index": moon_idx,
+            "ascendant": RASHIS[moon_idx],
+            "ascendant_english": RASHIS_EN[moon_idx],
+            "houses": ch_houses_map,
+            "house_signs": ch_house_signs,
+        }
+
     # --- D9 Navamsha (marriage / dharma) chart ---
     # Navamsha ascendant uses the same _navamsha_sign formula on asc longitude.
     nav_asc_idx = _navamsha_sign(asc_lon)
@@ -200,5 +219,6 @@ def compute_chart_from_local(
         "planets": planets,
         "houses": houses_map,
         "house_signs": house_signs,
+        "chandra": chandra_chart,
         "navamsha": navamsha_chart,
     }

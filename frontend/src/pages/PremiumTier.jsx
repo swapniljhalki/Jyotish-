@@ -62,8 +62,8 @@ export default function PremiumTier() {
 
         {result && (
           <div className="mt-10 space-y-8 fade-up" data-testid="premium-result">
-            {/* Charts row — D1 Lagna + D9 Navamsha side by side */}
-            <div className="grid md:grid-cols-2 gap-6">
+            {/* Charts row — D1 Lagna + Chandra Rashi + D9 Navamsha side by side */}
+            <div className="grid md:grid-cols-3 gap-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
@@ -76,6 +76,20 @@ export default function PremiumTier() {
                   </div>
                 </div>
               </div>
+              {result.chart.chandra && (
+                <div className="premium-card p-6">
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
+                  </div>
+                  <KundaliChart chart={result.chart.chandra} />
+                  <div className="mt-4 text-center">
+                    <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
+                    <div className="font-heading text-2xl text-[#FF9933]">
+                      {result.chart.chandra.ascendant_english}
+                    </div>
+                  </div>
+                </div>
+              )}
               {result.chart.navamsha && (
                 <div className="premium-card p-6">
                   <div className="ornate-divider mb-4">

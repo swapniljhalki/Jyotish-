@@ -80,8 +80,8 @@ export default function PublicReading() {
         {/* Content */}
         {r.tier === "premium" && r.chart ? (
           <div className="space-y-8 fade-up">
-            {/* Charts row — D1 Lagna + D9 Navamsha side by side */}
-            <div className="grid md:grid-cols-2 gap-6">
+            {/* Charts row — D1 Lagna + Chandra Rashi + D9 Navamsha side by side */}
+            <div className="grid md:grid-cols-3 gap-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
@@ -92,6 +92,18 @@ export default function PublicReading() {
                   <div className="font-heading text-2xl text-[#FFD700]">{r.chart.ascendant_english}</div>
                 </div>
               </div>
+              {r.chart.chandra && (
+                <div className="premium-card p-6">
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
+                  </div>
+                  <KundaliChart chart={r.chart.chandra} />
+                  <div className="mt-4 text-center">
+                    <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
+                    <div className="font-heading text-2xl text-[#FF9933]">{r.chart.chandra.ascendant_english}</div>
+                  </div>
+                </div>
+              )}
               {r.chart.navamsha && (
                 <div className="premium-card p-6">
                   <div className="ornate-divider mb-4">
