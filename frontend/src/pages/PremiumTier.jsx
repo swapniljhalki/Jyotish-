@@ -61,8 +61,9 @@ export default function PremiumTier() {
         )}
 
         {result && (
-          <div className="mt-10 grid md:grid-cols-2 gap-8 fade-up" data-testid="premium-result">
-            <div className="space-y-6">
+          <div className="mt-10 space-y-8 fade-up" data-testid="premium-result">
+            {/* Charts row — D1 Lagna + D9 Navamsha side by side */}
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
@@ -75,7 +76,23 @@ export default function PremiumTier() {
                   </div>
                 </div>
               </div>
+              {result.chart.navamsha && (
+                <div className="premium-card p-6">
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                  </div>
+                  <KundaliChart chart={result.chart.navamsha} />
+                  <div className="mt-4 text-center">
+                    <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
+                    <div className="font-heading text-2xl text-[#D4AF37]">
+                      {result.chart.navamsha.ascendant_english}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
+            <div className="grid md:grid-cols-2 gap-8">
               <div className="glass-card p-6">
                 <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
                 <Table>
@@ -85,6 +102,7 @@ export default function PremiumTier() {
                       <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -96,27 +114,28 @@ export default function PremiumTier() {
                         <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
                         <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
                         <TableCell className="font-body text-[#FFD700]">{p.house}</TableCell>
+                        <TableCell className="font-body text-[#D4AF37]">{p.navamsha_sign_english || "—"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-            </div>
 
-            <div className="premium-card p-6 md:p-8 max-h-[800px] overflow-auto">
-              <div className="ornate-divider mb-6">
-                <span className="font-accent text-xs text-[#D4AF37]">Detailed Reading</span>
-              </div>
-              <div
-                className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap prose-invert"
-                style={{ lineHeight: 1.8 }}
-              >
-                {result.advice}
-              </div>
-              <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
-                <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
-                  Open in archive & share →
-                </Link>
+              <div className="premium-card p-6 md:p-8 max-h-[800px] overflow-auto">
+                <div className="ornate-divider mb-6">
+                  <span className="font-accent text-xs text-[#D4AF37]">Detailed Reading</span>
+                </div>
+                <div
+                  className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap prose-invert"
+                  style={{ lineHeight: 1.8 }}
+                >
+                  {result.advice}
+                </div>
+                <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
+                  <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
+                    Open in archive & share →
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

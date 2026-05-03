@@ -120,8 +120,9 @@ export default function ReadingDetail() {
 
         {/* Reading content */}
         {r.tier === "premium" && r.chart ? (
-          <div className="grid md:grid-cols-2 gap-8" data-testid="reading-premium-content">
-            <div className="space-y-6">
+          <div className="space-y-8" data-testid="reading-premium-content">
+            {/* Charts row — D1 + D9 */}
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
@@ -132,6 +133,21 @@ export default function ReadingDetail() {
                   <div className="font-heading text-2xl text-[#FFD700]">{r.chart.ascendant_english}</div>
                 </div>
               </div>
+              {r.chart.navamsha && (
+                <div className="premium-card p-6">
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                  </div>
+                  <KundaliChart chart={r.chart.navamsha} />
+                  <div className="mt-4 text-center">
+                    <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
+                    <div className="font-heading text-2xl text-[#D4AF37]">{r.chart.navamsha.ascendant_english}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
               <div className="glass-card p-6">
                 <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
                 <Table>
@@ -141,6 +157,7 @@ export default function ReadingDetail() {
                       <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -152,18 +169,19 @@ export default function ReadingDetail() {
                         <TableCell className="text-zinc-300 font-body">{p.rashi_english}</TableCell>
                         <TableCell className="text-zinc-400 font-body">{p.degree}°</TableCell>
                         <TableCell className="text-[#FFD700] font-body">{p.house}</TableCell>
+                        <TableCell className="text-[#D4AF37] font-body">{p.navamsha_sign_english || "—"}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-            </div>
-            <div className="premium-card p-6 md:p-8 max-h-[800px] overflow-auto">
-              <div className="ornate-divider mb-4">
-                <span className="font-accent text-xs text-[#D4AF37]">Reading</span>
-              </div>
-              <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
-                {r.advice}
+              <div className="premium-card p-6 md:p-8 max-h-[800px] overflow-auto">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">Reading</span>
+                </div>
+                <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
+                  {r.advice}
+                </div>
               </div>
             </div>
           </div>

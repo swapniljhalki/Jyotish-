@@ -65,6 +65,17 @@ def _nakshatra(longitude: float) -> dict:
     return {"name": NAKSHATRA_NAMES[idx], "index": idx + 1, "pada": pada}
 
 
+def _navamsha_sign(longitude: float) -> int:
+    """D9 Navamsha sign index (0..11) for a sidereal longitude.
+
+    Each rashi (30°) is divided into 9 navamshas of 3°20' each. Across the
+    full zodiac that yields 108 navamshas; the resulting sign cycles 9 times.
+    The unified formula `int(longitude / (30/9)) % 12` correctly applies the
+    movable / fixed / dual starting-sign rules of Parashari tradition.
+    """
+    return int(longitude / (30.0 / 9)) % 12
+
+
 def compute_chart_from_local(
     local_year: int, local_month: int, local_day: int,
     local_hour: int, local_minute: int,
@@ -101,6 +112,7 @@ def compute_chart_from_local(
         deg_in_sign = lon_deg - rashi * 30
         house = ((rashi - asc_idx) % 12) + 1
         nak = _nakshatra(lon_deg)
+        nav_sign = _navamsha_sign(lon_deg)
         planets.append({
             "code": code, "name": name,
             "longitude": round(lon_deg, 4),
@@ -113,6 +125,9 @@ def compute_chart_from_local(
             "nakshatra": nak["name"],
             "nakshatra_index": nak["index"],
             "nakshatra_pada": nak["pada"],
+            "navamsha_sign_index": nav_sign,
+            "navamsha_sign": RASHIS[nav_sign],
+            "navamsha_sign_english": RASHIS_EN[nav_sign],
         })
         if code == "Ra":
             rahu_lon = lon_deg
@@ -124,6 +139,7 @@ def compute_chart_from_local(
         deg_in_sign = ketu_lon - rashi * 30
         house = ((rashi - asc_idx) % 12) + 1
         nak = _nakshatra(ketu_lon)
+        nav_sign = _navamsha_sign(ketu_lon)
         planets.append({
             "code": "Ke", "name": "Ketu",
             "longitude": round(ketu_lon, 4),
@@ -136,6 +152,9 @@ def compute_chart_from_local(
             "nakshatra": nak["name"],
             "nakshatra_index": nak["index"],
             "nakshatra_pada": nak["pada"],
+            "navamsha_sign_index": nav_sign,
+            "navamsha_sign": RASHIS[nav_sign],
+            "navamsha_sign_english": RASHIS_EN[nav_sign],
         })
 
     # Houses (string keys for BSON)
@@ -144,6 +163,23 @@ def compute_chart_from_local(
         houses_map[str(p["house"])].append(p["code"])
 
     house_signs = {str(i): (asc_idx + i - 1) % 12 for i in range(1, 13)}
+
+    # --- D9 Navamsha (marriage / dharma) chart ---
+    # Navamsha ascendant uses the same _navamsha_sign formula on asc longitude.
+    nav_asc_idx = _navamsha_sign(asc_lon)
+    nav_houses_map = {str(i): [] for i in range(1, 13)}
+    for p in planets:
+        ns = p["navamsha_sign_index"]
+        nh = ((ns - nav_asc_idx) % 12) + 1
+        nav_houses_map[str(nh)].append(p["code"])
+    nav_house_signs = {str(i): (nav_asc_idx + i - 1) % 12 for i in range(1, 13)}
+    navamsha_chart = {
+        "ascendant_index": nav_asc_idx,
+        "ascendant": RASHIS[nav_asc_idx],
+        "ascendant_english": RASHIS_EN[nav_asc_idx],
+        "houses": nav_houses_map,
+        "house_signs": nav_house_signs,
+    }
 
     asc_nak = _nakshatra(asc_lon)
     return {
@@ -164,4 +200,5 @@ def compute_chart_from_local(
         "planets": planets,
         "houses": houses_map,
         "house_signs": house_signs,
+        "navamsha": navamsha_chart,
     }
