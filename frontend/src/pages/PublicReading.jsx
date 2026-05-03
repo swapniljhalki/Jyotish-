@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import KundaliChart from "../components/KundaliChart";
+import PlanetStates from "../components/PlanetStates";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ArrowRight } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -127,6 +129,39 @@ export default function PublicReading() {
                 {r.advice}
               </div>
             </div>
+
+            {/* Planetary positions with classical states */}
+            {r.chart.planets && (
+              <div className="glass-card p-6">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">Planetary Positions</span>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-[rgba(212,175,55,0.2)]">
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">States</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {r.chart.planets.map((p) => (
+                      <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
+                        <TableCell className="text-zinc-100 font-body">{p.name}</TableCell>
+                        <TableCell className="text-zinc-300 font-body">{p.rashi_english}</TableCell>
+                        <TableCell className="text-zinc-400 font-body">{p.degree}°</TableCell>
+                        <TableCell className="text-[#FFD700] font-body">{p.house}</TableCell>
+                        <TableCell className="text-[#D4AF37] font-body">{p.navamsha_sign_english || "—"}</TableCell>
+                        <TableCell><PlanetStates states={p.states} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
         ) : (
           <div className="premium-card p-8 md:p-12 fade-up">

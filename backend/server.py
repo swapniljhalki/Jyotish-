@@ -673,7 +673,8 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
     planet_lines = "\n".join(
         f"- {p['name']}: {p['rashi_english']} ({p['rashi']}) "
         f"{p['degree']}°, house {p['house']}, nakshatra {p.get('nakshatra','—')}"
-        f" pada {p.get('nakshatra_pada','')}{' (R)' if p['retrograde'] else ''}"
+        f" pada {p.get('nakshatra_pada','')}"
+        + (f" — STATES: {', '.join(p.get('states', []))}" if p.get('states') else "")
         for p in chart["planets"]
     )
 
@@ -682,9 +683,12 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         "Reference the specific planetary placements given — including the outer modern grahas "
         "Uranus and Neptune when their placements meaningfully shape the personality, "
         "career or spiritual path (treat them as auxiliary indicators, never overriding the "
-        "classical Parashari nine grahas). Use traditional Vedic terminology with brief "
-        "translations. Be insightful, specific and warm. Aim for ~550–700 words. "
-        "Structure with clear Markdown-style headings."
+        "classical Parashari nine grahas). When a planet's STATES include Retrograde (vakri), "
+        "Combust (asta), Exalted (uchcha), Debilitated (neecha) or Vargottam, weave the "
+        "implications of those states into your interpretation — they are central to a "
+        "classical reading. Use traditional Vedic terminology with brief translations. "
+        "Be insightful, specific and warm. Aim for ~550–700 words. Structure with clear "
+        "Markdown-style headings."
     )
     user_msg = (
         f"Generate a DETAILED Vedic kundali interpretation.\n\n"

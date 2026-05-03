@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import BirthForm from "../components/BirthForm";
 import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import PlanetStates from "../components/PlanetStates";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -117,18 +118,22 @@ export default function PremiumTier() {
                       <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">States</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {result.chart.planets.map((p) => (
                       <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                         <TableCell className="font-body text-zinc-100">
-                          {p.name} {p.retrograde && <span className="text-[10px] text-[#FF9933]">(R)</span>}
+                          {p.name}
                         </TableCell>
                         <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
                         <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
                         <TableCell className="font-body text-[#FFD700]">{p.house}</TableCell>
                         <TableCell className="font-body text-[#D4AF37]">{p.navamsha_sign_english || "—"}</TableCell>
+                        <TableCell>
+                          <PlanetStates states={p.states} />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

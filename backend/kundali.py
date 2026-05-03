@@ -42,6 +42,39 @@ PLANETS = [
 ]
 FLAGS = swe.FLG_SIDEREAL | swe.FLG_SPEED | swe.FLG_MOSEPH
 
+# Classical exaltation: planet code → (rashi index 0..11, peak degree within sign)
+EXALTATION = {
+    "Su": (0, 10),    # Aries 10°
+    "Mo": (1, 3),     # Taurus 3°
+    "Ma": (9, 28),    # Capricorn 28°
+    "Me": (5, 15),    # Virgo 15°
+    "Ju": (3, 5),     # Cancer 5°
+    "Ve": (11, 27),   # Pisces 27°
+    "Sa": (6, 20),    # Libra 20°
+    "Ra": (1, 20),    # Taurus 20°
+    "Ke": (7, 20),    # Scorpio 20°
+}
+DEBILITATION = {  # 180° opposite of exaltation
+    "Su": (6, 10),    # Libra
+    "Mo": (7, 3),     # Scorpio
+    "Ma": (3, 28),    # Cancer
+    "Me": (11, 15),   # Pisces
+    "Ju": (9, 5),     # Capricorn
+    "Ve": (5, 27),    # Virgo
+    "Sa": (0, 20),    # Aries
+    "Ra": (7, 20),    # Scorpio
+    "Ke": (1, 20),    # Taurus
+}
+# Combustion orbs in degrees (Drik tradition). Not applicable to Sun, nodes, outer planets.
+COMBUST_ORB = {
+    "Mo": 12.0,
+    "Ma": 17.0,
+    "Me": 12.0,        # tradition: 14° if direct, ~12° if combust by close conjunction
+    "Ju": 11.0,
+    "Ve": 8.0,         # 10° when retrograde — handled inline
+    "Sa": 15.0,
+}
+
 # 27 nakshatras span the zodiac (each 13°20' = 800 arc-minutes)
 NAKSHATRA_NAMES = [
     "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
@@ -156,6 +189,34 @@ def compute_chart_from_local(
             "navamsha_sign": RASHIS[nav_sign],
             "navamsha_sign_english": RASHIS_EN[nav_sign],
         })
+
+    # --- Compute classical states for each planet ---
+    sun_lon = next((p["longitude"] for p in planets if p["code"] == "Su"), None)
+    for p in planets:
+        states: list[str] = []
+        # Retrograde — skip nodes (Rahu/Ketu always retrograde by convention)
+        if p["retrograde"] and p["code"] not in ("Ra", "Ke"):
+            states.append("Retrograde")
+        # Combust (Asta) — only classical inner/outer planets, not Sun/nodes/outer modern
+        if sun_lon is not None and p["code"] in COMBUST_ORB:
+            sep = abs((p["longitude"] - sun_lon + 180) % 360 - 180)
+            orb = COMBUST_ORB[p["code"]]
+            if p["code"] == "Ve" and p["retrograde"]:
+                orb = 10.0
+            if sep <= orb:
+                states.append("Combust")
+        # Exalted (Uchcha) / Debilitated (Neecha)
+        if p["code"] in EXALTATION:
+            ex_sign, _ = EXALTATION[p["code"]]
+            de_sign, _ = DEBILITATION[p["code"]]
+            if p["rashi_index"] == ex_sign:
+                states.append("Exalted")
+            elif p["rashi_index"] == de_sign:
+                states.append("Debilitated")
+        # Vargottam — same sign in D1 (rashi) and D9 (navamsha)
+        if p["rashi_index"] == p["navamsha_sign_index"]:
+            states.append("Vargottam")
+        p["states"] = states
 
     # Houses (string keys for BSON)
     houses_map = {str(i): [] for i in range(1, 13)}

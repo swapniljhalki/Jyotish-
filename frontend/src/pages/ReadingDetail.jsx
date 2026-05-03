@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import api, { formatApiError } from "../lib/api";
 import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import PlanetStates from "../components/PlanetStates";
 import { Switch } from "../components/ui/switch";
 import { Share2, Copy, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -170,18 +171,20 @@ export default function ReadingDetail() {
                       <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">States</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {r.chart.planets.map((p) => (
                       <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                         <TableCell className="text-zinc-100 font-body">
-                          {p.name} {p.retrograde && <span className="text-[10px] text-[#FF9933]">(R)</span>}
+                          {p.name}
                         </TableCell>
                         <TableCell className="text-zinc-300 font-body">{p.rashi_english}</TableCell>
                         <TableCell className="text-zinc-400 font-body">{p.degree}°</TableCell>
                         <TableCell className="text-[#FFD700] font-body">{p.house}</TableCell>
                         <TableCell className="text-[#D4AF37] font-body">{p.navamsha_sign_english || "—"}</TableCell>
+                        <TableCell><PlanetStates states={p.states} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
