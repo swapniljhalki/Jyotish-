@@ -679,8 +679,11 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
 
     system = (
         "You are a senior Vedic astrologer (Jyotishi) writing a detailed premium reading. "
-        "Reference the specific planetary placements given. Use traditional Vedic terminology with "
-        "brief translations. Be insightful, specific and warm. Aim for ~550–700 words. "
+        "Reference the specific planetary placements given — including the outer modern grahas "
+        "Uranus and Neptune when their placements meaningfully shape the personality, "
+        "career or spiritual path (treat them as auxiliary indicators, never overriding the "
+        "classical Parashari nine grahas). Use traditional Vedic terminology with brief "
+        "translations. Be insightful, specific and warm. Aim for ~550–700 words. "
         "Structure with clear Markdown-style headings."
     )
     user_msg = (

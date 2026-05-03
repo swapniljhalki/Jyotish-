@@ -112,17 +112,31 @@ export default function KundaliChart({ chart }) {
               >
                 {RASHI_SHORT[signIdx]}
               </text>
-              {/* Planets */}
-              <text
-                x={cx} y={cy + 12}
-                textAnchor="middle"
-                fontSize="12"
-                fontFamily="Outfit, sans-serif"
-                fontWeight="500"
-                fill={h === ((ascendant_index - ascendant_index) + 1) ? "#FF9933" : "#F8F9FA"}
-              >
-                {planets.join(" ") || ""}
-              </text>
+              {/* Planets — wrap onto two lines if many in one house */}
+              {(() => {
+                const lines = [];
+                if (planets.length <= 2) {
+                  lines.push(planets.join(" "));
+                } else {
+                  const mid = Math.ceil(planets.length / 2);
+                  lines.push(planets.slice(0, mid).join(" "));
+                  lines.push(planets.slice(mid).join(" "));
+                }
+                return lines.map((ln, i) => (
+                  <text
+                    key={i}
+                    x={cx}
+                    y={cy + 12 + i * 13}
+                    textAnchor="middle"
+                    fontSize={planets.length > 3 ? "10" : "12"}
+                    fontFamily="Outfit, sans-serif"
+                    fontWeight="500"
+                    fill="#F8F9FA"
+                  >
+                    {ln}
+                  </text>
+                ));
+              })()}
             </g>
           );
         })}

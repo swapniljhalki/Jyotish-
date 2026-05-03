@@ -35,6 +35,10 @@ PLANETS = [
     ("Ve", "Venus", swe.VENUS),
     ("Sa", "Saturn", swe.SATURN),
     ("Ra", "Rahu", swe.MEAN_NODE),  # mean lunar node (north)
+    # Outer planets — included for modern interpretation alongside the 9 grahas.
+    # Not part of classical Parashari but commonly added in contemporary readings.
+    ("Ur", "Uranus", swe.URANUS),
+    ("Ne", "Neptune", swe.NEPTUNE),
 ]
 FLAGS = swe.FLG_SIDEREAL | swe.FLG_SPEED | swe.FLG_MOSEPH
 
