@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { Sparkles, Star, Moon, Sun, Check, ArrowRight } from "lucide-react";
 import PanchangSection from "../components/PanchangSection";
 import RashifalTile from "../components/RashifalTile";
+import VisitorStats from "../components/VisitorStats";
 
 const tiers = [
   {
@@ -184,6 +185,8 @@ export default function Landing() {
           </p>
         </div>
       </section>
+
+      <VisitorStats />
     </div>
   );
 }

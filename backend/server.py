@@ -7,6 +7,7 @@ load_dotenv(ROOT_DIR / ".env")
 import os
 import uuid
 import secrets
+import hashlib
 import logging
 import bcrypt
 import jwt
@@ -490,6 +491,48 @@ async def rashifal_today(tz: str = "Asia/Kolkata"):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid timezone: {e}")
     return await get_daily_rashifal(panchang, tz_name=tz)
+
+
+# --- Visitor stats (lightweight on-page counter) ---
+def _hash_ip(ip: str) -> str:
+    """Privacy-preserving one-way IP hash."""
+    salt = os.environ.get("VISITOR_HASH_SALT", "satish-numero-salt-v1")
+    return hashlib.sha256(f"{salt}:{ip}".encode()).hexdigest()[:16]
+
+
+def _client_ip(request: Request) -> str:
+    fwd = request.headers.get("X-Forwarded-For")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@api.post("/stats/visit")
+async def stats_visit(request: Request):
+    """Increment visitor counters. Called once per browser session by the landing page."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    ip_hash = _hash_ip(_client_ip(request))
+    await db.site_stats.update_one(
+        {"_id": "global"},
+        {
+            "$inc": {"total_views": 1, f"daily.{today}": 1},
+            "$addToSet": {"unique_ips": ip_hash},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()},
+        },
+        upsert=True,
+    )
+    return {"ok": True}
+
+
+@api.get("/stats/visitors")
+async def stats_visitors():
+    doc = await db.site_stats.find_one({"_id": "global"}) or {}
+    today = datetime.now(timezone.utc).date().isoformat()
+    return {
+        "total_views": int(doc.get("total_views", 0)),
+        "unique_visitors": len(doc.get("unique_ips", [])),
+        "today_views": int(doc.get("daily", {}).get(today, 0)),
+    }
 
 
 # --- Numerology (calculation: free / public; AI reading: premium-only) ---
