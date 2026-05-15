@@ -25,6 +25,7 @@ from kundali import compute_chart_from_local
 from geocode import geocode_place
 from panchang import compute_panchang, get_upcoming_festivals
 from numerology import compute_numerology
+from num_dasha import compute_numerology_dasha
 from rashifal import get_daily_rashifal
 from email_service import send_email
 
@@ -553,7 +554,10 @@ async def numerology_calc(body: NumerologyIn):
     name = (body.full_name or "").strip()
     if not name:
         raise HTTPException(status_code=422, detail="full_name is required")
-    return compute_numerology(_parse_dob(body.date_of_birth), name)
+    dob = _parse_dob(body.date_of_birth)
+    result = compute_numerology(dob, name)
+    result["dasha"] = compute_numerology_dasha(dob, result["mulank"]["number"])
+    return result
 
 
 @api.post("/numerology/reading")
@@ -563,12 +567,18 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
     if not name:
         raise HTTPException(status_code=422, detail="full_name is required")
     profile = compute_numerology(_parse_dob(body.date_of_birth), name)
+    profile["dasha"] = compute_numerology_dasha(_parse_dob(body.date_of_birth), profile["mulank"]["number"])
+
+    cur = profile["dasha"]["current"]
+    cur_md_n = cur.get("mahadasha")
+    cur_ad_n = cur.get("antardasha")
+    cur_pd_n = cur.get("pratyantardasha")
 
     system = (
         "You are a Vedic numerologist (ank-jyotishi) writing a personal reading for a modern "
         "audience. Use a warm, encouraging but honest tone. Reference traditional terminology "
-        "(Mulank, Bhagyank, Naamank, ruling graha) with brief translations. Aim for ~250 words "
-        "in 4 short sections with Markdown headings."
+        "(Mulank, Bhagyank, Naamank, ruling graha, Mahadasha, Antardasha, Pratyantardasha) "
+        "with brief translations. Aim for ~280 words in 5 short sections with Markdown headings."
     )
     user_msg = (
         f"Provide a Vedic numerology reading for:\n"
@@ -580,10 +590,13 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
         f"({profile['bhagyank']['planet_english']}).\n"
         f"Naamank (Name): {profile['naamank']['number']} — ruled by "
         f"{profile['naamank'].get('planet','—')} "
-        f"({profile['naamank'].get('planet_english','—')}).\n\n"
+        f"({profile['naamank'].get('planet_english','—')}).\n"
+        f"Currently running Numerology Dasha: Mahadasha of number {cur_md_n}, "
+        f"Antardasha of {cur_ad_n}, Pratyantardasha of {cur_pd_n}.\n\n"
         f"Cover, with brief Markdown headings: (1) Core nature from Mulank, "
         f"(2) Life path & destiny from Bhagyank, (3) Public/professional vibration from "
-        f"Naamank, (4) One practical remedial mantra/colour/day to harmonise these vibrations."
+        f"Naamank, (4) The current Mahadasha/Antardasha period and what it asks of you, "
+        f"(5) One practical remedial mantra/colour/day to harmonise these vibrations."
     )
     advice = await _ask_claude(system, user_msg, f"numerology-{user['id']}")
 

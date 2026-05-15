@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Sparkles, Lock } from "lucide-react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import NumDashaTimeline from "../components/NumDashaTimeline";
 
 const PLANET_GLYPH = {
   Surya: "☉",
@@ -208,6 +209,24 @@ export default function Numerology() {
               <NumberCard block={result.bhagyank} accent="text-[#FF9933]" />
               <NumberCard block={result.naamank} accent="text-[#D4AF37]" />
             </div>
+
+            {/* Numerology Dasha timeline */}
+            {result.dasha && (
+              <div className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Numerology Dasha · 81-year ank cycle
+                  </span>
+                </div>
+                <p className="font-body text-zinc-400 text-sm mb-4 max-w-3xl">
+                  Each life unfolds through nine 9-year cycles starting from your Mulank. Each
+                  year within a cycle is governed by a sub-number (Antardasha), and each year
+                  is again divided into nine ~40-day periods (Pratyantardasha) — a fine-grained
+                  rhythm that shows which vibration is currently active.
+                </p>
+                <NumDashaTimeline dasha={result.dasha} />
+              </div>
+            )}
 
             {/* AI Reading section */}
             <div className="premium-card p-8 md:p-12">
