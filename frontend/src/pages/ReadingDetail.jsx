@@ -5,6 +5,7 @@ import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
 import DashaTimeline from "../components/DashaTimeline";
+import NumDashaTimeline from "../components/NumDashaTimeline";
 import { Switch } from "../components/ui/switch";
 import { Share2, Copy, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -209,6 +210,17 @@ export default function ReadingDetail() {
                   </span>
                 </div>
                 <DashaTimeline dasha={r.chart.dasha} />
+              </div>
+            )}
+
+            {r.chart.numerology_dasha && (
+              <div className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
+                  </span>
+                </div>
+                <NumDashaTimeline dasha={r.chart.numerology_dasha} />
               </div>
             )}
           </div>

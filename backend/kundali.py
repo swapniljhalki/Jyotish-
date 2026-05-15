@@ -13,6 +13,8 @@ import swisseph as swe
 from timezonefinder import TimezoneFinder
 
 from dasha import compute_vimshottari
+from num_dasha import compute_numerology_dasha
+from numerology import compute_mulank
 
 # Configure Swiss Ephemeris once at import time
 swe.set_sid_mode(swe.SIDM_LAHIRI)
@@ -288,4 +290,8 @@ def compute_chart_from_local(
             ut_dt,
             next(p["longitude"] for p in planets if p["code"] == "Mo"),
         ),
+        "numerology_dasha": compute_numerology_dasha(
+            local_dt.date(), compute_mulank(local_dt.date())
+        ),
+        "mulank": compute_mulank(local_dt.date()),
     }

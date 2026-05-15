@@ -554,10 +554,7 @@ async def numerology_calc(body: NumerologyIn):
     name = (body.full_name or "").strip()
     if not name:
         raise HTTPException(status_code=422, detail="full_name is required")
-    dob = _parse_dob(body.date_of_birth)
-    result = compute_numerology(dob, name)
-    result["dasha"] = compute_numerology_dasha(dob, result["mulank"]["number"])
-    return result
+    return compute_numerology(_parse_dob(body.date_of_birth), name)
 
 
 @api.post("/numerology/reading")

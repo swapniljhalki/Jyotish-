@@ -7,6 +7,7 @@ import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
 import DashaTimeline from "../components/DashaTimeline";
+import NumDashaTimeline from "../components/NumDashaTimeline";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -167,6 +168,22 @@ export default function PremiumTier() {
                   </span>
                 </div>
                 <DashaTimeline dasha={result.chart.dasha} />
+              </div>
+            )}
+
+            {result.chart.numerology_dasha && (
+              <div className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Numerology Dasha · 81-year ank cycle (Mulank {result.chart.mulank})
+                  </span>
+                </div>
+                <p className="font-body text-zinc-400 text-sm mb-4 max-w-3xl">
+                  Driven by your Mulank ({result.chart.mulank}), this 81-year cycle of nine
+                  ank-mahadashas (9 years each) tracks the numerological vibration of your
+                  unfolding life — a complementary rhythm to the planetary Vimshottari above.
+                </p>
+                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
               </div>
             )}
           </div>

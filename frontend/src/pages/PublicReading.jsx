@@ -4,6 +4,7 @@ import axios from "axios";
 import KundaliChart from "../components/KundaliChart";
 import PlanetStates from "../components/PlanetStates";
 import DashaTimeline from "../components/DashaTimeline";
+import NumDashaTimeline from "../components/NumDashaTimeline";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ArrowRight } from "lucide-react";
 
@@ -172,6 +173,17 @@ export default function PublicReading() {
                   </span>
                 </div>
                 <DashaTimeline dasha={r.chart.dasha} />
+              </div>
+            )}
+
+            {r.chart.numerology_dasha && (
+              <div className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
+                  </span>
+                </div>
+                <NumDashaTimeline dasha={r.chart.numerology_dasha} />
               </div>
             )}
           </div>
