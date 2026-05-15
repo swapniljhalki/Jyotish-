@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 import swisseph as swe
 from timezonefinder import TimezoneFinder
 
+from dasha import compute_vimshottari
+
 # Configure Swiss Ephemeris once at import time
 swe.set_sid_mode(swe.SIDM_LAHIRI)
 
@@ -282,4 +284,8 @@ def compute_chart_from_local(
         "house_signs": house_signs,
         "chandra": chandra_chart,
         "navamsha": navamsha_chart,
+        "dasha": compute_vimshottari(
+            ut_dt,
+            next(p["longitude"] for p in planets if p["code"] == "Mo"),
+        ),
     }

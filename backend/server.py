@@ -721,6 +721,13 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         for p in chart["planets"]
     )
 
+    dasha = chart.get("dasha", {}).get("current") or {}
+    dasha_line = (
+        f"Current Vimshottari Dasha: Mahadasha of {dasha.get('mahadasha','—')}, "
+        f"Antardasha of {dasha.get('antardasha','—')}, "
+        f"Pratyantardasha of {dasha.get('pratyantardasha','—')}."
+    )
+
     system = (
         "You are a senior Vedic astrologer (Jyotishi) writing a detailed premium reading. "
         "Reference the specific planetary placements given — including the outer modern grahas "
@@ -729,9 +736,11 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         "classical Parashari nine grahas). When a planet's STATES include Retrograde (vakri), "
         "Combust (asta), Exalted (uchcha), Debilitated (neecha) or Vargottam, weave the "
         "implications of those states into your interpretation — they are central to a "
-        "classical reading. Use traditional Vedic terminology with brief translations. "
-        "Be insightful, specific and warm. Aim for ~550–700 words. Structure with clear "
-        "Markdown-style headings."
+        "classical reading. When the current Vimshottari Dasha is provided, dedicate the "
+        "'Current Focus & Remedies' section to interpreting that dasha period (mahadasha "
+        "lord's themes flavoured by the antardasha lord). Use traditional Vedic terminology "
+        "with brief translations. Be insightful, specific and warm. Aim for ~550–700 words. "
+        "Structure with clear Markdown-style headings."
     )
     user_msg = (
         f"Generate a DETAILED Vedic kundali interpretation.\n\n"
@@ -739,6 +748,7 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         f"DOB: {body.date_of_birth} | TOB: {body.time_of_birth} | POB: {body.place_of_birth}\n"
         f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']})\n\n"
         f"Planetary placements:\n{planet_lines}\n\n"
+        f"{dasha_line}\n\n"
         f"Write the reading with these sections, each 2–4 sentences:\n"
         f"## Overall Personality\n## Career & Dharma\n## Wealth & Finances\n"
         f"## Relationships & Marriage\n## Health & Vitality\n## Spiritual Path\n"

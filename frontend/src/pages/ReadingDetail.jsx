@@ -4,6 +4,7 @@ import api, { formatApiError } from "../lib/api";
 import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
+import DashaTimeline from "../components/DashaTimeline";
 import { Switch } from "../components/ui/switch";
 import { Share2, Copy, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -199,6 +200,17 @@ export default function ReadingDetail() {
                 </div>
               </div>
             </div>
+
+            {r.chart.dasha && (
+              <div className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Vimshottari Dasha · 120-year planetary timeline
+                  </span>
+                </div>
+                <DashaTimeline dasha={r.chart.dasha} />
+              </div>
+            )}
           </div>
         ) : (
           <div className="premium-card p-8 md:p-12" data-testid="reading-basic-content">

@@ -6,6 +6,7 @@ import BirthForm from "../components/BirthForm";
 import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
+import DashaTimeline from "../components/DashaTimeline";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -157,6 +158,17 @@ export default function PremiumTier() {
                 </div>
               </div>
             </div>
+
+            {result.chart.dasha && (
+              <div className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Vimshottari Dasha · 120-year planetary timeline
+                  </span>
+                </div>
+                <DashaTimeline dasha={result.chart.dasha} />
+              </div>
+            )}
           </div>
         )}
       </div>
