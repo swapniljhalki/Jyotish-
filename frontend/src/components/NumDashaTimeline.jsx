@@ -82,24 +82,36 @@ export default function NumDashaTimeline({ dasha }) {
   }, [initialExpanded, expandedMD]);
 
   if (!dasha?.mahadashas?.length) return null;
-  const { mahadasha: curMD, antardasha: curAD, pratyantardasha: curPD } = dasha.current;
-  const findMeta = (n) => dasha.mahadashas.find((m) => m.number === n);
+  const { mahadasha: curMD, antardasha: curAD, pratyantardasha: curPD, daily_dasha: curDD, today_weekday } = dasha.current;
+  const findMeta = (n) => {
+    for (const md of dasha.mahadashas) {
+      if (md.number === n) return md;
+      for (const ad of md.antardashas || []) {
+        if (ad.number === n) return ad;
+        for (const pd of ad.pratyantardashas || []) {
+          if (pd.number === n) return pd;
+        }
+      }
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-4" data-testid="num-dasha-timeline">
       {/* Current dasha banner */}
-      <div className="grid grid-cols-3 gap-3 mb-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
         {[
           { label: "Mahadasha", n: curMD, tint: "#FFD700" },
           { label: "Antardasha", n: curAD, tint: "#FF9933" },
           { label: "Pratyantardasha", n: curPD, tint: "#D4AF37" },
-        ].map(({ label, n, tint }) => {
+          { label: "Daily Dasha", n: curDD, tint: "#7FFF7F", sub: today_weekday },
+        ].map(({ label, n, tint, sub }) => {
           const meta = n ? findMeta(n) : null;
           return (
             <div
               key={label}
               className="glass-card p-3 text-center"
-              data-testid={`num-dasha-current-${label.toLowerCase()}`}
+              data-testid={`num-dasha-current-${label.toLowerCase().replace(/ /g, "-")}`}
             >
               <div className="font-accent text-[9px] text-zinc-500 tracking-widest uppercase">
                 {label}
@@ -113,6 +125,9 @@ export default function NumDashaTimeline({ dasha }) {
                   )}
                 </span>
               </div>
+              {sub && (
+                <div className="font-accent text-[9px] text-zinc-500 mt-1">{sub}</div>
+              )}
             </div>
           );
         })}
