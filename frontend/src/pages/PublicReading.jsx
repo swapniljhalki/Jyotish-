@@ -3,7 +3,6 @@ import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import KundaliChart from "../components/KundaliChart";
 import PlanetStates from "../components/PlanetStates";
-import DashaTimeline from "../components/DashaTimeline";
 import NumDashaTimeline from "../components/NumDashaTimeline";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ArrowRight } from "lucide-react";
@@ -162,17 +161,6 @@ export default function PublicReading() {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
-            )}
-
-            {r.chart.dasha && (
-              <div className="premium-card p-6 md:p-8">
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">
-                    Vimshottari Dasha · 120-year planetary timeline
-                  </span>
-                </div>
-                <DashaTimeline dasha={r.chart.dasha} />
               </div>
             )}
 

@@ -549,6 +549,52 @@ def _parse_dob(dob_str: str) -> date_type:
         raise HTTPException(status_code=422, detail="date_of_birth must be YYYY-MM-DD")
 
 
+class MobileIn(BaseModel):
+    mobile_number: str
+
+
+def _reduce_to_single(n: int) -> int:
+    n = abs(n)
+    while n > 9:
+        n = sum(int(d) for d in str(n))
+    return n if n != 0 else 9
+
+
+@api.post("/numerology/mobile")
+async def numerology_mobile(body: MobileIn):
+    digits = [int(c) for c in (body.mobile_number or "") if c.isdigit()]
+    if len(digits) < 6:
+        raise HTTPException(
+            status_code=422,
+            detail="mobile_number must contain at least 6 digits",
+        )
+    total = sum(digits)
+    single = _reduce_to_single(total)
+
+    from numerology import NUMBER_PROFILE
+    profile = NUMBER_PROFILE[single]
+
+    # Digit frequency — useful traditional insight
+    freq = {str(d): digits.count(d) for d in range(0, 10)}
+    missing = sorted(int(d) for d, c in freq.items() if c == 0 and d != "0")
+    dominant = max(range(1, 10), key=lambda d: digits.count(d))
+
+    return {
+        "mobile_number": body.mobile_number,
+        "digits_used": "".join(str(d) for d in digits),
+        "digit_sum": total,
+        "mobile_number_ank": {
+            "number": single,
+            "label": "Mobile Number Ank",
+            "derivation": f"Sum of digits = {total} → {single}",
+            **profile,
+        },
+        "frequency": freq,
+        "dominant_digit": dominant,
+        "missing_digits": missing,
+    }
+
+
 @api.post("/numerology")
 async def numerology_calc(body: NumerologyIn):
     name = (body.full_name or "").strip()
