@@ -8,7 +8,7 @@ const navItems = [
   { to: "/nakshatras", label: "Nakshatras" },
   { to: "/numerology", label: "Numerology" },
   { to: "/basic", label: "Basic Reading" },
-  { to: "/premium", label: "Premium Kundali" },
+  { to: "/premium", label: "Premium Numerology" },
   { to: "/readings", label: "My Readings", authOnly: true },
   { to: "/pricing", label: "Pricing" },
 ];
