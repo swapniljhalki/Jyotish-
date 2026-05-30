@@ -7,6 +7,7 @@ import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
+import NumberCard from "../components/NumberCard";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -19,6 +20,12 @@ export default function PremiumTier() {
   const [chaldeanResult, setChaldeanResult] = useState(null);
   const [chaldeanLoading, setChaldeanLoading] = useState(false);
   const [chaldeanErr, setChaldeanErr] = useState("");
+
+  // Mobile Number Numerology
+  const [mobile, setMobile] = useState("");
+  const [mobileResult, setMobileResult] = useState(null);
+  const [mobileLoading, setMobileLoading] = useState(false);
+  const [mobileErr, setMobileErr] = useState("");
 
   const submit = async (values) => {
     setErr("");
@@ -48,6 +55,21 @@ export default function PremiumTier() {
       setChaldeanErr(formatApiError(e2.response?.data?.detail) || e2.message);
     } finally {
       setChaldeanLoading(false);
+    }
+  };
+
+  const submitMobile = async (e) => {
+    e.preventDefault();
+    setMobileErr("");
+    setMobileResult(null);
+    setMobileLoading(true);
+    try {
+      const { data } = await api.post("/numerology/mobile", { mobile_number: mobile });
+      setMobileResult(data);
+    } catch (e2) {
+      setMobileErr(formatApiError(e2.response?.data?.detail) || e2.message);
+    } finally {
+      setMobileLoading(false);
     }
   };
 
@@ -344,6 +366,106 @@ export default function PremiumTier() {
                     <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Challenges</div>
                     <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.challenges}</div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Number Numerology */}
+        <div className="mt-20 fade-up" data-testid="mobile-numerology-section">
+          <div className="mb-8">
+            <p className="font-accent text-xs text-[#D4AF37] mb-3">Mobile Number Ank</p>
+            <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
+              Your phone number, <span className="text-gold-gradient italic">vibrating with you.</span>
+            </h2>
+            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+              Every number you carry — including the one you give out a hundred times a week —
+              radiates a planetary frequency. The sum of your mobile number's digits reveals
+              the graha quietly shaping every call, every message.
+            </p>
+          </div>
+
+          <form
+            onSubmit={submitMobile}
+            className="glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+            data-testid="mobile-form"
+          >
+            <div className="md:col-span-2">
+              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest">
+                MOBILE NUMBER
+              </label>
+              <input
+                type="tel"
+                required
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                placeholder="e.g., +91 98765 43210"
+                data-testid="mobile-input"
+                className="w-full bg-[#0F1320] border border-[rgba(212,175,55,0.25)] rounded-md px-3 py-2 text-zinc-100 font-body focus:outline-none focus:border-[#FF9933]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={mobileLoading}
+              data-testid="mobile-calculate-btn"
+              className="btn-saffron w-full md:w-auto disabled:opacity-50"
+            >
+              {mobileLoading ? "Reading…" : "Reveal Vibration"}
+            </button>
+          </form>
+
+          {mobileErr && (
+            <div className="mt-4 text-sm text-red-400 font-body glass-card p-4" data-testid="mobile-error">
+              {mobileErr}
+            </div>
+          )}
+
+          {mobileResult && (
+            <div className="mt-8 grid md:grid-cols-3 gap-6" data-testid="mobile-result">
+              <div className="md:col-span-2">
+                <NumberCard block={mobileResult.mobile_number_ank} accent="text-[#FFD700]" />
+              </div>
+              <div className="glass-card p-6">
+                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-3">
+                  Digit Composition
+                </div>
+                <div className="font-body text-sm text-zinc-300 mb-4">
+                  Number: <span className="text-zinc-100 font-mono">{mobileResult.digits_used}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 mb-5">
+                  {Object.entries(mobileResult.frequency).map(([d, count]) => (
+                    <div
+                      key={d}
+                      className={`text-center p-2 rounded border ${
+                        count > 0
+                          ? "border-[rgba(212,175,55,0.3)] bg-[rgba(255,153,51,0.04)]"
+                          : "border-[rgba(255,255,255,0.06)] opacity-40"
+                      }`}
+                      data-testid={`mobile-digit-${d}`}
+                    >
+                      <div className="font-heading text-lg text-[#FFD700]">{d}</div>
+                      <div className="font-accent text-[9px] text-zinc-500 tracking-widest">
+                        ×{count}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-2 text-xs font-body">
+                  <div className="flex justify-between gap-3">
+                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Sum of all digits</span>
+                    <span className="text-zinc-200">{mobileResult.digit_sum}</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Dominant digit</span>
+                    <span className="text-zinc-200">{mobileResult.dominant_digit}</span>
+                  </div>
+                  {mobileResult.missing_digits.length > 0 && (
+                    <div className="flex justify-between gap-3">
+                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Missing digits</span>
+                      <span className="text-zinc-200">{mobileResult.missing_digits.join(", ")}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -27,6 +27,12 @@ from panchang import compute_panchang, get_upcoming_festivals
 from numerology import compute_numerology
 from num_dasha import compute_numerology_dasha
 from rashifal import get_daily_rashifal
+from razorpay_service import (
+    create_order as rzp_create_order,
+    verify_signature as rzp_verify_signature,
+    is_live as rzp_is_live,
+    PRICING as RZP_PRICING,
+)
 from email_service import send_email
 
 # --- logging ---
@@ -455,7 +461,7 @@ async def google_session(response: Response, x_session_id: str = Header(None)):
     return {**public_user(user), "access_token": access}
 
 
-# --- Subscription (mock) ---
+# --- Subscription (mock — legacy, kept for compatibility) ---
 @api.post("/subscribe")
 async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
     if body.tier not in ("free", "basic", "premium"):
@@ -463,6 +469,101 @@ async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
     await db.users.update_one({"id": user["id"]}, {"$set": {"tier": body.tier}})
     updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
     return public_user(updated)
+
+
+# --- Razorpay payment flow ---
+class PaymentCreateIn(BaseModel):
+    tier: str  # "basic" or "premium"
+
+
+class PaymentVerifyIn(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str = ""
+    tier: str
+
+
+@api.get("/payments/config")
+async def payments_config():
+    """Public — used by frontend to decide which payment UX to render."""
+    return {
+        "provider": "razorpay",
+        "mode": "live" if rzp_is_live() else "mock",
+        "pricing": {
+            tier: {
+                "label": p["label"],
+                "amount_paise": p["amount_paise"],
+                "amount_inr": p["amount_paise"] / 100,
+                "currency": "INR",
+            }
+            for tier, p in RZP_PRICING.items()
+        },
+    }
+
+
+@api.post("/payments/create-order")
+async def payments_create_order(body: PaymentCreateIn, user: dict = Depends(get_current_user)):
+    if body.tier not in RZP_PRICING:
+        raise HTTPException(status_code=400, detail="Unknown tier")
+    try:
+        order = rzp_create_order(body.tier, user["id"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Razorpay error: {e}")
+
+    # Record pending payment
+    await db.payments.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "user_email": user["email"],
+        "order_id": order["order_id"],
+        "tier": body.tier,
+        "amount_paise": order["amount"],
+        "currency": order["currency"],
+        "mode": order["mode"],
+        "status": "created",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {
+        "order_id": order["order_id"],
+        "amount": order["amount"],
+        "currency": order["currency"],
+        "tier": body.tier,
+        "label": order["label"],
+        "mode": order["mode"],
+        "key_id": order.get("key_id"),
+        "prefill": {
+            "name": user.get("name", ""),
+            "email": user.get("email", ""),
+        },
+    }
+
+
+@api.post("/payments/verify")
+async def payments_verify(body: PaymentVerifyIn, user: dict = Depends(get_current_user)):
+    if not rzp_verify_signature(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature):
+        raise HTTPException(status_code=400, detail="Signature mismatch")
+
+    if body.tier not in RZP_PRICING:
+        raise HTTPException(status_code=400, detail="Unknown tier")
+
+    # Upgrade the user's tier permanently
+    await db.users.update_one({"id": user["id"]}, {"$set": {"tier": body.tier}})
+    updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
+
+    # Record successful payment
+    await db.payments.update_one(
+        {"order_id": body.razorpay_order_id, "user_id": user["id"]},
+        {"$set": {
+            "status": "paid",
+            "payment_id": body.razorpay_payment_id,
+            "signature": body.razorpay_signature,
+            "paid_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+
+    return {**public_user(updated), "tier": body.tier, "payment_status": "success"}
 
 
 # --- Free tier content ---
