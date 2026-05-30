@@ -542,6 +542,10 @@ class NumerologyIn(BaseModel):
     date_of_birth: str  # YYYY-MM-DD
 
 
+class ChaldeanNameIn(BaseModel):
+    full_name: str
+
+
 def _parse_dob(dob_str: str) -> date_type:
     try:
         return date_type.fromisoformat(dob_str)
@@ -601,6 +605,43 @@ async def numerology_calc(body: NumerologyIn):
     if not name:
         raise HTTPException(status_code=422, detail="full_name is required")
     return compute_numerology(_parse_dob(body.date_of_birth), name)
+
+
+@api.post("/numerology/chaldean-name")
+async def numerology_chaldean_name(body: ChaldeanNameIn):
+    """Letter-by-letter Chaldean name numerology — for the Premium Numerology page."""
+    name = (body.full_name or "").strip()
+    if not name:
+        raise HTTPException(status_code=422, detail="full_name is required")
+
+    from numerology import CHALDEAN_MAP, NUMBER_PROFILE
+
+    letters = []
+    total = 0
+    for ch in name.upper():
+        if ch in CHALDEAN_MAP:
+            val = CHALDEAN_MAP[ch]
+            letters.append({"letter": ch, "value": val})
+            total += val
+        elif ch == " ":
+            letters.append({"letter": " ", "value": None, "space": True})
+        else:
+            letters.append({"letter": ch, "value": None})
+
+    single = _reduce_to_single(total) if total > 0 else 0
+    profile = NUMBER_PROFILE[single] if single else {}
+
+    return {
+        "full_name": name,
+        "letters": letters,
+        "compound_total": total,
+        "name_number": {
+            "number": single,
+            "label": "Naamank (Chaldean Name Number)",
+            "derivation": f"Compound total = {total} → {single}",
+            **profile,
+        },
+    }
 
 
 @api.post("/numerology/reading")
