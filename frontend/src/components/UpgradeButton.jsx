@@ -19,8 +19,8 @@ function loadRazorpay() {
   });
 }
 
-export default function UpgradeButton({ tier = "premium", className = "", onSuccess }) {
-  const { refreshUser } = useAuth();
+export default function UpgradeButton({ tier = "premium", className = "", variant = "default", onSuccess }) {
+  const { refresh } = useAuth();
   const [busy, setBusy] = useState(false);
   const [cfg, setCfg] = useState(null);
 
@@ -46,7 +46,7 @@ export default function UpgradeButton({ tier = "premium", className = "", onSucc
           tier,
         });
         toast.success(`Demo upgrade successful — you are now ${label}!`);
-        await refreshUser();
+        await refresh();
         onSuccess?.();
         return;
       }
@@ -76,7 +76,7 @@ export default function UpgradeButton({ tier = "premium", className = "", onSucc
               tier,
             });
             toast.success(`Payment successful — you are now ${label}!`);
-            await refreshUser();
+            await refresh();
             onSuccess?.();
           } catch (e) {
             toast.error(formatApiError(e.response?.data?.detail) || "Verification failed");
@@ -94,12 +94,17 @@ export default function UpgradeButton({ tier = "premium", className = "", onSucc
     }
   };
 
+  const baseCls =
+    variant === "unstyled"
+      ? "inline-flex items-center gap-2 transition-all disabled:opacity-50"
+      : "btn-saffron disabled:opacity-50 inline-flex items-center gap-2";
+
   return (
     <button
       onClick={start}
       disabled={busy || !cfg}
       data-testid={`upgrade-btn-${tier}`}
-      className={`btn-saffron disabled:opacity-50 inline-flex items-center gap-2 ${className}`}
+      className={`${baseCls} ${className}`}
     >
       {busy ? (
         <Loader2 className="h-4 w-4 animate-spin" />

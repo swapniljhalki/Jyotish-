@@ -97,13 +97,22 @@ Vedic astrology website with 3 pricing tiers:
 - 6/6 backend tests + full frontend Playwright flow verified.
 
 ## Prioritised Backlog
+- **P0 — DONE**: Razorpay payment integration (mock-mode shipped Feb 30, 2026 — wire keys in `.env` to go live)
+- **P1**: Multi-language support (English / Hindi / Telugu / Tamil) — requested but pending
+- **P1**: Meeting Scheduler in Premium tier (recurring weekly availability + Google Meet + paid add-on)
 - **P1**: Real email delivery (Resend) — currently mocked
-- **P1**: Real payment (Stripe) — currently mocked
 - **P2**: Auto-generate OG share-card PNG for `/r/:token` (social link previews)
-- **P2**: Vimshottari Dasha (planetary periods) calculation & timeline view
 - **P3**: Transit alerts (daily Gochar based on stored birth chart)
-- **P3**: Multi-lingual support (Hindi / Tamil / Telugu)
 - **P3**: Investigate flaky brute-force lockout test (state leakage between iterations)
+
+## Phase 9 (Feb 30, 2026) — Razorpay Payments (mock + live ready) — ✅ SHIPPED
+- New module `/app/backend/razorpay_service.py` with **mock-mode fallback** when `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` are absent.
+- New endpoints: `GET /api/payments/config` (public mode + pricing), `POST /api/payments/create-order` (auth), `POST /api/payments/verify` (auth + HMAC-SHA256 signature check in live mode, accepts anything in mock).
+- New collection `db.payments` records every order + final paid status.
+- New component `/app/frontend/src/components/UpgradeButton.jsx` — loads Razorpay checkout SDK on demand, renders "DEMO" badge in mock mode, refreshes auth context on success.
+- Wired into `/pricing`, `/basic` (upgrade notice), `/premium` (upgrade notice) — old "Subscribe via mock" buttons removed.
+- Backend curl flow verified end-to-end: `free → create-order → verify → tier=basic`.
+- Frontend Playwright flow verified end-to-end: click on `/premium` upgrade notice → mock order created → tier badge in navbar reads `PREMIUM` → kundali form unlocked.
 
 ## Test Credentials
 See `/app/memory/test_credentials.md`.

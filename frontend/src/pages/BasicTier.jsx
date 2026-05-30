@@ -3,7 +3,10 @@ import api from "../lib/api";
 import { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-import BirthForm from "../components/BirthForm";export default function BasicTier() {
+import BirthForm from "../components/BirthForm";
+import UpgradeButton from "../components/UpgradeButton";
+
+export default function BasicTier() {
   const { user } = useAuth();
   const [result, setResult] = useState(null);
   const [err, setErr] = useState("");
@@ -46,9 +49,18 @@ import BirthForm from "../components/BirthForm";export default function BasicTie
             <p className="font-body text-zinc-400 mb-6">
               Upgrade your seeker account to the Sadhaka tier to receive personalised readings.
             </p>
-            <Link to="/pricing?need=basic">
-              <button className="btn-saffron" data-testid="basic-upgrade-btn">Upgrade to Basic</button>
-            </Link>
+            {user ? (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <UpgradeButton tier="basic" data-testid="basic-upgrade-btn" />
+                <Link to="/pricing?need=basic" className="text-xs text-[#D4AF37] underline-offset-4 hover:underline font-accent">
+                  Compare all tiers →
+                </Link>
+              </div>
+            ) : (
+              <Link to="/login">
+                <button className="btn-saffron" data-testid="basic-upgrade-btn">Sign in to upgrade</button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="glass-card p-8 md:p-10 fade-up">

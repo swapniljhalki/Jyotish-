@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 import { Sparkles, Check } from "lucide-react";
+import UpgradeButton from "../components/UpgradeButton";
+import api from "../lib/api";
 
 const TIERS = [
   {
@@ -33,20 +35,29 @@ export default function Pricing() {
   const params = new URLSearchParams(loc.search);
   const recommend = params.get("need");
   const [pending, setPending] = useState("");
+  const [payMode, setPayMode] = useState(null);
+
+  useEffect(() => {
+    api.get("/payments/config").then((r) => setPayMode(r.data?.mode)).catch(() => {});
+  }, []);
 
   const upgrade = async (tier) => {
     if (!user) return nav("/login");
+    if (tier !== "free") return; // paid tiers handled by <UpgradeButton />
     setPending(tier);
     try {
       await subscribe(tier);
-      toast.success(`Upgraded to ${tier}. The stars are aligned.`);
-      if (tier === "basic") nav("/basic");
-      else if (tier === "premium") nav("/premium");
+      toast.success(`Switched to ${tier}.`);
     } catch {
-      toast.error("Upgrade failed. Try again.");
+      toast.error("Switch failed. Try again.");
     } finally {
       setPending("");
     }
+  };
+
+  const onPaidSuccess = (tier) => {
+    if (tier === "basic") nav("/basic");
+    else if (tier === "premium") nav("/premium");
   };
 
   return (
@@ -57,8 +68,12 @@ export default function Pricing() {
           <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
             Choose your <span className="text-gold-gradient italic">tier.</span>
           </h1>
-          <p className="mt-3 font-body text-zinc-500 text-sm italic">
-            (Payments are mocked — one click upgrade for demo purposes.)
+          <p className="mt-3 font-body text-zinc-500 text-sm italic" data-testid="pricing-pay-mode">
+            {payMode === "live"
+              ? "Secure payments via Razorpay — UPI, cards & netbanking accepted."
+              : payMode === "mock"
+              ? "Demo mode — one-click upgrade, no real charge."
+              : "Loading payment options…"}
           </p>
         </div>
 
@@ -102,18 +117,27 @@ export default function Pricing() {
                     Current tier
                   </button>
                 ) : user ? (
-                  <button
-                    onClick={() => upgrade(t.key)}
-                    disabled={pending === t.key}
-                    className={
-                      t.popular
-                        ? "w-full bg-gradient-to-r from-[#D4AF37] to-[#FF9933] text-[#0A0D14] font-medium py-3 rounded-full shadow-[0_0_30px_rgba(255,153,51,0.3)] hover:shadow-[0_0_40px_rgba(255,153,51,0.5)] transition-all disabled:opacity-60"
-                        : "w-full py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body disabled:opacity-60"
-                    }
-                    data-testid={`tier-upgrade-${t.key}`}
-                  >
-                    {pending === t.key ? "Aligning..." : t.key === "free" ? "Switch to Free" : `Subscribe to ${t.name}`}
-                  </button>
+                  t.key === "free" ? (
+                    <button
+                      onClick={() => upgrade(t.key)}
+                      disabled={pending === t.key}
+                      className="w-full py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body disabled:opacity-60"
+                      data-testid={`tier-upgrade-${t.key}`}
+                    >
+                      {pending === t.key ? "Switching..." : "Switch to Free"}
+                    </button>
+                  ) : (
+                    <UpgradeButton
+                      tier={t.key}
+                      variant="unstyled"
+                      onSuccess={() => onPaidSuccess(t.key)}
+                      className={`w-full justify-center py-3 ${
+                        t.popular
+                          ? "bg-gradient-to-r from-[#D4AF37] to-[#FF9933] text-[#0A0D14] font-medium rounded-full shadow-[0_0_30px_rgba(255,153,51,0.3)] hover:shadow-[0_0_40px_rgba(255,153,51,0.5)]"
+                          : "border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] font-body"
+                      }`}
+                    />
+                  )
                 ) : (
                   <Link to="/login" className="block w-full text-center py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body">
                     Sign in to subscribe

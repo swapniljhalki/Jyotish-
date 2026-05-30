@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
 import NumberCard from "../components/NumberCard";
+import UpgradeButton from "../components/UpgradeButton";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -96,9 +97,18 @@ export default function PremiumTier() {
             <p className="font-body text-zinc-400 mb-6">
               The Jyotishi tier reveals your full kundali and the deeper interpretation.
             </p>
-            <Link to="/pricing?need=premium">
-              <button className="btn-saffron" data-testid="premium-upgrade-btn">Upgrade to Premium</button>
-            </Link>
+            {user ? (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <UpgradeButton tier="premium" data-testid="premium-upgrade-btn" />
+                <Link to="/pricing?need=premium" className="text-xs text-[#D4AF37] underline-offset-4 hover:underline font-accent">
+                  Compare all tiers →
+                </Link>
+              </div>
+            ) : (
+              <Link to="/login">
+                <button className="btn-saffron" data-testid="premium-upgrade-btn">Sign in to upgrade</button>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="glass-card p-8 md:p-10 fade-up">
