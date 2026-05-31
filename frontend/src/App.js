@@ -1,4 +1,5 @@
 import "@/App.css";
+import "./i18n";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 

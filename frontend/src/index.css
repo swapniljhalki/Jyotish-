@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -42,6 +42,25 @@
   .font-heading { font-family: 'Cormorant Garamond', serif; }
   .font-accent  { font-family: 'Cinzel', serif; letter-spacing: 0.2em; text-transform: uppercase; }
   .font-body    { font-family: 'Outfit', sans-serif; }
+
+  /* Native-script overrides: when user selects an Indic language, swap to Noto for that script. */
+  html[lang="hi"] .font-heading,
+  html[lang="hi"] .font-body,
+  html[lang="hi"] .font-accent,
+  html[lang="hi"] h1, html[lang="hi"] h2, html[lang="hi"] h3, html[lang="hi"] h4, html[lang="hi"] h5,
+  html[lang="hi"] body { font-family: 'Noto Sans Devanagari', 'Outfit', sans-serif; letter-spacing: normal; text-transform: none; }
+
+  html[lang="te"] .font-heading,
+  html[lang="te"] .font-body,
+  html[lang="te"] .font-accent,
+  html[lang="te"] h1, html[lang="te"] h2, html[lang="te"] h3, html[lang="te"] h4, html[lang="te"] h5,
+  html[lang="te"] body { font-family: 'Noto Sans Telugu', 'Outfit', sans-serif; letter-spacing: normal; text-transform: none; }
+
+  html[lang="ta"] .font-heading,
+  html[lang="ta"] .font-body,
+  html[lang="ta"] .font-accent,
+  html[lang="ta"] h1, html[lang="ta"] h2, html[lang="ta"] h3, html[lang="ta"] h4, html[lang="ta"] h5,
+  html[lang="ta"] body { font-family: 'Noto Sans Tamil', 'Outfit', sans-serif; letter-spacing: normal; text-transform: none; }
 }
 
 /* --- Indian traditional layered background ornamentation --- */

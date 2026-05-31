@@ -1,6 +1,7 @@
 // User's own booking history with quick-join Meet links.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import api, { formatApiError } from "../lib/api";
 import { Video, Calendar, Loader2 } from "lucide-react";
 
@@ -9,6 +10,7 @@ function fmt(iso) {
 }
 
 export default function MyBookings() {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,9 +29,9 @@ export default function MyBookings() {
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-16 md:py-24">
         <div className="mb-10 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">My bookings</p>
+          <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("nav.my_readings")}</p>
           <h1 className="font-heading text-5xl text-zinc-50">
-            Your <span className="text-gold-gradient italic">consultations.</span>
+            {t("scheduler.my_bookings_title_a")} <span className="text-gold-gradient italic">{t("scheduler.my_bookings_title_b")}</span>
           </h1>
         </div>
 
@@ -38,8 +40,8 @@ export default function MyBookings() {
         ) : bookings.length === 0 ? (
           <div className="glass-card p-10 text-center" data-testid="my-bookings-empty">
             <Calendar className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-            <p className="font-body text-zinc-400 mb-6">You haven&rsquo;t booked any consultations yet.</p>
-            <Link to="/book" className="btn-saffron inline-block">Book your first sitting</Link>
+            <p className="font-body text-zinc-400 mb-6">{t("scheduler.my_bookings_empty")}</p>
+            <Link to="/book" className="btn-saffron inline-block">{t("scheduler.my_bookings_cta")}</Link>
           </div>
         ) : (
           <div className="space-y-4" data-testid="my-bookings-list">
@@ -55,7 +57,7 @@ export default function MyBookings() {
                 </div>
                 {b.meet_url && b.status === "paid" && (
                   <a href={b.meet_url} target="_blank" rel="noopener" className="btn-saffron inline-flex items-center gap-2" data-testid={`my-booking-join-${b.id}`}>
-                    <Video className="h-4 w-4" /> Join
+                    <Video className="h-4 w-4" /> {t("scheduler.join")}
                   </a>
                 )}
               </div>

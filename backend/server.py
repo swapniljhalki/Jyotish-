@@ -35,6 +35,7 @@ from razorpay_service import (
     PRICING as RZP_PRICING,
 )
 from email_service import send_email
+from translation_cache import get_or_translate as i18n_translate
 from scheduler import (
     CONSULTATION,
     DEFAULT_RULES,
@@ -167,6 +168,7 @@ class AstroIn(BaseModel):
     time_of_birth: str
     place_of_birth: str
     full_name: Optional[str] = None
+    lang: Optional[str] = "en"
 
 
 class ForgotPasswordIn(BaseModel):
@@ -931,8 +933,9 @@ async def scheduler_oauth_disconnect(_: dict = Depends(require_admin)):
 
 # --- Free tier content ---
 @api.get("/grahas")
-async def list_grahas():
-    return {"grahas": GRAHAS}
+async def list_grahas(lang: str = "en"):
+    data = await i18n_translate(db, "grahas", lang, GRAHAS)
+    return {"grahas": data}
 
 
 @api.get("/panchang/today")
@@ -950,12 +953,12 @@ async def festivals_upcoming(limit: int = 6):
 
 
 @api.get("/rashifal/today")
-async def rashifal_today(tz: str = "Asia/Kolkata"):
+async def rashifal_today(tz: str = "Asia/Kolkata", lang: str = "en"):
     try:
         panchang = compute_panchang(tz_name=tz)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid timezone: {e}")
-    return await get_daily_rashifal(panchang, tz_name=tz)
+    return await get_daily_rashifal(panchang, tz_name=tz, lang=lang)
 
 
 # --- Visitor stats (lightweight on-page counter) ---
@@ -1004,6 +1007,7 @@ async def stats_visitors():
 class NumerologyIn(BaseModel):
     full_name: str
     date_of_birth: str  # YYYY-MM-DD
+    lang: Optional[str] = "en"
 
 
 class ChaldeanNameIn(BaseModel):
@@ -1127,6 +1131,7 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
         "audience. Use a warm, encouraging but honest tone. Reference traditional terminology "
         "(Mulank, Bhagyank, Naamank, ruling graha, Mahadasha, Antardasha, Pratyantardasha) "
         "with brief translations. Aim for ~280 words in 5 short sections with Markdown headings."
+        + _lang_instruction(body.lang)
     )
     user_msg = (
         f"Provide a Vedic numerology reading for:\n"
@@ -1152,23 +1157,34 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
 
 
 @api.get("/grahas/{graha_id}")
-async def graha_detail(graha_id: str):
+async def graha_detail(graha_id: str, lang: str = "en"):
     g = get_graha(graha_id)
     if not g:
         raise HTTPException(status_code=404, detail="Graha not found")
+    if lang != "en":
+        translated = await i18n_translate(db, "grahas", lang, GRAHAS)
+        for t in translated:
+            if t["id"] == graha_id:
+                return t
     return g
 
 
 @api.get("/nakshatras")
-async def list_nakshatras():
-    return {"nakshatras": NAKSHATRAS}
+async def list_nakshatras(lang: str = "en"):
+    data = await i18n_translate(db, "nakshatras", lang, NAKSHATRAS)
+    return {"nakshatras": data}
 
 
 @api.get("/nakshatras/{nid}")
-async def nakshatra_detail(nid: int):
+async def nakshatra_detail(nid: int, lang: str = "en"):
     n = get_nakshatra(nid)
     if not n:
         raise HTTPException(status_code=404, detail="Nakshatra not found")
+    if lang != "en":
+        translated = await i18n_translate(db, "nakshatras", lang, NAKSHATRAS)
+        for t in translated:
+            if t["id"] == nid:
+                return t
     return n
 
 
@@ -1220,6 +1236,27 @@ async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
         raise HTTPException(status_code=502, detail=f"AI service error: {e}")
 
 
+LANG_NAMES = {
+    "en": "English",
+    "hi": "Hindi (Devanagari script)",
+    "te": "Telugu",
+    "ta": "Tamil",
+}
+
+
+def _lang_instruction(lang: Optional[str]) -> str:
+    """Return a system-prompt suffix instructing Claude to respond in the user's language."""
+    code = (lang or "en").lower()
+    if code == "en" or code not in LANG_NAMES:
+        return ""
+    return (
+        f" CRITICAL: Write the ENTIRE response in {LANG_NAMES[code]}. "
+        f"Sanskrit/Vedic terms (kundali, graha, nakshatra, rashi, bhava, dasha, antardasha) "
+        f"should be written in the native script of {LANG_NAMES[code]} (e.g. कुंडली, నక్షత్రం, கிரகம்). "
+        f"Keep all Markdown headings, line breaks, and structure exactly as instructed, but translate all text content."
+    )
+
+
 # --- Basic tier ---
 @api.post("/astrology/basic")
 async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user)):
@@ -1231,6 +1268,7 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
         "Use warm, encouraging but honest language. Reference traditional terms (rashi, graha, bhava, "
         "nakshatra) where natural and briefly translate them. Keep output to ~250 words, formatted "
         "in short paragraphs with tasteful section headings."
+        + _lang_instruction(body.lang)
     )
     user_msg = (
         f"Provide a BASIC Vedic astrological reading for:\n"
@@ -1302,6 +1340,7 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         "lord's themes flavoured by the antardasha lord). Use traditional Vedic terminology "
         "with brief translations. Be insightful, specific and warm. Aim for ~550–700 words. "
         "Structure with clear Markdown-style headings."
+        + _lang_instruction(body.lang)
     )
     user_msg = (
         f"Generate a DETAILED Vedic kundali interpretation.\n\n"

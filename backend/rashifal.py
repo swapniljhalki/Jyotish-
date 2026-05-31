@@ -81,18 +81,33 @@ def _fallback_forecasts(panchang: dict) -> list[dict]:
     return out
 
 
-async def _generate_via_claude(panchang: dict, today_iso: str) -> list[dict] | None:
+LANG_LABEL = {
+    "hi": "Hindi (Devanagari script)",
+    "te": "Telugu",
+    "ta": "Tamil",
+}
+
+
+async def _generate_via_claude(panchang: dict, today_iso: str, lang: str = "en") -> list[dict] | None:
     """Single batched LLM call → 12 forecasts. Returns None on failure."""
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
     except Exception:
         return None
 
+    lang_suffix = ""
+    if lang != "en" and lang in LANG_LABEL:
+        lang_suffix = (
+            f" Write ALL theme/forecast/lucky_color values in {LANG_LABEL[lang]}. "
+            f"Names and numbers stay in their existing fields."
+        )
+
     system = (
         "You are a senior Vedic astrologer (Jyotishi) writing a daily rashifal for a modern audience. "
         "For each rashi, write a forecast in 2 short sentences (45–65 words). "
         "Use a warm, encouraging but honest tone. Reference today's panchang only briefly. "
         "Return STRICT JSON — no Markdown, no commentary."
+        + lang_suffix
     )
     user_msg = (
         f"Today's panchang ({today_iso}, IST):\n"
@@ -151,9 +166,9 @@ async def _generate_via_claude(panchang: dict, today_iso: str) -> list[dict] | N
     return out
 
 
-async def get_daily_rashifal(panchang: dict, tz_name: str = "Asia/Kolkata") -> dict:
+async def get_daily_rashifal(panchang: dict, tz_name: str = "Asia/Kolkata", lang: str = "en") -> dict:
     today_local = _dt.now(ZoneInfo(tz_name)).date().isoformat()
-    key = (today_local, tz_name)
+    key = (today_local, tz_name, lang)
 
     if key in _cache:
         return _cache[key]
@@ -162,7 +177,7 @@ async def get_daily_rashifal(panchang: dict, tz_name: str = "Asia/Kolkata") -> d
         if key in _cache:
             return _cache[key]
 
-        forecasts = await _generate_via_claude(panchang, today_local)
+        forecasts = await _generate_via_claude(panchang, today_local, lang)
         source = "ai"
         if forecasts is None:
             forecasts = _fallback_forecasts(panchang)
@@ -171,6 +186,7 @@ async def get_daily_rashifal(panchang: dict, tz_name: str = "Asia/Kolkata") -> d
         payload = {
             "date": today_local,
             "timezone": tz_name,
+            "lang": lang,
             "moon_sign": panchang["moon_sign"],
             "sun_sign": panchang["sun_sign"],
             "source": source,

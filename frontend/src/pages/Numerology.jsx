@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Sparkles, Lock } from "lucide-react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -7,6 +8,7 @@ import NumberCard from "../components/NumberCard";
 
 export default function Numerology() {
   const { user } = useAuth();
+  const { i18n } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [dob, setDob] = useState("");
   const [result, setResult] = useState(null);
@@ -44,6 +46,7 @@ export default function Numerology() {
       const { data } = await api.post("/numerology/reading", {
         full_name: fullName,
         date_of_birth: dob,
+        lang: i18n.resolvedLanguage,
       });
       setAdvice(data.advice);
     } catch (e2) {

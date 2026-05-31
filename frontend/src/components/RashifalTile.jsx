@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import api from "../lib/api";
 import { Stars, Sparkles } from "lucide-react";
 
 export default function RashifalTile({ compact = false }) {
+  const { i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage;
   const [data, setData] = useState(null);
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    api.get("/rashifal/today").then((r) => {
+    api.get(`/rashifal/today?lang=${lang}`).then((r) => {
       setData(r.data);
       const moon = (r.data.moon_sign || "").toLowerCase();
       const idx = (r.data.rashis || []).findIndex(
@@ -15,7 +18,7 @@ export default function RashifalTile({ compact = false }) {
       );
       setSelected(idx >= 0 ? idx : 0);
     }).catch(() => {});
-  }, []);
+  }, [lang]);
 
   const current = useMemo(() => {
     if (!data || selected == null) return null;

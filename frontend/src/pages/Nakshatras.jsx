@@ -1,26 +1,28 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import api from "../lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
 
 export default function Nakshatras() {
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState([]);
   const [selected, setSelected] = useState(null);
+  const lang = i18n.resolvedLanguage;
 
   useEffect(() => {
-    api.get("/nakshatras").then((r) => setItems(r.data.nakshatras)).catch(() => {});
-  }, []);
+    api.get(`/nakshatras?lang=${lang}`).then((r) => setItems(r.data.nakshatras)).catch(() => {});
+  }, [lang]);
 
   return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
         <div className="mb-12 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">Free Tier</p>
+          <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("nakshatras_page.eyebrow")}</p>
           <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
-            The <span className="text-gold-gradient italic">27 Nakshatras</span>
+            {t("nakshatras_page.title_a")} <span className="text-gold-gradient italic">{t("nakshatras_page.title_b")}</span>
           </h1>
           <p className="mt-4 font-body text-zinc-400 max-w-2xl leading-relaxed">
-            The Moon spends roughly one day in each nakshatra — the sacred lunar mansions.
-            Older than the zodiac, these 27 starfields reveal the subtle texture of one's nature.
+            {t("nakshatras_page.intro")}
           </p>
         </div>
 

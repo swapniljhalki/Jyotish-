@@ -1,27 +1,29 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import api from "../lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
 import { Sparkles } from "lucide-react";
 
 export default function Grahas() {
+  const { t, i18n } = useTranslation();
   const [grahas, setGrahas] = useState([]);
   const [selected, setSelected] = useState(null);
+  const lang = i18n.resolvedLanguage;
 
   useEffect(() => {
-    api.get("/grahas").then((r) => setGrahas(r.data.grahas)).catch(() => {});
-  }, []);
+    api.get(`/grahas?lang=${lang}`).then((r) => setGrahas(r.data.grahas)).catch(() => {});
+  }, [lang]);
 
   return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
         <div className="mb-12 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">Free Tier</p>
+          <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("grahas_page.eyebrow")}</p>
           <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
-            The <span className="text-gold-gradient italic">Nine Grahas</span>
+            {t("grahas_page.title_a")} <span className="text-gold-gradient italic">{t("grahas_page.title_b")}</span>
           </h1>
           <p className="mt-4 font-body text-zinc-400 max-w-2xl leading-relaxed">
-            In Vedic astrology there are not planets — there are <em>grahas</em>, meaning "to seize".
-            These nine cosmic forces are believed to grip the soul, shaping character, karma and destiny.
+            {t("grahas_page.intro")}
           </p>
         </div>
 

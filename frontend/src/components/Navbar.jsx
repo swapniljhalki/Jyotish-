@@ -1,21 +1,24 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { LogOut, User as UserIcon } from "lucide-react";
+import LanguagePicker from "./LanguagePicker";
 
 const navItems = [
-  { to: "/grahas", label: "Grahas" },
-  { to: "/nakshatras", label: "Nakshatras" },
-  { to: "/numerology", label: "Numerology" },
-  { to: "/basic", label: "Basic Reading" },
-  { to: "/premium", label: "Premium Numerology" },
-  { to: "/book", label: "Book 1:1", authOnly: true, accent: true },
-  { to: "/readings", label: "My Readings", authOnly: true },
-  { to: "/pricing", label: "Pricing" },
+  { to: "/grahas",     k: "nav.grahas" },
+  { to: "/nakshatras", k: "nav.nakshatras" },
+  { to: "/numerology", k: "nav.numerology" },
+  { to: "/basic",      k: "nav.basic_reading" },
+  { to: "/premium",    k: "nav.premium_numerology" },
+  { to: "/book",       k: "nav.book_1on1",  authOnly: true, accent: true },
+  { to: "/readings",   k: "nav.my_readings", authOnly: true },
+  { to: "/pricing",    k: "nav.pricing" },
 ];
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const nav = useNavigate();
 
   const handleLogout = async () => {
@@ -55,12 +58,13 @@ export default function Navbar() {
                 }`
               }
             >
-              {item.label}
+              {t(item.k)}
             </NavLink>
           ))}
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguagePicker />
           {user ? (
             <>
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.2)]">
@@ -74,7 +78,7 @@ export default function Navbar() {
               </div>
               {user.role === "admin" && (
                 <Link to="/admin" data-testid="nav-admin-link" className="hidden md:block text-[10px] font-accent text-[#FFD700] hover:text-[#FF9933]">
-                  ADMIN
+                  {t("nav.admin")}
                 </Link>
               )}
               <Button
@@ -84,18 +88,18 @@ export default function Navbar() {
                 data-testid="nav-logout-btn"
                 className="text-zinc-300 hover:text-[#FF9933] hover:bg-transparent"
               >
-                <LogOut className="h-4 w-4 mr-1" /> Logout
+                <LogOut className="h-4 w-4 mr-1" /> {t("nav.logout")}
               </Button>
             </>
           ) : (
             <>
               <Link to="/login" data-testid="nav-login-link">
                 <Button variant="ghost" size="sm" className="text-zinc-300 hover:text-[#FF9933] hover:bg-transparent">
-                  Login
+                  {t("nav.login")}
                 </Button>
               </Link>
               <Link to="/register" data-testid="nav-register-link">
-                <button className="btn-saffron text-sm">Begin Journey</button>
+                <button className="btn-saffron text-sm">{t("nav.begin_journey")}</button>
               </Link>
             </>
           )}
