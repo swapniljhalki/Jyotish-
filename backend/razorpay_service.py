@@ -38,38 +38,56 @@ def _client():
 def create_order(tier: str, user_id: str) -> dict:
     if tier not in PRICING:
         raise ValueError(f"Unknown tier {tier!r}")
-    amount = PRICING[tier]["amount_paise"]
-    receipt = f"rcpt_{tier}_{user_id[:8]}_{uuid.uuid4().hex[:6]}"
+    return create_custom_order(
+        amount_paise=PRICING[tier]["amount_paise"],
+        label=PRICING[tier]["label"],
+        user_id=user_id,
+        receipt_prefix=f"rcpt_{tier}",
+        notes={"tier": tier, "user_id": user_id},
+    )
+
+
+def create_custom_order(
+    *,
+    amount_paise: int,
+    label: str,
+    user_id: str,
+    receipt_prefix: str = "rcpt",
+    notes: Optional[dict] = None,
+) -> dict:
+    """Create a Razorpay order for an arbitrary amount/label (used by scheduler bookings,
+    where the price isn't tied to a tier)."""
+    receipt = f"{receipt_prefix}_{user_id[:8]}_{uuid.uuid4().hex[:6]}"
+    note_data = {"user_id": user_id}
+    if notes:
+        note_data.update(notes)
 
     if is_live():
         client = _client()
         order = client.order.create({
-            "amount": amount,
+            "amount":   amount_paise,
             "currency": "INR",
-            "receipt": receipt,
-            "notes": {"tier": tier, "user_id": user_id},
+            "receipt":  receipt,
+            "notes":    note_data,
         })
         return {
-            "mode": "live",
+            "mode":     "live",
             "order_id": order["id"],
-            "amount": amount,
+            "amount":   amount_paise,
             "currency": "INR",
-            "receipt": receipt,
-            "tier": tier,
-            "key_id": os.environ["RAZORPAY_KEY_ID"],
-            "label": PRICING[tier]["label"],
+            "receipt":  receipt,
+            "key_id":   os.environ["RAZORPAY_KEY_ID"],
+            "label":    label,
         }
 
-    # Mock mode
     return {
-        "mode": "mock",
+        "mode":     "mock",
         "order_id": f"order_mock_{uuid.uuid4().hex[:14]}",
-        "amount": amount,
+        "amount":   amount_paise,
         "currency": "INR",
-        "receipt": receipt,
-        "tier": tier,
-        "key_id": None,
-        "label": PRICING[tier]["label"],
+        "receipt":  receipt,
+        "key_id":   None,
+        "label":    label,
     }
 
 

@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Button } from "../components/ui/button";
-import { Trash2, Mail, Users as UsersIcon, BookOpen } from "lucide-react";
+import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays } from "lucide-react";
+import SchedulerAdmin from "../components/SchedulerAdmin";
 
 export default function Admin() {
   const { user, loading } = useAuth();
@@ -81,13 +82,16 @@ export default function Admin() {
 
         {err && <div className="text-red-400 text-sm mb-4" data-testid="admin-error">{err}</div>}
 
-        <Tabs defaultValue="users" className="w-full" data-testid="admin-tabs">
+        <Tabs defaultValue={new URLSearchParams(window.location.search).get("tab") || "users"} className="w-full" data-testid="admin-tabs">
           <TabsList className="bg-[#121824] border border-[rgba(212,175,55,0.2)]">
             <TabsTrigger value="users" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-users">
               <UsersIcon className="h-4 w-4 mr-2" /> Users ({users.length})
             </TabsTrigger>
             <TabsTrigger value="readings" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-readings">
               <BookOpen className="h-4 w-4 mr-2" /> All Readings ({readings.length})
+            </TabsTrigger>
+            <TabsTrigger value="scheduler" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-scheduler">
+              <CalendarDays className="h-4 w-4 mr-2" /> Scheduler
             </TabsTrigger>
             <TabsTrigger value="emails" className="data-[state=active]:bg-[rgba(255,153,51,0.15)] data-[state=active]:text-[#FFD700]" data-testid="admin-tab-emails">
               <Mail className="h-4 w-4 mr-2" /> Email Outbox ({emails.length})
@@ -210,6 +214,10 @@ export default function Admin() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="scheduler" className="mt-6">
+            <SchedulerAdmin />
           </TabsContent>
 
           <TabsContent value="emails" className="mt-6">

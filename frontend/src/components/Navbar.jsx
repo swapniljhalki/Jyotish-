@@ -9,6 +9,7 @@ const navItems = [
   { to: "/numerology", label: "Numerology" },
   { to: "/basic", label: "Basic Reading" },
   { to: "/premium", label: "Premium Numerology" },
+  { to: "/book", label: "Book 1:1", authOnly: true, accent: true },
   { to: "/readings", label: "My Readings", authOnly: true },
   { to: "/pricing", label: "Pricing" },
 ];
@@ -46,7 +47,11 @@ export default function Navbar() {
               data-testid={`nav-${item.to.slice(1)}`}
               className={({ isActive }) =>
                 `text-sm font-body transition-colors hover:text-[#FF9933] ${
-                  isActive ? "text-[#FF9933]" : "text-zinc-300"
+                  isActive
+                    ? "text-[#FF9933]"
+                    : item.accent
+                    ? "text-[#D4AF37]"
+                    : "text-zinc-300"
                 }`
               }
             >

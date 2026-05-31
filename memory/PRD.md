@@ -96,11 +96,19 @@ Vedic astrology website with 3 pricing tiers:
 - Wired into `PanchangSection` as a full-width tile below panchang + festivals.
 - 6/6 backend tests + full frontend Playwright flow verified.
 
-## Prioritised Backlog
-- **P0 — DONE**: Razorpay payment integration (mock-mode shipped Feb 30, 2026 — wire keys in `.env` to go live)
-- **P1**: Multi-language support (English / Hindi / Telugu / Tamil) — requested but pending
-- **P1**: Meeting Scheduler in Premium tier (recurring weekly availability + Google Meet + paid add-on)
-- **P1**: Real email delivery (Resend) — currently mocked
+## Phase 10 (Feb 30, 2026) — Consultation Scheduler (Google Meet) — ✅ SHIPPED
+- New module `/app/backend/scheduler.py` — recurring weekly availability rules, slot generator (4 weeks horizon, configurable), stub Meet URL fallback, Google OAuth (auth URL + code exchange + refresh), Calendar API event creation with `conferenceData.createRequest` (auto-generates Meet link), `sendUpdates="all"` so customer + astrologer both get invites.
+- New endpoints under `/api/scheduler/*`: `config`, `availability` (PUT — admin), `slots`, `book` (premium), `confirm`, `my-bookings`, `all-bookings` (admin), `oauth/start` (admin), `oauth/callback`, `oauth/disconnect` (admin).
+- Pricing: **₹999 / 30 min** (override per env later if needed).
+- Tier-gated: only premium users can book. Stub-mode warning shown until astrologer connects Google.
+- New pages: `/book` (BookConsultation), `/my-bookings` (MyBookings) + admin `Scheduler` tab (SchedulerAdmin component) with weekly rules editor, Google connect / disconnect, full bookings table.
+- New env vars in `backend/.env`: `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `ASTROLOGER_EMAIL`, `SCHEDULER_REDIRECT_URI`.
+- End-to-end verified (Playwright): premium user picks slot → mock-pay → "Booking confirmed" card with Meet link + toast + email outbox entries. Admin scheduler tab loads, OAuth start URL returns valid Google authorization URL.
+
+## Prioritised Backlog (updated)
+- **P1 (in flight)**: Astrologer to complete Google OAuth once via `/admin?tab=scheduler → Connect Google` so real Meet links replace stub.
+- **P1**: Multi-language support (English / Hindi / Telugu / Tamil)
+- **P1**: Real email delivery (Resend) — currently mocked outbox
 - **P2**: Auto-generate OG share-card PNG for `/r/:token` (social link previews)
 - **P3**: Transit alerts (daily Gochar based on stored birth chart)
 - **P3**: Investigate flaky brute-force lockout test (state leakage between iterations)

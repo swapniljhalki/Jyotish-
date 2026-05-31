@@ -29,11 +29,25 @@ from num_dasha import compute_numerology_dasha
 from rashifal import get_daily_rashifal
 from razorpay_service import (
     create_order as rzp_create_order,
+    create_custom_order as rzp_create_custom_order,
     verify_signature as rzp_verify_signature,
     is_live as rzp_is_live,
     PRICING as RZP_PRICING,
 )
 from email_service import send_email
+from scheduler import (
+    CONSULTATION,
+    DEFAULT_RULES,
+    compute_slots,
+    stub_meet_url,
+    google_oauth_configured,
+    google_auth_url,
+    exchange_code_for_tokens,
+    refresh_access_token,
+    create_calendar_event_with_meet,
+    extract_meet_url,
+)
+from fastapi.responses import RedirectResponse
 
 # --- logging ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -564,6 +578,355 @@ async def payments_verify(body: PaymentVerifyIn, user: dict = Depends(get_curren
     )
 
     return {**public_user(updated), "tier": body.tier, "payment_status": "success"}
+
+
+# =============================================================================
+# Consultation Scheduler — Phase 10
+# =============================================================================
+
+class AvailabilityRule(BaseModel):
+    day: int          # 0=Mon .. 6=Sun
+    start: str        # "HH:MM"
+    end: str          # "HH:MM"
+
+
+class AvailabilityIn(BaseModel):
+    weekly_rules: list[AvailabilityRule]
+    slot_minutes: int = 30
+    tz: str = "Asia/Kolkata"
+
+
+class BookingIn(BaseModel):
+    slot_start_utc: str       # ISO datetime
+    customer_name: str
+    customer_phone: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
+class BookingConfirmIn(BaseModel):
+    booking_id: str
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str = ""
+
+
+async def _get_scheduler_config() -> dict:
+    doc = await db.scheduler_config.find_one({"id": "config"}, {"_id": 0})
+    if not doc:
+        doc = {
+            "id":           "config",
+            "weekly_rules": DEFAULT_RULES,
+            "slot_minutes": CONSULTATION["duration_min"],
+            "tz":           CONSULTATION["tz"],
+        }
+        await db.scheduler_config.insert_one(dict(doc))
+        doc.pop("_id", None)
+    return doc
+
+
+async def _get_google_credentials() -> Optional[dict]:
+    """Return {access_token, refresh_token, expiry} or None when astrologer hasn't connected."""
+    doc = await db.app_config.find_one({"id": "google_calendar"}, {"_id": 0})
+    if not doc or not doc.get("refresh_token"):
+        return None
+    expiry = doc.get("expiry")
+    now = datetime.now(timezone.utc)
+    if not expiry or datetime.fromisoformat(expiry) <= now + timedelta(seconds=60):
+        # Refresh access token
+        try:
+            fresh = await refresh_access_token(doc["refresh_token"])
+        except Exception as e:
+            logger.warning(f"Google token refresh failed: {e} — clearing stale credentials.")
+            await db.app_config.update_one(
+                {"id": "google_calendar"},
+                {"$set": {"access_token": None, "expiry": None, "needs_reconnect": True, "refresh_error": str(e)[:200]}},
+            )
+            return None
+        new_expiry = (now + timedelta(seconds=int(fresh.get("expires_in", 3500)))).isoformat()
+        await db.app_config.update_one(
+            {"id": "google_calendar"},
+            {"$set": {"access_token": fresh["access_token"], "expiry": new_expiry, "needs_reconnect": False}},
+        )
+        return {**doc, "access_token": fresh["access_token"], "expiry": new_expiry}
+    return doc
+
+
+@api.get("/scheduler/config")
+async def scheduler_get_config():
+    cfg = await _get_scheduler_config()
+    return {
+        "weekly_rules":     cfg["weekly_rules"],
+        "slot_minutes":     cfg["slot_minutes"],
+        "tz":               cfg["tz"],
+        "price_paise":      CONSULTATION["amount_paise"],
+        "price_inr":        CONSULTATION["amount_paise"] / 100,
+        "duration_minutes": cfg["slot_minutes"],
+        "label":            CONSULTATION["label"],
+        "google_connected": (await _get_google_credentials()) is not None,
+        "payment_mode":     "live" if rzp_is_live() else "mock",
+    }
+
+
+@api.put("/scheduler/availability")
+async def scheduler_set_availability(body: AvailabilityIn, _: dict = Depends(require_admin)):
+    if body.slot_minutes not in (15, 30, 45, 60):
+        raise HTTPException(status_code=400, detail="slot_minutes must be 15/30/45/60")
+    rules = [r.dict() for r in body.weekly_rules]
+    for r in rules:
+        if not (0 <= r["day"] <= 6):
+            raise HTTPException(status_code=400, detail="day must be 0..6 (Mon..Sun)")
+    await db.scheduler_config.update_one(
+        {"id": "config"},
+        {"$set": {"weekly_rules": rules, "slot_minutes": body.slot_minutes, "tz": body.tz}},
+        upsert=True,
+    )
+    return await scheduler_get_config()
+
+
+@api.get("/scheduler/slots")
+async def scheduler_slots(weeks: int = 4):
+    weeks = max(1, min(8, weeks))
+    cfg = await _get_scheduler_config()
+
+    horizon_end = datetime.now(timezone.utc) + timedelta(days=weeks * 7 + 1)
+    cursor = db.bookings.find(
+        {"status": {"$in": ["pending", "paid"]}, "slot_start_utc": {"$lte": horizon_end.isoformat()}},
+        {"_id": 0, "slot_start_utc": 1},
+    )
+    booked = {b["slot_start_utc"] async for b in cursor}
+
+    slots = compute_slots(
+        weekly_rules=cfg["weekly_rules"],
+        slot_minutes=cfg["slot_minutes"],
+        weeks_ahead=weeks,
+        tz_name=cfg["tz"],
+        booked_starts_utc=booked,
+    )
+    return {"slots": slots, "tz": cfg["tz"], "slot_minutes": cfg["slot_minutes"]}
+
+
+@api.post("/scheduler/book")
+async def scheduler_book(body: BookingIn, user: dict = Depends(get_current_user)):
+    require_tier(user, "premium")
+    cfg = await _get_scheduler_config()
+    duration = cfg["slot_minutes"]
+
+    # Validate slot start
+    try:
+        start_utc = datetime.fromisoformat(body.slot_start_utc.replace("Z", "+00:00")).astimezone(timezone.utc)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid slot_start_utc")
+    if start_utc <= datetime.now(timezone.utc) + timedelta(minutes=30):
+        raise HTTPException(status_code=400, detail="Slot must be at least 30 minutes in the future")
+    end_utc = start_utc + timedelta(minutes=duration)
+    start_iso = start_utc.isoformat()
+
+    # Check not already booked
+    clash = await db.bookings.find_one(
+        {"slot_start_utc": start_iso, "status": {"$in": ["pending", "paid"]}},
+        {"_id": 0, "id": 1},
+    )
+    if clash:
+        raise HTTPException(status_code=409, detail="That slot was just taken — please pick another.")
+
+    # Create a Razorpay order for the consultation fee (independent of any tier pricing).
+    try:
+        order = rzp_create_custom_order(
+            amount_paise=CONSULTATION["amount_paise"],
+            label=CONSULTATION["label"],
+            user_id=user["id"],
+            receipt_prefix="rcpt_consult",
+            notes={"booking_slot": start_iso},
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Razorpay error: {e}")
+
+    booking_id = str(uuid.uuid4())
+    booking = {
+        "id":              booking_id,
+        "user_id":         user["id"],
+        "user_email":      user["email"],
+        "customer_name":   body.customer_name.strip(),
+        "customer_phone":  (body.customer_phone or "").strip(),
+        "notes":           (body.notes or "").strip(),
+        "slot_start_utc":  start_iso,
+        "slot_end_utc":    end_utc.isoformat(),
+        "duration_min":    duration,
+        "amount_paise":    CONSULTATION["amount_paise"],
+        "currency":        CONSULTATION["currency"],
+        "status":          "pending",
+        "order_id":        order["order_id"],
+        "payment_mode":    order["mode"],
+        "meet_url":        None,
+        "calendar_event_id": None,
+        "created_at":      datetime.now(timezone.utc).isoformat(),
+    }
+    await db.bookings.insert_one(dict(booking))
+    booking.pop("_id", None)
+
+    return {
+        "booking":  booking,
+        "order": {
+            "order_id": order["order_id"],
+            "amount":   CONSULTATION["amount_paise"],
+            "currency": CONSULTATION["currency"],
+            "mode":     order["mode"],
+            "key_id":   order.get("key_id"),
+            "label":    CONSULTATION["label"],
+            "prefill":  {"name": body.customer_name, "email": user["email"], "contact": body.customer_phone or ""},
+        },
+    }
+
+
+@api.post("/scheduler/confirm")
+async def scheduler_confirm(body: BookingConfirmIn, user: dict = Depends(get_current_user)):
+    if not rzp_verify_signature(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature):
+        raise HTTPException(status_code=400, detail="Signature mismatch")
+
+    booking = await db.bookings.find_one({"id": body.booking_id, "user_id": user["id"]}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    if booking["order_id"] != body.razorpay_order_id:
+        raise HTTPException(status_code=400, detail="Order mismatch")
+    if booking["status"] == "paid":
+        return booking  # already confirmed (idempotent)
+
+    # Try to create a real Google Calendar event with Meet
+    meet_url = None
+    event_id = None
+    creds = await _get_google_credentials()
+    astrologer_email = os.environ.get("ASTROLOGER_EMAIL", "")
+    if creds:
+        try:
+            event = await create_calendar_event_with_meet(
+                access_token=creds["access_token"],
+                summary=f"Vedic Consultation — {booking['customer_name']}",
+                description=(
+                    f"Booked via Satish Numero World.\n\n"
+                    f"Customer: {booking['customer_name']}\n"
+                    f"Email: {booking['user_email']}\n"
+                    f"Phone: {booking['customer_phone'] or '—'}\n\n"
+                    f"Notes:\n{booking['notes'] or '(none)'}\n"
+                ),
+                start_iso_utc=booking["slot_start_utc"],
+                end_iso_utc=booking["slot_end_utc"],
+                attendee_emails=list({booking["user_email"], astrologer_email} - {""}),
+            )
+            meet_url = extract_meet_url(event)
+            event_id = event.get("id")
+        except Exception as e:
+            logger.warning(f"Google Calendar event creation failed: {e} — falling back to stub link.")
+
+    if not meet_url:
+        meet_url = stub_meet_url()
+
+    updates = {
+        "status":            "paid",
+        "payment_id":        body.razorpay_payment_id,
+        "signature":         body.razorpay_signature,
+        "paid_at":           datetime.now(timezone.utc).isoformat(),
+        "meet_url":          meet_url,
+        "calendar_event_id": event_id,
+    }
+    await db.bookings.update_one({"id": body.booking_id}, {"$set": updates})
+
+    # Notify both parties via outbox
+    try:
+        await send_email(
+            to=booking["user_email"],
+            subject="Your Vedic Consultation is confirmed",
+            body=(
+                f"Namaste {booking['customer_name']},\n\n"
+                f"Your 1:1 consultation is confirmed for {booking['slot_start_utc']} (UTC).\n"
+                f"Join here: {meet_url}\n\n"
+                f"— Satish Numero World"
+            ),
+        )
+        if astrologer_email:
+            await send_email(
+                to=astrologer_email,
+                subject=f"New booking — {booking['customer_name']}",
+                body=(
+                    f"New 1:1 booking for {booking['slot_start_utc']} (UTC).\n"
+                    f"Client: {booking['customer_name']} <{booking['user_email']}> "
+                    f"({booking['customer_phone'] or 'no phone'})\n"
+                    f"Notes: {booking['notes'] or '(none)'}\n"
+                    f"Meet: {meet_url}\n"
+                ),
+            )
+    except Exception as e:
+        logger.warning(f"Booking confirmation emails failed: {e}")
+
+    return {**booking, **updates}
+
+
+@api.get("/scheduler/my-bookings")
+async def scheduler_my_bookings(user: dict = Depends(get_current_user)):
+    cursor = db.bookings.find({"user_id": user["id"]}, {"_id": 0}).sort("slot_start_utc", -1).limit(50)
+    return {"bookings": [b async for b in cursor]}
+
+
+@api.get("/scheduler/all-bookings")
+async def scheduler_all_bookings(_: dict = Depends(require_admin)):
+    cursor = db.bookings.find({}, {"_id": 0}).sort("slot_start_utc", -1).limit(200)
+    return {"bookings": [b async for b in cursor]}
+
+
+# --- Google OAuth (admin one-time hookup) ------------------------------------
+
+@api.get("/scheduler/oauth/start")
+async def scheduler_oauth_start(_: dict = Depends(require_admin)):
+    if not google_oauth_configured():
+        raise HTTPException(status_code=400, detail="Google OAuth not configured on the server (missing client id/secret).")
+    state = secrets.token_urlsafe(16)
+    await db.app_config.update_one(
+        {"id": "google_oauth_state"},
+        {"$set": {"state": state, "created_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"authorization_url": google_auth_url(state)}
+
+
+@api.get("/scheduler/oauth/callback")
+async def scheduler_oauth_callback(code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
+    target = "/admin?tab=scheduler"
+    if error or not code:
+        return RedirectResponse(url=f"{target}&oauth=error&msg={error or 'no_code'}")
+
+    saved = await db.app_config.find_one({"id": "google_oauth_state"}, {"_id": 0})
+    if not saved or saved.get("state") != state:
+        return RedirectResponse(url=f"{target}&oauth=error&msg=state_mismatch")
+
+    try:
+        tokens = await exchange_code_for_tokens(code)
+    except Exception:
+        return RedirectResponse(url=f"{target}&oauth=error&msg=token_exchange_failed")
+
+    refresh = tokens.get("refresh_token")
+    if not refresh:
+        return RedirectResponse(url=f"{target}&oauth=error&msg=no_refresh_token")
+
+    now = datetime.now(timezone.utc)
+    expiry = (now + timedelta(seconds=int(tokens.get("expires_in", 3500)))).isoformat()
+    await db.app_config.update_one(
+        {"id": "google_calendar"},
+        {"$set": {
+            "id":            "google_calendar",
+            "refresh_token": refresh,
+            "access_token":  tokens.get("access_token"),
+            "expiry":        expiry,
+            "scope":         tokens.get("scope", ""),
+            "connected_at":  now.isoformat(),
+        }},
+        upsert=True,
+    )
+    return RedirectResponse(url=f"{target}&oauth=success")
+
+
+@api.post("/scheduler/oauth/disconnect")
+async def scheduler_oauth_disconnect(_: dict = Depends(require_admin)):
+    await db.app_config.delete_one({"id": "google_calendar"})
+    return {"ok": True}
 
 
 # --- Free tier content ---
