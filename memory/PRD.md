@@ -115,15 +115,24 @@ Vedic astrology website with 3 pricing tiers:
 - Static encyclopedic content (GRAHAS, NAKSHATRAS) translates **on-demand and caches in MongoDB** via `/app/backend/translation_cache.py` — Hindi cache built (~56s first hit, instant after). Telugu/Tamil caches will fill once Emergent LLM budget is topped up; until then the UI falls back to English source gracefully (no errors).
 - Razorpay `create_order` refactored: scheduler bookings now use a generic `create_custom_order(amount_paise, label, ...)` helper so consultation pricing is decoupled from any tier price (fixes test-agent flag from iteration 8).
 
+## Phase 12 (Feb 30, 2026) — Light theme ("Sacred Ivory & Temple Gold") — ✅ SHIPPED
+- Complete colour-scheme inversion via CSS-variable swap + a global re-skin block in `/app/frontend/src/index.css`. Single file touched for the entire theme flip (no component-level rewrites needed).
+- New palette: ivory parchment background (`#FDFBF7`), deep-indigo ink text (`#1A1C29`), saffron primary (`#FF8C00`), temple-gold accent (`#D4AF37`), auspicious-red highlights (`#D9381E`).
+- Reworked `cosmic-bg` to render the same 24-petal mandala + paisley + rangoli-dot patterns but in low-opacity gold/saffron ink on parchment.
+- Cards: `.glass-card` is now translucent white + faint gold border + soft shadow; `.premium-card` is cream-to-warm-saffron gradient with double-line frame.
+- Buttons: `.btn-saffron` becomes solid saffron pill with offset copper-frame hover; `.text-gold-gradient` darkened to copper→gold→saffron for legibility on ivory.
+- Kundali chart re-skinned: deep-indigo lines on parchment (vs. previous white-on-dark).
+- Navbar logo wrap fixed and nav labels tightened (`Basic Reading → Basic`, `Book 1:1 → 1:1`, `My Readings → Readings`, etc.) across all 4 languages so the row fits comfortably with the logged-in user chrome.
+- All AI markdown readings (`prose-invert → prose`) so they render dark-on-light.
+
 ## Prioritised Backlog (updated)
-- **P0 — DONE**: i18n infrastructure + 4 languages.
-- **P1**: Astrologer to complete Google OAuth once via `/admin?tab=scheduler → Connect Google` so real Meet links replace stub.
-- **P1**: Top up Emergent LLM budget (currently ~$4 cap exceeded) so Telugu & Tamil grahas/nakshatras caches can populate. Until then, the encyclopedia falls back to English for those languages.
-- **P1**: Real email delivery (Resend) — currently mocked outbox.
-- **P2**: Server.py is now ~1,600 lines — split into routers (auth, payments, scheduler, astrology, numerology).
-- **P2**: Translate the remaining secondary surface (PanchangSection, VisitorStats footer, Login/Register forms, Admin panel labels) — they currently still show English alongside the translated chrome.
-- **P2**: Auto-generate OG share-card PNG for `/r/:token` (social link previews).
-- **P3**: Daily Gochar transit alerts based on stored birth chart.
+- **P0**: Top up Emergent LLM budget so Telugu & Tamil grahas/nakshatras caches can populate (also unblocks AI readings in any language).
+- **P1**: Astrologer to complete Google OAuth once via `/admin?tab=scheduler → Connect Google` for real Meet links.
+- **P1**: Real email delivery via Resend (currently mocked outbox).
+- **P2**: Server.py refactor (~1,600 lines → routers).
+- **P2**: Translate the remaining secondary surface (PanchangSection, VisitorStats, Login/Register, Admin) — they still show English.
+- **P2**: Auto-generate OG share-card PNG for `/r/:token`.
+- **P3**: Daily Gochar transit alerts.
 - **P3**: Investigate flaky brute-force lockout test.
 
 ## Phase 9 (Feb 30, 2026) — Razorpay Payments (mock + live ready) — ✅ SHIPPED

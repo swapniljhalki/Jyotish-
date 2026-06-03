@@ -29,20 +29,20 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[rgba(212,175,55,0.15)] bg-[#0A0D14]/90 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group" data-testid="nav-logo">
+        <Link to="/" className="flex items-center gap-3 group shrink-0" data-testid="nav-logo">
           <img
             src="/snw-logo.jpg"
             alt="Satish Numero World"
             className="h-10 w-10 rounded-full object-cover ring-1 ring-[rgba(212,175,55,0.4)] group-hover:ring-[#FF9933] transition-all"
           />
-          <span className="font-heading text-xl md:text-2xl tracking-tight leading-tight">
+          <span className="font-heading text-xl md:text-2xl tracking-tight leading-tight whitespace-nowrap">
             <span className="text-gold-gradient font-semibold">Satish</span>
-            <span className="text-zinc-200"> Numero</span>
-            <span className="text-zinc-400"> World</span>
+            <span className="text-zinc-200 hidden xl:inline"> Numero</span>
+            <span className="text-zinc-400 hidden xl:inline"> World</span>
           </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-5">
           {navItems.filter((item) => !item.authOnly || user).map((item) => (
             <NavLink
               key={item.to}

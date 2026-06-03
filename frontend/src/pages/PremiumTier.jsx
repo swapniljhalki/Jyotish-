@@ -202,7 +202,7 @@ export default function PremiumTier() {
                   <span className="font-accent text-xs text-[#D4AF37]">Detailed Reading</span>
                 </div>
                 <div
-                  className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap prose-invert"
+                  className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap prose"
                   style={{ lineHeight: 1.8 }}
                 >
                   {result.advice}

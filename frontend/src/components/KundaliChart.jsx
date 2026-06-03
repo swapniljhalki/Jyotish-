@@ -64,7 +64,7 @@ export default function KundaliChart({ chart }) {
             <stop offset="100%" stopColor="rgba(255,153,51,0)" />
           </radialGradient>
           <pattern id="chart-noise" width="100" height="100" patternUnits="userSpaceOnUse">
-            <rect width="100" height="100" fill="#121824" />
+            <rect width="100" height="100" fill="#F9F4EB" />
           </pattern>
         </defs>
 
@@ -131,7 +131,7 @@ export default function KundaliChart({ chart }) {
                     fontSize={planets.length > 3 ? "10" : "12"}
                     fontFamily="Outfit, sans-serif"
                     fontWeight="500"
-                    fill="#F8F9FA"
+                    fill="#1A1C29"
                   >
                     {ln}
                   </text>
