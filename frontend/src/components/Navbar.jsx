@@ -37,8 +37,8 @@ export default function Navbar() {
           />
           <span className="font-heading text-xl md:text-2xl tracking-tight leading-tight whitespace-nowrap">
             <span className="text-gold-gradient font-semibold">Satish</span>
-            <span className="text-zinc-200 hidden xl:inline"> Numero</span>
-            <span className="text-zinc-400 hidden xl:inline"> World</span>
+            <span className="font-semibold hidden md:inline" style={{ color: "#1A1C29" }}> Numero</span>
+            <span className="font-semibold hidden xl:inline" style={{ color: "#D96600" }}> World</span>
           </span>
         </Link>
 
