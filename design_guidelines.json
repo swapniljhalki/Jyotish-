@@ -1,143 +1,118 @@
 {
-  "theme": "dark",
-  "archetype": "5 (Jewel & Luxury) - Saffron & Gold Vedic Variant",
-  "design_philosophy": "Traditional Sanskrit-inspired ornate design fused with modern premium dark mode. Combines deep cosmic backgrounds with glowing saffron and gold accents to evoke ancient astrological wisdom and luxury.",
-  "colors": {
-    "background": {
-      "default": "#0A0D14",
-      "surface": "#121824",
-      "glass": "rgba(18, 24, 36, 0.65)"
-    },
-    "text": {
-      "primary": "#F8F9FA",
-      "secondary": "#A1A1AA",
-      "accent": "#FF9933"
-    },
-    "brand": {
-      "primary": "#FF9933",
-      "primary_hover": "#E68A2E",
-      "secondary": "#D4AF37",
-      "accent_gold": "#FFD700",
-      "deep_red": "#8B0000"
-    },
-    "border": {
-      "default": "rgba(212, 175, 55, 0.15)",
-      "focus": "#FF9933",
-      "glow": "rgba(255, 153, 51, 0.5)"
-    }
+  "theme_archetype": "Archetype 1: Organic & Earthy mixed with Archetype 5: Luxury (Light Variant) - 'Sacred Ivory & Temple Gold'",
+  "design_philosophy": "Transition from dark cosmic to a devotional, airy, and premium light theme. Preserving the sacred Vedic essence using 'parchment' and 'ink' metaphors rather than generic SaaS flat colors. High contrast for multi-script readability.",
+  "color_palette": {
+    "background_base": "#FDFBF7",
+    "surface_card": "#FFFFFF",
+    "text_primary_ink": "#1A1C29",
+    "text_secondary": "#5C6170",
+    "primary_saffron": "#FF8C00",
+    "secondary_temple_gold": "#D4AF37",
+    "border_sand": "#EBE3D5",
+    "auspicious_red": "#D9381E"
   },
   "typography": {
-    "fonts": {
-      "heading": "'Cormorant Garamond', serif",
-      "body": "'Outfit', sans-serif",
-      "accent": "'Cinzel', serif"
+    "english_headings": {
+      "family": "Cormorant Garamond, serif",
+      "weight": "600/700 (bolder on light background for presence)"
     },
-    "scales": {
-      "h1": "text-5xl md:text-6xl font-heading font-medium tracking-tight",
-      "h2": "text-3xl md:text-4xl font-heading font-medium tracking-tight",
-      "h3": "text-xl md:text-2xl font-heading font-semibold",
-      "body": "text-base font-body leading-relaxed",
-      "small": "text-sm font-body text-secondary",
-      "overline": "text-xs font-accent uppercase tracking-[0.2em] text-secondary"
+    "english_body": {
+      "family": "Outfit, sans-serif",
+      "weight": "400/500"
+    },
+    "indic_scripts": {
+      "family": "Noto Sans Devanagari / Telugu / Tamil",
+      "weight": "500 for headings, 400 for body (ensure text color is #1A1C29 for contrast)"
     }
   },
-  "layout_spacing": {
-    "container": "max-w-7xl mx-auto px-6 md:px-12",
-    "section_padding": "py-24 md:py-32",
-    "bento_grid": "grid grid-cols-1 md:grid-cols-3 gap-8",
-    "card_padding": "p-8 md:p-12",
-    "corners": "rounded-2xl"
-  },
-  "components": {
-    "buttons": {
-      "primary": "bg-brand-primary text-background-default font-body font-medium px-8 py-3 rounded-none hover:bg-brand-primary_hover transition-all duration-300 relative after:absolute after:inset-0 after:border after:border-brand-primary after:translate-x-1 after:translate-y-1 hover:after:translate-x-0 hover:after:translate-y-0",
-      "secondary": "bg-transparent text-brand-secondary border border-brand-secondary/30 font-body px-8 py-3 rounded-none hover:bg-brand-secondary/10 transition-colors",
-      "premium_glow": "bg-gradient-to-r from-brand-secondary to-brand-primary text-background-default font-medium px-8 py-3 rounded-full shadow-[0_0_20px_rgba(255,153,51,0.4)] hover:shadow-[0_0_30px_rgba(255,153,51,0.6)] transition-all"
+  "component_patterns": {
+    "glass_card": {
+      "background": "rgba(255, 255, 255, 0.75)",
+      "backdrop_filter": "blur(16px)",
+      "border": "1px solid rgba(212, 175, 55, 0.2)",
+      "box_shadow": "0 8px 32px rgba(26, 28, 41, 0.04)"
     },
-    "cards": {
-      "glass": "bg-background-glass backdrop-blur-xl border border-border-default rounded-2xl shadow-2xl relative overflow-hidden",
-      "premium": "bg-background-surface border border-brand-secondary/50 rounded-2xl relative overflow-hidden shadow-[0_8px_32px_rgba(212,175,55,0.1)] after:absolute after:inset-0 after:border-2 after:border-brand-secondary/20 after:m-2 after:rounded-xl after:pointer-events-none"
+    "premium_card_jyotishi": {
+      "background": "linear-gradient(180deg, #FFFCF5 0%, #FFF3E0 100%)",
+      "border": "1px solid rgba(212, 175, 55, 0.4)",
+      "box_shadow": "0 12px 40px rgba(212, 175, 55, 0.15)",
+      "inner_border": "1px solid rgba(212, 175, 55, 0.2)"
     },
-    "inputs": {
-      "default": "bg-background-surface border-border-default text-text-primary rounded-md focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all placeholder:text-text-secondary/50"
+    "button_saffron": {
+      "background": "#FF8C00",
+      "text_color": "#FFFFFF",
+      "border": "1px solid #FF8C00",
+      "hover_state": "background: #E67A00, transform translate to 0",
+      "offset_shadow": "translate(4px, 4px) with border #FF8C00"
+    },
+    "text_gold_gradient": {
+      "background": "linear-gradient(135deg, #B87333 0%, #D4AF37 50%, #D96600 100%)",
+      "note": "Darkened slightly from the dark-mode version to ensure WCAG contrast against Ivory background."
     },
     "kundali_chart": {
-      "style": "North Indian Diamond Style SVG",
-      "stroke": "#D4AF37",
-      "stroke_width": "2",
-      "fill": "transparent",
-      "text_color": "#F8F9FA",
-      "node_glow": "rgba(255,153,51,0.3)"
+      "background": "#F9F4EB",
+      "lines": "stroke: #1A1C29 (Deep Indigo), stroke-width: 1.5px",
+      "planets_text": "fill: #D9381E (Red) and #1A1C29"
     }
   },
-  "pages": {
-    "landing": {
-      "hero": {
-        "layout": "Centered content over dark cosmic background image with heavy black gradient overlay.",
-        "elements": "H1 Title (Cormorant), Overline, Primary CTA, subtle floating gold mandala SVG behind text."
-      },
-      "pricing": {
-        "layout": "3-column bento grid.",
-        "tiers": {
-          "free": "Glass card, basic features listed, secondary button.",
-          "basic": "Surface card, saffron subtle glow border, primary button.",
-          "premium": "Premium card with double inner borders, glowing gold button, 'Most Popular' sash in deep red."
-        }
-      }
-    },
-    "free_tier": {
-      "layout": "Split section: Grahas (9 planets) and Nakshatras (27 constellations).",
-      "grahas": "Grid of 9 circular ornate avatars (grid-cols-3 lg:grid-cols-9), hover lift effect.",
-      "nakshatras": "Masonry or dense grid with traditional sanskrit names and minimal descriptions."
-    },
-    "basic_tier": {
-      "layout": "Centered form (max-w-xl) inside a glass card.",
-      "form_fields": "Date of Birth (DatePicker), Time of Birth (Time/Select), Place of Birth (Input).",
-      "result": "AI-generated text response styled as an ancient scroll or clean typography block with serif fonts."
-    },
-    "premium_tier": {
-      "layout": "Two-column dashboard layout after form submission.",
-      "left_col": "North Indian Kundali Chart (SVG) rendered prominently.",
-      "right_col": "Shadcn Table for Planetary Positions + AI detailed interpretation in a scrollable glass container."
-    },
-    "auth": {
-      "layout": "Split screen: Left side cosmic image, Right side minimalist login/register form."
+  "background_textures": {
+    "cosmic_bg_light": {
+      "base_color": "#FDFBF7",
+      "glows": "radial-gradient(ellipse at 20% 10%, rgba(255,140,0,0.05), transparent 55%), radial-gradient(ellipse at 80% 90%, rgba(212,175,55,0.05), transparent 55%)",
+      "mandala_svg_opacity": "0.04 (stroke #D4AF37)",
+      "paisley_svg_opacity": "0.03 (stroke #FF9933)",
+      "dot_grid": "rgba(212,175,55,0.06)"
     }
   },
-  "media": {
-    "hero_background": {
-      "url": "https://images.unsplash.com/photo-1677357623576-7c8aab08da22?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHw0fHxnYWxheHklMjBzdGFycyUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzc2MzY5NzI4fDA&ixlib=rb-4.1.0&q=85",
-      "description": "Deep purple and blue cosmic galaxy with stars. MUST be overlaid with bg-black/70 to ensure text readability.",
-      "placement": "Landing Page Hero Section"
+  "css_variables_update": {
+    "--background": "40 33% 98%",
+    "--foreground": "231 22% 13%",
+    "--card": "0 0% 100%",
+    "--card-foreground": "231 22% 13%",
+    "--popover": "0 0% 100%",
+    "--popover-foreground": "231 22% 13%",
+    "--primary": "33 100% 50%",
+    "--primary-foreground": "0 0% 100%",
+    "--secondary": "46 65% 52%",
+    "--secondary-foreground": "231 22% 13%",
+    "--muted": "40 40% 93%",
+    "--muted-foreground": "215 16% 47%",
+    "--accent": "28 100% 92%",
+    "--accent-foreground": "15 79% 34%",
+    "--destructive": "6 61% 50%",
+    "--destructive-foreground": "0 0% 100%",
+    "--border": "40 25% 86%",
+    "--input": "40 25% 86%",
+    "--ring": "33 100% 50%"
+  },
+  "file_modification_list": [
+    "/app/frontend/src/index.css"
+  ],
+  "media_urls": [
+    {
+      "category": "hero_offering_flower",
+      "url": "https://images.pexels.com/photos/31317668/pexels-photo-31317668.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "A close-up of a hand holding flower offerings during a Hindu ritual."
     },
-    "premium_texture": {
-      "url": "https://images.pexels.com/photos/235985/pexels-photo-235985.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-      "description": "Vintage parchment texture. Use as a subtle multiply/overlay blend mode inside premium cards or AI advice output with low opacity (10-15%).",
-      "placement": "AI Output / Premium Cards"
+    {
+      "category": "panchang_festival_texture",
+      "url": "https://images.unsplash.com/photo-1691886273161-8e27d3292144?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwyfHxtYXJpZ29sZCUyMGZsb3dlciUyMG9mZmVyaW5nfGVufDB8fHx8MTc4MDQ1OTUyMHww&ixlib=rb-4.1.0&q=85",
+      "description": "Bunch of yellow and pink flowers for auspicious decorative elements."
     },
-    "ornate_abstract": {
-      "url": "https://images.unsplash.com/photo-1760715756584-9a88f2b272c6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHw0fHxhc3Ryb2xvZ3klMjBtYW5kYWxhJTIwZ29sZHxlbnwwfHx8fDE3NzYzNjk3MTh8MA&ixlib=rb-4.1.0&q=85",
-      "description": "Abstract golden organic sculpture. Use as a side image for Auth page or as a floating decorative element in the Premium Tier page.",
-      "placement": "Auth Page / Decorative"
+    {
+      "category": "astrology_reading_background",
+      "url": "https://images.pexels.com/photos/12347306/pexels-photo-12347306.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Detailed view of historical calligraphy on ancient parchment to be used as a subtle background blend for the AI reading section."
     }
-  },
-  "animations": {
-    "hover": "All interactive elements must have a transition-all duration-300. Cards should translate-y-[-4px] and increase shadow.",
-    "entrance": "Staggered fade-up (framer-motion) for the pricing tiers and Grahas grid.",
-    "kundali": "When rendering the Kundali SVG, path elements should draw in (stroke-dasharray animation) over 1.5 seconds."
-  },
-  "accessibility": {
-    "contrast": "Ensure all text on dark backgrounds has at least 4.5:1 contrast. Saffron text on dark navy is acceptable for large text.",
-    "focus": "All forms must have clear focus rings (ring-1 ring-brand-primary).",
-    "testing": "Add data-testid to all forms, submit buttons, tier selection buttons, and auth inputs."
-  },
+  ],
   "instructions_to_main_agent": [
-    "Use Shadcn UI for forms, dialogs, and tables. Ensure they are customized to match the dark theme and saffron accents.",
-    "For the Kundali Chart, DO NOT use an external image. Build a React component that returns an inline SVG rendering a North Indian style diamond chart.",
-    "The hero section MUST use the hero_background image with a heavy black overlay (e.g., bg-black/70) so the Cormorant Garamond headings are perfectly legible.",
-    "For 'Sanskrit-inspired' feel, rely heavily on the 'Cormorant Garamond' font for headings and uppercase 'Cinzel' for small overlines. Do not use cliché handwritten fonts.",
-    "The AI advice response should be rendered beautifully, not just as plain text. Consider wrapping it in a container that uses the parchment texture faintly.",
-    "Mock the subscription flow by setting a user state or JWT claim; no actual Stripe integration needed.",
-    "Use lucide-react for standard icons, but consider generating basic SVGs for the 9 Grahas if specific iconography is needed, or just use elegant typography for their names."
+    "1. Open /app/frontend/src/index.css and replace the :root variables under @layer base with the new light theme variables provided in css_variables_update.",
+    "2. Update the .cosmic-bg class in index.css to use #FDFBF7 instead of #0A0D14. Reduce the opacity of the SVG overlays (mandala stroke-opacity to 0.04, paisley stroke-opacity to 0.03) and gradients (to 0.05).",
+    "3. Overhaul .glass-card, .premium-card, and .btn-saffron in index.css using the exact properties defined in component_patterns to ensure they work on a light background.",
+    "4. Modify .text-gold-gradient to use darker gold/copper shades (#B87333 to #D96600) so it remains legible against the white/ivory background.",
+    "5. Ensure the Kundali chart SVG lines default to stroke 'currentColor' or var(--foreground) (#1A1C29) so they render as deep indigo ink instead of glowing white.",
+    "6. Check any components using hardcoded dark hex codes (e.g. bg-[#0A0D14]) and replace them with semantic classes (bg-background, bg-card).",
+    "7. Ensure text contrast across the 4 languages (EN, HI, TE, TA). Indic fonts should use weight 400 for body text and 500 for headings, pulling text color from --foreground.",
+    "8. Add `data-testid` attributes to all interactive elements (buttons, language picker, tier cards, booking slots) for testing."
   ]
 }
