@@ -110,15 +110,22 @@ export default function BookConsultation() {
       }
       const ok = await loadRazorpay();
       if (!ok) return toast.error("Could not load payment gateway.");
+      const cleanContact = (form.phone || "").replace(/\D/g, "").slice(-10);
       const rzp = new window.Razorpay({
         key:          order.key_id,
         amount:       order.amount,
         currency:     order.currency,
         name:         "Satish Numero World",
         description:  `${order.label} — ${cfg.duration_minutes} min`,
+        image:        "/snw-logo.jpg",
         order_id:     order.order_id,
-        prefill:      order.prefill,
-        theme:        { color: "#FF9933" },
+        prefill:      {
+          name:    order.prefill?.name || form.name,
+          email:   order.prefill?.email || user?.email || "",
+          contact: cleanContact,
+        },
+        readonly:     { contact: !!cleanContact },
+        theme:        { color: "#1B4D8E" },
         handler:      (res) => confirm(res).catch((e) => toast.error(formatApiError(e.response?.data?.detail) || e.message)),
         modal:        { ondismiss: () => setBusy(false) },
       });
