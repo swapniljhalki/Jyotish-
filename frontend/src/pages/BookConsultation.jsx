@@ -8,7 +8,10 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import api, { formatApiError } from "../lib/api";
 import { toast } from "sonner";
-import { Calendar, Clock, Video, CheckCircle2, Sparkles, Loader2 } from "lucide-react";
+import { Calendar, Clock, Video, CheckCircle2, Sparkles, Loader2, Lock } from "lucide-react";
+
+// Online payments site-wide kill-switch — must match UpgradeButton.jsx.
+const PAYMENTS_DISABLED = true;
 
 const RAZORPAY_CDN = "https://checkout.razorpay.com/v1/checkout.js";
 
@@ -356,14 +359,32 @@ export default function BookConsultation() {
               </div>
               <button
                 onClick={startBooking}
-                disabled={busy || !picked}
+                disabled={busy || !picked || PAYMENTS_DISABLED}
                 data-testid="booking-pay-btn"
-                className="w-full btn-saffron disabled:opacity-50 inline-flex items-center justify-center gap-2 mt-2"
+                title={PAYMENTS_DISABLED ? "Online payments are temporarily disabled — please contact the astrologer to confirm your booking." : undefined}
+                className={
+                  PAYMENTS_DISABLED
+                    ? "w-full inline-flex items-center justify-center gap-2 mt-2 px-6 py-3 border border-[rgba(212,175,55,0.4)] text-[#6B7080] font-body cursor-not-allowed bg-zinc-50"
+                    : "w-full btn-saffron disabled:opacity-50 inline-flex items-center justify-center gap-2 mt-2"
+                }
               >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {busy ? t("scheduler.processing") : t("scheduler.pay_and_book", { price: cfg.price_inr.toLocaleString("en-IN") })}
-                {cfg.payment_mode === "mock" && <span className="text-[10px] opacity-80 font-accent uppercase ml-1">{t("common.demo")}</span>}
+                {PAYMENTS_DISABLED ? (
+                  <>
+                    <Lock className="h-4 w-4 opacity-60" /> Coming soon
+                  </>
+                ) : (
+                  <>
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {busy ? t("scheduler.processing") : t("scheduler.pay_and_book", { price: cfg.price_inr.toLocaleString("en-IN") })}
+                    {cfg.payment_mode === "mock" && <span className="text-[10px] opacity-80 font-accent uppercase ml-1">{t("common.demo")}</span>}
+                  </>
+                )}
               </button>
+              {PAYMENTS_DISABLED && (
+                <p className="text-xs text-zinc-500 italic font-body text-center" data-testid="booking-disabled-note">
+                  Online booking is paused. Please contact the astrologer directly to schedule a sitting.
+                </p>
+              )}
             </div>
           </div>
         </div>

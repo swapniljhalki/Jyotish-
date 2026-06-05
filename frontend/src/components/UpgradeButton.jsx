@@ -1,10 +1,15 @@
 // Razorpay upgrade button — gracefully falls back to mock-mode when
 // RAZORPAY_KEY_ID is not configured on the backend.
+//
+// Payments are currently DISABLED site-wide. Set PAYMENTS_DISABLED = false to
+// re-enable the full flow (mock-mode or live Razorpay, depending on backend env).
 import { useState, useEffect } from "react";
-import { Sparkles, Loader2, X } from "lucide-react";
+import { Sparkles, Loader2, X, Lock } from "lucide-react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
+
+const PAYMENTS_DISABLED = true;
 
 const RAZORPAY_CDN = "https://checkout.razorpay.com/v1/checkout.js";
 const PHONE_KEY = "snw_phone";
@@ -144,6 +149,25 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
     variant === "unstyled"
       ? "inline-flex items-center gap-2 transition-all disabled:opacity-50"
       : "btn-saffron disabled:opacity-50 inline-flex items-center gap-2";
+
+  if (PAYMENTS_DISABLED) {
+    const disabledCls =
+      variant === "unstyled"
+        ? `inline-flex items-center gap-2 ${className}`
+        : `inline-flex items-center gap-2 px-6 py-3 border border-[rgba(212,175,55,0.4)] text-[#6B7080] font-body cursor-not-allowed bg-zinc-50 ${className}`;
+    return (
+      <button
+        type="button"
+        disabled
+        data-testid={`upgrade-btn-${tier}`}
+        title="Online payments are temporarily disabled — please contact the astrologer to unlock this tier."
+        className={disabledCls}
+      >
+        <Lock className="h-4 w-4 opacity-60" />
+        <span>Coming soon</span>
+      </button>
+    );
+  }
 
   return (
     <>

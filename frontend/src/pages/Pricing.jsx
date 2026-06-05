@@ -76,11 +76,7 @@ export default function Pricing() {
             {t("pricing.title_a")} <span className="text-gold-gradient italic">{t("pricing.title_b")}</span>
           </h1>
           <p className="mt-3 font-body text-zinc-500 text-sm italic" data-testid="pricing-pay-mode">
-            {payMode === "live"
-              ? t("pricing.mode_live")
-              : payMode === "mock"
-              ? t("pricing.mode_mock")
-              : t("pricing.mode_loading")}
+            Online payments are coming soon — for now, please contact the astrologer to unlock paid tiers.
           </p>
         </div>
 
