@@ -35,14 +35,6 @@ export default function Navbar() {
             alt="Satish Numero World"
             className="h-12 w-12 rounded-full object-cover ring-1 ring-[rgba(212,175,55,0.4)] group-hover:ring-[#FF9933] transition-all shadow-sm"
           />
-          <span className="font-heading text-xl tracking-tight leading-tight whitespace-nowrap hidden sm:flex flex-col">
-            <span className="font-semibold text-[15px]" style={{ color: "#1A1C29", letterSpacing: "0.02em" }}>
-              Satish Numero
-            </span>
-            <span className="font-accent text-[9px]" style={{ color: "#D96600", letterSpacing: "0.25em" }}>
-              World
-            </span>
-          </span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-5">
