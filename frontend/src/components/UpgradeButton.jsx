@@ -1,15 +1,17 @@
-// Razorpay upgrade button — gracefully falls back to mock-mode when
-// RAZORPAY_KEY_ID is not configured on the backend.
+// Upgrade button — wired to Razorpay when enabled, falls back to mock-mode
+// when RAZORPAY_KEY_ID is absent on the backend.
 //
-// Payments are currently DISABLED site-wide. Set PAYMENTS_DISABLED = false to
-// re-enable the full flow (mock-mode or live Razorpay, depending on backend env).
+// PAYMENTS_DISABLED kills online checkout. FREE_TIER_UNLOCK lets users still
+// grant themselves the tier with one click (no charge). Both flags are
+// admin-toggleable here — flip and restart.
 import { useState, useEffect } from "react";
-import { Sparkles, Loader2, X, Lock } from "lucide-react";
+import { Sparkles, Loader2, X, Gift } from "lucide-react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 
 const PAYMENTS_DISABLED = true;
+const FREE_TIER_UNLOCK  = true;   // when payments are disabled, allow free self-unlock
 
 const RAZORPAY_CDN = "https://checkout.razorpay.com/v1/checkout.js";
 const PHONE_KEY = "snw_phone";
@@ -151,6 +153,41 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
       : "btn-saffron disabled:opacity-50 inline-flex items-center gap-2";
 
   if (PAYMENTS_DISABLED) {
+    if (FREE_TIER_UNLOCK) {
+      const grantFree = async () => {
+        setBusy(true);
+        try {
+          await api.post("/subscribe", { tier });
+          toast.success(`You're now ${label} — enjoy.`);
+          await refresh();
+          onSuccess?.();
+        } catch (e) {
+          toast.error(formatApiError(e.response?.data?.detail) || e.message);
+        } finally {
+          setBusy(false);
+        }
+      };
+      const freeCls =
+        variant === "unstyled"
+          ? `inline-flex items-center gap-2 transition-all disabled:opacity-50 ${className}`
+          : `btn-saffron disabled:opacity-50 inline-flex items-center gap-2 ${className}`;
+      return (
+        <button
+          type="button"
+          onClick={grantFree}
+          disabled={busy}
+          data-testid={`upgrade-btn-${tier}`}
+          title={`Unlock ${label} — currently free.`}
+          className={freeCls}
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gift className="h-4 w-4" />}
+          <span>
+            Unlock {label} <span className="opacity-90">— Free</span>
+          </span>
+        </button>
+      );
+    }
+
     const disabledCls =
       variant === "unstyled"
         ? `inline-flex items-center gap-2 ${className}`
@@ -163,7 +200,7 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
         title="Online payments are temporarily disabled — please contact the astrologer to unlock this tier."
         className={disabledCls}
       >
-        <Lock className="h-4 w-4 opacity-60" />
+        <Sparkles className="h-4 w-4 opacity-60" />
         <span>Coming soon</span>
       </button>
     );
