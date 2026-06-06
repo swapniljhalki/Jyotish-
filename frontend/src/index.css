@@ -158,13 +158,14 @@
 .btn-saffron:hover { background: #E67A00; box-shadow: 0 6px 20px rgba(255, 140, 0, 0.35); }
 .btn-saffron:hover::after { transform: translate(0, 0); }
 
-/* --- Text gradients (LIGHT — copper-to-saffron so it stays legible on ivory) --- */
+/* --- Text gradients (LIGHT — deep antique-bronze so it stays highly legible on ivory) --- */
 .text-gold-gradient {
-  background: linear-gradient(135deg, #B87333 0%, #D4AF37 50%, #D96600 100%);
+  background: linear-gradient(135deg, #6B3410 0%, #8B5A1A 50%, #7A3A0A 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+  font-weight: 600;
 }
 
 /* --- Mandala decorative border --- */
@@ -271,15 +272,15 @@ input.bg-\[\#0F1320\]::placeholder, textarea.bg-\[\#0F1320\]::placeholder {
 .text-zinc-600 { color: #5C6170 !important; }
 .text-white    { color: #14172B !important; }   /* very rare; safer than letting headers vanish */
 
-/* The big gold-on-dark headers used #FFD700 — keep them but use a deeper, richer gold on ivory */
-.text-\[\#FFD700\] { color: #8B6914 !important; font-weight: 600; }
-.text-\[\#D4AF37\] { color: #9A6320 !important; font-weight: 500; }
-.text-\[\#FF9933\] { color: #C25500 !important; font-weight: 500; }
-.text-\[\#8B0000\] { color: #7A0000 !important; }
+/* The big gold-on-dark headers used #FFD700 — now deep antique bronze for max legibility on ivory */
+.text-\[\#FFD700\] { color: #5C3A09 !important; font-weight: 600; }
+.text-\[\#D4AF37\] { color: #6B3410 !important; font-weight: 600; }
+.text-\[\#FF9933\] { color: #8B2500 !important; font-weight: 600; }
+.text-\[\#8B0000\] { color: #6B0000 !important; font-weight: 600; }
 
 /* The dark-page text-zinc-300 hover state for navbar */
-.hover\:text-\[\#FF9933\]:hover { color: #C25500 !important; }
-.hover\:text-\[\#FFD700\]:hover { color: #8B6914 !important; }
+.hover\:text-\[\#FF9933\]:hover { color: #8B2500 !important; }
+.hover\:text-\[\#FFD700\]:hover { color: #5C3A09 !important; }
 .hover\:text-zinc-200:hover { color: #14172B !important; }
 
 /* ---- Borders / dividers (gold tint families) ---- */
