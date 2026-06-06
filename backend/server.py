@@ -938,6 +938,118 @@ async def list_grahas(lang: str = "en"):
     return {"grahas": data}
 
 
+# =============================================================================
+# Global place autocomplete (OpenStreetMap Nominatim proxy)
+# =============================================================================
+# In-process LRU cache so repeated lookups of the same query are instant.
+_geo_cache: dict[str, tuple[float, list]] = {}
+_GEO_TTL_SEC = 60 * 60 * 24  # 24h
+
+
+@api.get("/geo/search")
+async def geo_search(q: str, limit: int = 8, lang: str = "en"):
+    """Type-ahead global place search powered by Komoot's Photon (built on top of
+    OpenStreetMap + Elasticsearch). Photon is purpose-built for autocomplete and
+    handles prefix matching ("Mumb" → "Mumbai") far better than vanilla Nominatim.
+
+    Returns a slim list of {label, name, country, lat, lon, type} entries.
+    Cached in-process for 24h to keep the upstream free service happy.
+    """
+    import httpx
+    q = (q or "").strip()
+    if len(q) < 2:
+        return {"results": []}
+
+    key = f"{lang}::{limit}::{q.lower()}"
+    now = datetime.now(timezone.utc).timestamp()
+    cached = _geo_cache.get(key)
+    if cached and (now - cached[0]) < _GEO_TTL_SEC:
+        return {"results": cached[1]}
+
+    params = {
+        "q":     q,
+        "limit": str(max(1, min(15, limit * 2))),  # over-fetch so we can filter
+        "lang":  (lang or "en") if lang in ("en", "de", "fr", "it") else "en",
+    }
+    headers = {
+        "User-Agent": "SatishNumeroWorld/1.0 (https://kundali-chart-1.preview.emergentagent.com)",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            r = await client.get(
+                "https://photon.komoot.io/api/",
+                params=params,
+                headers=headers,
+            )
+        r.raise_for_status()
+        rows = r.json().get("features", [])
+    except Exception as e:
+        logger.warning(f"geo_search failed for q={q!r}: {e}")
+        return {"results": []}
+
+    # Rank: cities > towns > villages > rest. Drop non-settlement noise.
+    PLACE_RANK = {
+        "city": 0, "town": 1, "village": 2, "municipality": 3,
+        "hamlet": 4, "county": 5, "state": 6, "country": 7,
+        "administrative": 8, "suburb": 9, "neighbourhood": 10,
+    }
+    settlement_classes = {"place", "boundary"}
+
+    results = []
+    for f in rows:
+        p = (f.get("properties") or {})
+        geom = (f.get("geometry") or {}).get("coordinates") or [0, 0]
+        lon, lat = geom[0], geom[1]
+        name = p.get("name") or ""
+        state = p.get("state") or ""
+        country = p.get("country") or ""
+        osm_value = (p.get("osm_value") or "").lower()
+        osm_key = (p.get("osm_key") or "").lower()
+
+        if osm_key not in settlement_classes:
+            continue
+        if osm_value not in PLACE_RANK:
+            # Skip rare/unsettlement types but allow administrative regions
+            continue
+
+        bits = []
+        seen = set()
+        for b in (name, state, country):
+            if b and b.lower() not in seen:
+                seen.add(b.lower())
+                bits.append(b)
+        label = ", ".join(bits)
+        if not label:
+            continue
+        results.append({
+            "label":   label,
+            "name":    name,
+            "state":   state,
+            "country": country,
+            "lat":     float(lat),
+            "lon":     float(lon),
+            "type":    osm_value,
+            "class":   osm_key,
+            "osm_id":  p.get("osm_id"),
+            "_rank":   PLACE_RANK[osm_value],
+        })
+
+    results.sort(key=lambda r: r["_rank"])
+    deduped = []
+    seen_labels = set()
+    for r in results:
+        key2 = r["label"].lower()
+        if key2 in seen_labels:
+            continue
+        seen_labels.add(key2)
+        r.pop("_rank", None)
+        deduped.append(r)
+    results = deduped[:limit]
+
+    _geo_cache[key] = (now, results)
+    return {"results": results}
+
+
 @api.get("/panchang/today")
 async def panchang_today(tz: str = "Asia/Kolkata"):
     try:

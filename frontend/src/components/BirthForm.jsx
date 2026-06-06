@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import PlaceOfBirthInput from "./PlaceOfBirthInput";
 
 export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birth" }) {
   const [full_name, setFullName] = useState("");
   const [date_of_birth, setDob] = useState("");
   const [time_of_birth, setTob] = useState("");
   const [place_of_birth, setPob] = useState("");
+  // Latitude/longitude are captured when the user picks from the dropdown.
+  // Kept locally for now — easy to forward to the backend later if we want
+  // to compute charts without re-geocoding on the server.
+  // eslint-disable-next-line no-unused-vars
+  const [coords, setCoords] = useState(null);
 
   const submit = (e) => {
     e.preventDefault();
@@ -42,11 +48,15 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
       </div>
       <div>
         <Label htmlFor="pob" className="font-accent text-[10px] text-zinc-400">Place of Birth</Label>
-        <Input id="pob" required placeholder="City, Country"
-          value={place_of_birth} onChange={(e) => setPob(e.target.value)}
-          className="mt-2 bg-[#121824] border-[rgba(212,175,55,0.2)] text-zinc-100 focus:border-[#FF9933]"
-          data-testid={`${testIdPrefix}-pob-input`}
-        />
+        <div className="mt-2">
+          <PlaceOfBirthInput
+            value={place_of_birth}
+            onChange={setPob}
+            onSelect={(r) => setCoords({ lat: r.lat, lon: r.lon, country: r.country })}
+            testId={`${testIdPrefix}-pob`}
+            placeholder="Start typing a city — e.g., Mumbai"
+          />
+        </div>
       </div>
       <button
         type="submit"
