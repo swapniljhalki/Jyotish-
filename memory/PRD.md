@@ -144,5 +144,13 @@ Vedic astrology website with 3 pricing tiers:
 - Backend curl flow verified end-to-end: `free → create-order → verify → tier=basic`.
 - Frontend Playwright flow verified end-to-end: click on `/premium` upgrade notice → mock order created → tier badge in navbar reads `PREMIUM` → kundali form unlocked.
 
+## Phase 10 (Feb–Mar 2026) — Scheduler, i18n, Light Theme, Free Unlock, Photon PoB — ✅ SHIPPED
+- See change-log entries for: Google Meet Scheduler, i18n (EN/HI/TE/TA), Sacred Ivory & Temple Gold light theme, payments disabled / Free Unlock mode, global Place-of-Birth autocomplete (Photon).
+
+## Phase 11 (Feb 6, 2026) — Expanded Kundali Modal — ✅ SHIPPED
+- New `/app/frontend/src/components/ExpandedKundaliModal.jsx`: ornate North-Indian frame (green outer border + saffron-gold petal frame with cusped arches, central swastika, "॥ शुभं भवतु ॥" footer) matching the user's reference image.
+- `/app/frontend/src/pages/PremiumTier.jsx` wired: D1 Lagna, Chandra Rashi, and D9 Navamsha chart cards are now clickable triggers (with `Maximize2` hint icon + "Click to expand" caption) that open the modal with the correct chart data and ascendant.
+- Smoke-tested end-to-end via Playwright (login → cast Kundali → open all three expanded modals → close) — all three modals render the correct chart with the ornate frame.
+
 ## Test Credentials
 See `/app/memory/test_credentials.md`.

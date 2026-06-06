@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import BirthForm from "../components/BirthForm";
 import KundaliChart from "../components/KundaliChart";
+import ExpandedKundaliModal from "../components/ExpandedKundaliModal";
+import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
@@ -29,6 +31,9 @@ export default function PremiumTier() {
   const [mobileResult, setMobileResult] = useState(null);
   const [mobileLoading, setMobileLoading] = useState(false);
   const [mobileErr, setMobileErr] = useState("");
+
+  // Expanded Kundali Modal
+  const [expanded, setExpanded] = useState(null); // { title, ascendantLabel, ascendantName, chart, accentColor }
 
   const submit = async (values) => {
     setErr("");
@@ -122,7 +127,20 @@ export default function PremiumTier() {
           <div className="mt-10 space-y-8 fade-up" data-testid="premium-result">
             {/* Charts row — D1 Lagna + Chandra Rashi + D9 Navamsha side by side */}
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="premium-card p-6">
+              <button
+                type="button"
+                onClick={() => setExpanded({
+                  title: "Kundali Lagna Chart · D1",
+                  ascendantLabel: "Ascendant (Lagna)",
+                  ascendantName: result.chart.ascendant_english,
+                  chart: result.chart,
+                  accentColor: "#D4AF37",
+                })}
+                className="premium-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
+                data-testid="expand-kundali-d1"
+                aria-label="Expand Kundali Lagna Chart"
+              >
+                <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
                 </div>
@@ -132,10 +150,24 @@ export default function PremiumTier() {
                   <div className="font-heading text-2xl text-[#FFD700]">
                     {result.chart.ascendant_english}
                   </div>
+                  <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                 </div>
-              </div>
+              </button>
               {result.chart.chandra && (
-                <div className="premium-card p-6">
+                <button
+                  type="button"
+                  onClick={() => setExpanded({
+                    title: "Chandra Rashi Chart",
+                    ascendantLabel: "Chandra Lagna",
+                    ascendantName: result.chart.chandra.ascendant_english,
+                    chart: result.chart.chandra,
+                    accentColor: "#FF9933",
+                  })}
+                  className="premium-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#FF9933]/60 rounded-md"
+                  data-testid="expand-kundali-chandra"
+                  aria-label="Expand Chandra Rashi Chart"
+                >
+                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#FF9933] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                   <div className="ornate-divider mb-4">
                     <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
                   </div>
@@ -145,11 +177,25 @@ export default function PremiumTier() {
                     <div className="font-heading text-2xl text-[#FF9933]">
                       {result.chart.chandra.ascendant_english}
                     </div>
+                    <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                   </div>
-                </div>
+                </button>
               )}
               {result.chart.navamsha && (
-                <div className="premium-card p-6">
+                <button
+                  type="button"
+                  onClick={() => setExpanded({
+                    title: "Navamsha Chart · D9",
+                    ascendantLabel: "Navamsha Ascendant",
+                    ascendantName: result.chart.navamsha.ascendant_english,
+                    chart: result.chart.navamsha,
+                    accentColor: "#D4AF37",
+                  })}
+                  className="premium-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
+                  data-testid="expand-kundali-navamsha"
+                  aria-label="Expand Navamsha Chart D9"
+                >
+                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                   <div className="ornate-divider mb-4">
                     <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
                   </div>
@@ -159,8 +205,9 @@ export default function PremiumTier() {
                     <div className="font-heading text-2xl text-[#D4AF37]">
                       {result.chart.navamsha.ascendant_english}
                     </div>
+                    <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                   </div>
-                </div>
+                </button>
               )}
             </div>
 
@@ -483,6 +530,15 @@ export default function PremiumTier() {
           )}
         </div>
       </div>
+      <ExpandedKundaliModal
+        open={!!expanded}
+        onClose={() => setExpanded(null)}
+        title={expanded?.title}
+        ascendantLabel={expanded?.ascendantLabel}
+        ascendantName={expanded?.ascendantName}
+        chart={expanded?.chart}
+        accentColor={expanded?.accentColor}
+      />
     </div>
   );
 }
