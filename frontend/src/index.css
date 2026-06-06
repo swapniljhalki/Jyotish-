@@ -35,13 +35,15 @@
     background: hsl(var(--background));
     color: hsl(var(--foreground));
     font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 450;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, h4, h5 { font-family: 'Cormorant Garamond', serif; letter-spacing: -0.01em; }
-  .font-heading { font-family: 'Cormorant Garamond', serif; }
-  .font-accent  { font-family: 'Cinzel', serif; letter-spacing: 0.2em; text-transform: uppercase; }
-  .font-body    { font-family: 'Outfit', sans-serif; }
+  h1, h2, h3, h4, h5 { font-family: 'Cormorant Garamond', serif; letter-spacing: -0.01em; color: #14172B; font-weight: 600; }
+  .font-heading { font-family: 'Cormorant Garamond', serif; color: #14172B; }
+  .font-accent  { font-family: 'Cinzel', serif; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; }
+  .font-body    { font-family: 'Outfit', sans-serif; font-weight: 450; }
 
   /* Native-script overrides: when user selects an Indic language, swap to Noto for that script. */
   html[lang="hi"] .font-heading,
@@ -259,26 +261,26 @@ input.bg-\[\#0F1320\]::placeholder, textarea.bg-\[\#0F1320\]::placeholder {
 .via-\[\#0A0D14\]\/40 { --tw-gradient-via-color: rgba(253,251,247,0.4) !important; }
 .to-\[\#0A0D14\] { --tw-gradient-to: #FDFBF7 !important; }
 
-/* ---- Text colours ---- */
-.text-zinc-50  { color: #1A1C29 !important; }
-.text-zinc-100 { color: #1A1C29 !important; }
+/* ---- Text colours (darkened for ivory background readability) ---- */
+.text-zinc-50  { color: #14172B !important; }
+.text-zinc-100 { color: #14172B !important; }
 .text-zinc-200 { color: #1A1C29 !important; }
-.text-zinc-300 { color: #2C3142 !important; }
-.text-zinc-400 { color: #5C6170 !important; }
-.text-zinc-500 { color: #6B7080 !important; }
-.text-zinc-600 { color: #8a8f9e !important; }
-.text-white    { color: #1A1C29 !important; }   /* very rare; safer than letting headers vanish */
+.text-zinc-300 { color: #1F2335 !important; }
+.text-zinc-400 { color: #3A3F4D !important; }
+.text-zinc-500 { color: #474C5A !important; }
+.text-zinc-600 { color: #5C6170 !important; }
+.text-white    { color: #14172B !important; }   /* very rare; safer than letting headers vanish */
 
-/* The big gold-on-dark headers used #FFD700 — keep them but darken slightly for ivory bg */
-.text-\[\#FFD700\] { color: #B8860B !important; }
-.text-\[\#D4AF37\] { color: #B87333 !important; }
-.text-\[\#FF9933\] { color: #D96600 !important; }
-.text-\[\#8B0000\] { color: #8B0000 !important; }
+/* The big gold-on-dark headers used #FFD700 — keep them but use a deeper, richer gold on ivory */
+.text-\[\#FFD700\] { color: #8B6914 !important; font-weight: 600; }
+.text-\[\#D4AF37\] { color: #9A6320 !important; font-weight: 500; }
+.text-\[\#FF9933\] { color: #C25500 !important; font-weight: 500; }
+.text-\[\#8B0000\] { color: #7A0000 !important; }
 
 /* The dark-page text-zinc-300 hover state for navbar */
-.hover\:text-\[\#FF9933\]:hover { color: #D96600 !important; }
-.hover\:text-\[\#FFD700\]:hover { color: #B8860B !important; }
-.hover\:text-zinc-200:hover { color: #1A1C29 !important; }
+.hover\:text-\[\#FF9933\]:hover { color: #C25500 !important; }
+.hover\:text-\[\#FFD700\]:hover { color: #8B6914 !important; }
+.hover\:text-zinc-200:hover { color: #14172B !important; }
 
 /* ---- Borders / dividers (gold tint families) ---- */
 .border-\[rgba\(212\,175\,55\,0\.12\)\] { border-color: rgba(212,175,55,0.30) !important; }
@@ -346,4 +348,48 @@ header.bg-\[rgba\(10\,13\,20\,0\.85\)\] {
 
 /* Red badge (e.g. "Most Sought") looked great on dark; keep the same look — saffron-cream pill */
 .bg-\[\#8B0000\] { background-color: #8B0000 !important; color: #FFD700 !important; }
+
+/* ============================================================================
+ *  READABILITY BOOST — darker, attractive typography across pages + popups
+ *  Applied after the light-theme overrides so it wins specificity.
+ * ========================================================================= */
+
+/* All markdown AI readings should render in deep indigo ink, not greyed-out */
+.prose, .prose-invert, .prose p, .prose li, .prose strong, .prose em,
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: #14172B !important;
+}
+.prose p, .prose li { font-weight: 450; line-height: 1.7; }
+.prose strong { font-weight: 600; color: #0E1124 !important; }
+.prose h1, .prose h2, .prose h3, .prose h4 { font-weight: 600; }
+
+/* Dialog / popover content — ensure dark ink on white surface */
+[role="dialog"], [data-radix-popper-content-wrapper] [role="dialog"],
+.DialogContent, [data-state="open"][role="dialog"] {
+  color: #14172B;
+}
+[role="dialog"] p, [role="dialog"] li, [role="dialog"] span,
+[role="dialog"] label, [role="dialog"] div {
+  color: inherit;
+}
+
+/* Inputs across the app — darker placeholder & deeper input text */
+input, textarea, select {
+  color: #14172B;
+}
+input::placeholder, textarea::placeholder {
+  color: #6B7080 !important;
+  opacity: 1;
+}
+
+/* Numeric / table cells often use default colour — keep them deep ink */
+td, th { color: #1A1C29; }
+
+/* Toast (sonner) — make body darker */
+[data-sonner-toast] { color: #14172B !important; }
+[data-sonner-toast] [data-description] { color: #3A3F4D !important; }
+
+/* Premium card inner text — bump weight slightly so it pops on cream gradient */
+.premium-card { color: #14172B; }
+.premium-card .font-body { font-weight: 480; }
 
