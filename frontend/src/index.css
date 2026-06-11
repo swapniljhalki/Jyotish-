@@ -394,3 +394,27 @@ td, th { color: #1A1C29; }
 .premium-card { color: #14172B; }
 .premium-card .font-body { font-weight: 480; }
 
+
+/* --- Print: only show the reading result --- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-area,
+  .printable-area * {
+    visibility: visible;
+  }
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

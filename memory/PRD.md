@@ -165,3 +165,9 @@ See `/app/memory/test_credentials.md`.
 - Sadhaka (Basic) tier now lists: Everything in Seeker, Basic Vedic Kundali (Birth Chart).
 - Jyotishi (Premium) tier now lists: Everything in Sadhaka, Kundali Lagna Chart, Chandra Rashi Chart, Navamsha Chart, Vedic Numerology Mahadasha, Chaldean Name Numerology, Mobile Number Numerology.
 - Applied on both Pricing page and Landing page tier cards, translated in all 4 languages (en/hi/te/ta) via locale JSONs (`pricing.tier_*.f1-f7`, `landing.tier_*_f1-f7`).
+
+## June 11, 2026 — Print & Download PDF for readings
+- Added Print + Download PDF buttons above Basic and Premium reading results (`ResultActions.jsx`, test IDs `basic|premium-print-btn`, `basic|premium-download-pdf-btn`).
+- PDF export via html-to-image (handles inline SVG kundali charts + Indic scripts) + jsPDF multi-page A4 slicing (`/app/frontend/src/lib/exportPdf.js`).
+- Print uses window.print() with @media print CSS in index.css (`.printable-area` / `.no-print`).
+- Verified e2e: PDFs downloaded on both tiers, content inspected (chart, table, reading render correctly).

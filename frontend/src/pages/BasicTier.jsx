@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import api from "../lib/api";
 import { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,7 @@ import KundaliChart from "../components/KundaliChart";
 import ExpandedKundaliModal from "../components/ExpandedKundaliModal";
 import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import ResultActions from "../components/ResultActions";
 
 export default function BasicTier() {
   const { user } = useAuth();
@@ -18,6 +19,7 @@ export default function BasicTier() {
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const resultRef = useRef(null);
 
   const submit = async (values) => {
     setErr("");
@@ -76,7 +78,9 @@ export default function BasicTier() {
         )}
 
         {result && (
-          <div className="mt-10 premium-card p-8 md:p-12 fade-up" data-testid="basic-result">
+          <div className="mt-10 fade-up">
+          <ResultActions targetRef={resultRef} filename="Kundali-Basic-Reading.pdf" testIdPrefix="basic" />
+          <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
             <div className="ornate-divider mb-6">
               <span className="font-accent text-xs text-[#D4AF37]">Your Reading</span>
             </div>
@@ -114,7 +118,7 @@ export default function BasicTier() {
                     <div className="font-heading text-2xl text-[#FFD700]">
                       {result.chart.ascendant_english}
                     </div>
-                    <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                   </div>
                 </button>
 
@@ -149,11 +153,12 @@ export default function BasicTier() {
             <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap">
               {result.advice}
             </div>
-            <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
+            <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
               <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="basic-open-in-archive">
                 Open in archive & share →
               </Link>
             </div>
+          </div>
           </div>
         )}
       </div>

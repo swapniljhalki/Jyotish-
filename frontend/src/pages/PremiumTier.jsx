@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
 import NumberCard from "../components/NumberCard";
 import UpgradeButton from "../components/UpgradeButton";
+import ResultActions from "../components/ResultActions";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export default function PremiumTier() {
 
   // Expanded Kundali Modal
   const [expanded, setExpanded] = useState(null); // { title, ascendantLabel, ascendantName, chart, accentColor }
+  const resultRef = useRef(null);
 
   const submit = async (values) => {
     setErr("");
@@ -124,7 +126,9 @@ export default function PremiumTier() {
         )}
 
         {result && (
-          <div className="mt-10 space-y-8 fade-up" data-testid="premium-result">
+          <div className="mt-10 fade-up">
+          <ResultActions targetRef={resultRef} filename="Kundali-Premium-Reading.pdf" testIdPrefix="premium" />
+          <div ref={resultRef} className="mt-4 space-y-8 printable-area" data-testid="premium-result">
             {/* Charts row — D1 Lagna + Chandra Rashi + D9 Navamsha side by side */}
             <div className="grid md:grid-cols-3 gap-6">
               <button
@@ -150,7 +154,7 @@ export default function PremiumTier() {
                   <div className="font-heading text-2xl text-[#FFD700]">
                     {result.chart.ascendant_english}
                   </div>
-                  <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                  <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                 </div>
               </button>
               {result.chart.chandra && (
@@ -177,7 +181,7 @@ export default function PremiumTier() {
                     <div className="font-heading text-2xl text-[#FF9933]">
                       {result.chart.chandra.ascendant_english}
                     </div>
-                    <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                   </div>
                 </button>
               )}
@@ -205,7 +209,7 @@ export default function PremiumTier() {
                     <div className="font-heading text-2xl text-[#D4AF37]">
                       {result.chart.navamsha.ascendant_english}
                     </div>
-                    <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
                   </div>
                 </button>
               )}
@@ -254,7 +258,7 @@ export default function PremiumTier() {
                 >
                   {result.advice}
                 </div>
-                <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
+                <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
                   <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
                     Open in archive & share →
                   </Link>
@@ -276,6 +280,7 @@ export default function PremiumTier() {
                 <NumDashaTimeline dasha={result.chart.numerology_dasha} />
               </div>
             )}
+          </div>
           </div>
         )}
 
