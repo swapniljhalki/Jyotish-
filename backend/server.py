@@ -1401,10 +1401,16 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
         "sun_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su"),
         "moon_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo"),
     }
+    # Basic tier: D1 (Lagna) chart only — strip premium-only divisions
+    basic_chart = {
+        k: v for k, v in chart.items()
+        if k not in ("chandra", "navamsha", "dasha", "numerology_dasha", "mulank")
+    }
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "basic",
         "inputs": body.model_dump(), "advice": advice,
         "summary": summary,
+        "chart": basic_chart,
         "is_shared": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
@@ -1415,6 +1421,7 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
         "moon_sign": summary["moon_sign"],
         "sun_sign": summary["sun_sign"],
         "advice": advice,
+        "chart": basic_chart,
     }
 
 

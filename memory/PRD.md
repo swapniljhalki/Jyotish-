@@ -154,3 +154,9 @@ Vedic astrology website with 3 pricing tiers:
 
 ## Test Credentials
 See `/app/memory/test_credentials.md`.
+
+## June 11, 2026 — Basic Tier Kundali Generator
+- `/api/astrology/basic` now computes and returns the D1 (Lagna) chart (premium-only divisions — chandra, navamsha, dasha, numerology_dasha — stripped) and stores it on the reading document.
+- BasicTier.jsx shows: clickable D1 KundaliChart card (opens ExpandedKundaliModal, same ornate frame as Premium), Planetary Positions table (Graha/Rashi/°/House/Nakshatra), plus the existing AI summary.
+- Test IDs: `basic-expand-kundali-d1`, `basic-planet-table`.
+- Verified end-to-end via curl + Playwright screenshot (testuser@vedic.com).

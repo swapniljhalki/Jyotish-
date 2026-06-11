@@ -6,6 +6,10 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import BirthForm from "../components/BirthForm";
 import UpgradeButton from "../components/UpgradeButton";
+import KundaliChart from "../components/KundaliChart";
+import ExpandedKundaliModal from "../components/ExpandedKundaliModal";
+import { Maximize2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 
 export default function BasicTier() {
   const { user } = useAuth();
@@ -13,6 +17,7 @@ export default function BasicTier() {
   const [result, setResult] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const submit = async (values) => {
     setErr("");
@@ -90,6 +95,57 @@ export default function BasicTier() {
                 <div className="font-heading text-xl text-[#D4AF37]">{result.moon_sign}</div>
               </div>
             </div>
+            {result.chart && (
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <button
+                  type="button"
+                  onClick={() => setExpanded(true)}
+                  className="glass-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
+                  data-testid="basic-expand-kundali-d1"
+                  aria-label="Expand Kundali Lagna Chart"
+                >
+                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart · D1</span>
+                  </div>
+                  <KundaliChart chart={result.chart} />
+                  <div className="mt-4 text-center">
+                    <div className="font-accent text-[10px] text-zinc-500">Ascendant (Lagna)</div>
+                    <div className="font-heading text-2xl text-[#FFD700]">
+                      {result.chart.ascendant_english}
+                    </div>
+                    <div className="mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                  </div>
+                </button>
+
+                <div className="glass-card p-6" data-testid="basic-planet-table">
+                  <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-[rgba(212,175,55,0.2)]">
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Nakshatra</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {result.chart.planets.map((p) => (
+                        <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
+                          <TableCell className="font-body text-zinc-100">{p.name}</TableCell>
+                          <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
+                          <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
+                          <TableCell className="font-body text-[#FFD700]">{p.house}</TableCell>
+                          <TableCell className="font-body text-[#D4AF37]">{p.nakshatra || "—"}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
             <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap">
               {result.advice}
             </div>
@@ -101,6 +157,15 @@ export default function BasicTier() {
           </div>
         )}
       </div>
+      <ExpandedKundaliModal
+        open={expanded}
+        onClose={() => setExpanded(false)}
+        title="Kundali Lagna Chart · D1"
+        ascendantLabel="Ascendant (Lagna)"
+        ascendantName={result?.chart?.ascendant_english}
+        chart={result?.chart}
+        accentColor="#D4AF37"
+      />
     </div>
   );
 }
