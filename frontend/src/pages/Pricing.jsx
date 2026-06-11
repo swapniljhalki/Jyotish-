@@ -34,13 +34,21 @@ export default function Pricing() {
       key: "basic",
       name: t("pricing.tier_sadhaka.name"),
       price: t("pricing.tier_sadhaka.price"),
-      features: [t("pricing.tier_sadhaka.f1"), t("pricing.tier_sadhaka.f2"), t("pricing.tier_sadhaka.f3")],
+      features: [t("pricing.tier_sadhaka.f1"), t("pricing.tier_sadhaka.f2")],
     },
     {
       key: "premium",
       name: t("pricing.tier_jyotishi.name"),
       price: t("pricing.tier_jyotishi.price"),
-      features: [t("pricing.tier_jyotishi.f1"), t("pricing.tier_jyotishi.f2"), t("pricing.tier_jyotishi.f3"), t("pricing.tier_jyotishi.f4")],
+      features: [
+        t("pricing.tier_jyotishi.f1"),
+        t("pricing.tier_jyotishi.f2"),
+        t("pricing.tier_jyotishi.f3"),
+        t("pricing.tier_jyotishi.f4"),
+        t("pricing.tier_jyotishi.f5"),
+        t("pricing.tier_jyotishi.f6"),
+        t("pricing.tier_jyotishi.f7"),
+      ],
       popular: true,
     },
   ];

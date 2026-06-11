@@ -160,3 +160,8 @@ See `/app/memory/test_credentials.md`.
 - BasicTier.jsx shows: clickable D1 KundaliChart card (opens ExpandedKundaliModal, same ornate frame as Premium), Planetary Positions table (Graha/Rashi/°/House/Nakshatra), plus the existing AI summary.
 - Test IDs: `basic-expand-kundali-d1`, `basic-planet-table`.
 - Verified end-to-end via curl + Playwright screenshot (testuser@vedic.com).
+
+## June 11, 2026 — Tier Feature Descriptions Updated
+- Sadhaka (Basic) tier now lists: Everything in Seeker, Basic Vedic Kundali (Birth Chart).
+- Jyotishi (Premium) tier now lists: Everything in Sadhaka, Kundali Lagna Chart, Chandra Rashi Chart, Navamsha Chart, Vedic Numerology Mahadasha, Chaldean Name Numerology, Mobile Number Numerology.
+- Applied on both Pricing page and Landing page tier cards, translated in all 4 languages (en/hi/te/ta) via locale JSONs (`pricing.tier_*.f1-f7`, `landing.tier_*_f1-f7`).

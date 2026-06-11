@@ -64,21 +64,21 @@
     "tier_sadhaka_price_suffix": "/ reading",
     "tier_sadhaka_tag": "Your birth, read by the stars",
     "tier_sadhaka_f1": "Everything in Seeker",
-    "tier_sadhaka_f2": "Personalised AI birth reading",
-    "tier_sadhaka_f3": "Core personality & strengths",
-    "tier_sadhaka_f4": "One remedial practice",
     "tier_sadhaka_cta": "Unlock Basic",
     "tier_jyotishi_name": "Jyotishi",
     "tier_jyotishi_price_suffix": "/ reading",
     "tier_jyotishi_tag": "The full Kundali, illuminated",
     "tier_jyotishi_f1": "Everything in Sadhaka",
-    "tier_jyotishi_f2": "Visual North-Indian Kundali chart",
-    "tier_jyotishi_f3": "Detailed planetary placements",
-    "tier_jyotishi_f4": "~700-word premium interpretation",
-    "tier_jyotishi_f5": "Career, wealth, love, health & dharma",
     "tier_jyotishi_cta": "Unlock Premium",
     "most_sought": "Most Sought",
-    "invocation": "\"The stars incline, they do not compel. The kundali shows the field — the soul still plays the game.\""
+    "invocation": "\"The stars incline, they do not compel. The kundali shows the field — the soul still plays the game.\"",
+    "tier_sadhaka_f2": "Basic Vedic Kundali (Birth Chart)",
+    "tier_jyotishi_f2": "Kundali Lagna Chart",
+    "tier_jyotishi_f3": "Chandra Rashi Chart",
+    "tier_jyotishi_f4": "Navamsha Chart",
+    "tier_jyotishi_f5": "Vedic Numerology Mahadasha",
+    "tier_jyotishi_f6": "Chaldean Name Numerology",
+    "tier_jyotishi_f7": "Mobile Number Numerology"
   },
   "pricing": {
     "eyebrow": "Subscription",
@@ -99,16 +99,18 @@
       "name": "Sadhaka",
       "price": "₹99",
       "f1": "Everything in Seeker",
-      "f2": "AI birth reading",
-      "f3": "One remedial practice"
+      "f2": "Basic Vedic Kundali (Birth Chart)"
     },
     "tier_jyotishi": {
       "name": "Jyotishi",
       "price": "₹999",
       "f1": "Everything in Sadhaka",
-      "f2": "Visual Kundali chart",
-      "f3": "Detailed 700-word reading",
-      "f4": "Seven life domains"
+      "f2": "Kundali Lagna Chart",
+      "f3": "Chandra Rashi Chart",
+      "f4": "Navamsha Chart",
+      "f5": "Vedic Numerology Mahadasha",
+      "f6": "Chaldean Name Numerology",
+      "f7": "Mobile Number Numerology"
     },
     "switch_to_free": "Switch to Free",
     "unlock": "Unlock"

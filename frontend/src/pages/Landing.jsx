@@ -33,8 +33,6 @@ export default function Landing() {
       features: [
         t("landing.tier_sadhaka_f1"),
         t("landing.tier_sadhaka_f2"),
-        t("landing.tier_sadhaka_f3"),
-        t("landing.tier_sadhaka_f4"),
       ],
       cta: { to: "/pricing?need=basic", label: t("landing.tier_sadhaka_cta") },
       style: "glass-card border-[rgba(255,153,51,0.4)]",
@@ -51,6 +49,8 @@ export default function Landing() {
         t("landing.tier_jyotishi_f3"),
         t("landing.tier_jyotishi_f4"),
         t("landing.tier_jyotishi_f5"),
+        t("landing.tier_jyotishi_f6"),
+        t("landing.tier_jyotishi_f7"),
       ],
       cta: { to: "/pricing?need=premium", label: t("landing.tier_jyotishi_cta") },
       style: "premium-card",
