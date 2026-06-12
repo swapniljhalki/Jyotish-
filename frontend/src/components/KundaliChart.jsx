@@ -90,7 +90,7 @@ export default function KundaliChart({ chart, large = false }) {
         <circle cx={HOUSE_CENTERS[1][0]} cy={HOUSE_CENTERS[1][1] - 22} r="9"
           fill="rgba(255,153,51,0.15)" stroke="#FF9933" strokeWidth="1" />
         <text x={HOUSE_CENTERS[1][0]} y={HOUSE_CENTERS[1][1] - 19}
-          textAnchor="middle" fontSize="9" fontFamily="Cinzel, serif" fill="#FF9933">
+          textAnchor="middle" fontSize="9" fontFamily="Cinzel, serif" fontWeight="700" fill="#9A3E00">
           Asc
         </text>
 
@@ -105,10 +105,10 @@ export default function KundaliChart({ chart, large = false }) {
               <text
                 x={cx} y={cy - 4}
                 textAnchor="middle"
-                fontSize="10"
+                fontSize="11"
                 fontFamily="Cinzel, serif"
-                fill="#D4AF37"
-                opacity="0.8"
+                fontWeight="700"
+                fill="#6B4308"
               >
                 {RASHI_SHORT[signIdx]}
               </text>
