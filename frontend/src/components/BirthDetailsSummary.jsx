@@ -1,4 +1,5 @@
 import { User, Calendar, Clock, MapPin } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const fmtDate = (iso) => {
   if (!iso) return "—";
@@ -9,12 +10,13 @@ const fmtDate = (iso) => {
 
 /** Shows the birth details exactly as the user submitted them. */
 export default function BirthDetailsSummary({ inputs, testIdPrefix }) {
+  const { t } = useTranslation();
   if (!inputs) return null;
   const rows = [
-    [User, "Name", inputs.full_name || "—"],
-    [Calendar, "Date of Birth", fmtDate(inputs.date_of_birth)],
-    [Clock, "Time of Birth", inputs.time_of_birth || "—"],
-    [MapPin, "Place of Birth", inputs.place_of_birth || "—"],
+    [User, t("result.name"), inputs.full_name || "—"],
+    [Calendar, t("result.dob"), fmtDate(inputs.date_of_birth)],
+    [Clock, t("result.tob"), inputs.time_of_birth || "—"],
+    [MapPin, t("result.pob"), inputs.place_of_birth || "—"],
   ];
   return (
     <div

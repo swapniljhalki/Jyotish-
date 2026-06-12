@@ -87,23 +87,23 @@ export default function BasicTier() {
           <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
             <img src={snwLogo} alt="" className="print-watermark" />
             <div className="ornate-divider mb-6">
-              <span className="font-accent text-xs text-[#D4AF37]">Your Reading</span>
+              <span className="font-accent text-xs text-[#D4AF37]">{t("result.your_reading")}</span>
             </div>
             <div className="mb-8">
               <BirthDetailsSummary inputs={inputs} testIdPrefix="basic" />
             </div>
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               <div>
-                <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant")}</div>
                 <div className="font-heading text-xl text-[#FFD700]">{result.ascendant}</div>
                 <div className="font-body text-xs text-zinc-500">{result.ascendant_sanskrit}</div>
               </div>
               <div>
-                <div className="font-accent text-[10px] text-zinc-500">Sun Sign</div>
+                <div className="font-accent text-[10px] text-zinc-500">{t("result.sun_sign")}</div>
                 <div className="font-heading text-xl text-[#FF9933]">{result.sun_sign}</div>
               </div>
               <div>
-                <div className="font-accent text-[10px] text-zinc-500">Moon Sign</div>
+                <div className="font-accent text-[10px] text-zinc-500">{t("result.moon_sign")}</div>
                 <div className="font-heading text-xl text-[#D4AF37]">{result.moon_sign}</div>
               </div>
             </div>
@@ -118,28 +118,28 @@ export default function BasicTier() {
                 >
                   <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart · D1</span>
+                    <span className="font-accent text-xs text-[#D4AF37]">{t("result.d1_title")}</span>
                   </div>
                   <KundaliChart chart={result.chart} large />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Ascendant (Lagna)</div>
+                    <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant_lagna")}</div>
                     <div className="font-heading text-2xl text-[#FFD700]">
                       {result.chart.ascendant_english}
                     </div>
-                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
                   </div>
                 </button>
 
                 <div className="glass-card p-6" data-testid="basic-planet-table">
-                  <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
+                  <div className="font-accent text-xs text-[#D4AF37] mb-4">{t("result.planetary_positions")}</div>
                   <Table>
                     <TableHeader>
                       <TableRow className="border-[rgba(212,175,55,0.2)]">
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_graha")}</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_rashi")}</TableHead>
                         <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Nakshatra</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_house")}</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_nakshatra")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -163,7 +163,7 @@ export default function BasicTier() {
             </div>
             <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
               <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="basic-open-in-archive">
-                Open in archive & share →
+                {t("result.open_archive")}
               </Link>
             </div>
           </div>
@@ -173,8 +173,8 @@ export default function BasicTier() {
       <ExpandedKundaliModal
         open={expanded}
         onClose={() => setExpanded(false)}
-        title="Kundali Lagna Chart · D1"
-        ascendantLabel="Ascendant (Lagna)"
+        title={t("result.d1_title")}
+        ascendantLabel={t("result.ascendant_lagna")}
         ascendantName={result?.chart?.ascendant_english}
         chart={result?.chart}
         accentColor="#D4AF37"

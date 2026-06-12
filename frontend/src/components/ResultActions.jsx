@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Printer, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { downloadNodeAsPdf } from "../lib/exportPdf";
 
 /**
@@ -8,6 +9,7 @@ import { downloadNodeAsPdf } from "../lib/exportPdf";
  * `targetRef` must point to the printable result container.
  */
 export default function ResultActions({ targetRef, filename, testIdPrefix }) {
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
 
   const download = async () => {
@@ -15,10 +17,10 @@ export default function ResultActions({ targetRef, filename, testIdPrefix }) {
     setBusy(true);
     try {
       await downloadNodeAsPdf(targetRef.current, filename);
-      toast.success("PDF downloaded");
+      toast.success(t("result.pdf_done"));
     } catch (e) {
       console.error("PDF export failed", e);
-      toast.error("Could not generate the PDF. Please try again.");
+      toast.error(t("result.pdf_fail"));
     } finally {
       setBusy(false);
     }
@@ -33,11 +35,11 @@ export default function ResultActions({ targetRef, filename, testIdPrefix }) {
     <div className="no-print flex flex-wrap justify-end gap-3" data-testid={`${testIdPrefix}-result-actions`}>
       <button type="button" onClick={() => window.print()} className={btn} data-testid={`${testIdPrefix}-print-btn`}>
         <Printer className="w-4 h-4" aria-hidden="true" />
-        Print
+        {t("result.print")}
       </button>
       <button type="button" onClick={download} disabled={busy} className={btn} data-testid={`${testIdPrefix}-download-pdf-btn`}>
         {busy ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Download className="w-4 h-4" aria-hidden="true" />}
-        {busy ? "Preparing…" : "Download PDF"}
+        {busy ? t("result.preparing") : t("result.download_pdf")}
       </button>
     </div>
   );

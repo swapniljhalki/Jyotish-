@@ -212,3 +212,9 @@ See `/app/memory/test_credentials.md`.
 - ROOT CAUSE (print): `.glass-card` backdrop-filter triggers a Chrome print bug that DROPS elements crossing a page break — the Planetary Positions table vanished entirely from printed output. Fixed by flattening cards (no backdrop-filter/translucency) inside `.printable-area` in @media print; also forced overflow:visible on table wrappers in print.
 - Download PDFs now capture at a fixed ≥1024px width so tables are never clipped behind scrollbars (covers mobile downloads).
 - Verified: print PDF now contains full planetary table + Asc/Sun/Moon values; download PDF shows summary values and the complete table flowing across pages.
+
+## June 12, 2026 — Complete UI translations (en/hi/te/ta)
+- Root cause of "text stays in English": ~60 hardcoded English strings in BasicTier, PremiumTier, ResultActions, BirthDetailsSummary, NumberCard, Pricing.
+- Added new `result` i18n namespace + extended `premium_numerology` + `pricing.pay_note` in all 4 locale files; wired every hardcoded string through t().
+- Covers: result labels (Ascendant/Sun/Moon), chart titles, planetary table headers, Detailed Reading, Print/Download PDF buttons, birth details labels, numerology dasha copy, Chaldean & Mobile numerology sections, NumberCard field labels, pricing payment note.
+- Verified live in Hindi (Basic flow) and Telugu (Premium + Pricing).

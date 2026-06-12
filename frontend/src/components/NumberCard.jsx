@@ -1,4 +1,6 @@
 // Reusable number card used across Numerology + Premium Numerology pages.
+import { useTranslation } from "react-i18next";
+
 const PLANET_GLYPH = {
   Surya: "☉",
   Chandra: "☾",
@@ -30,6 +32,7 @@ function Field({ label, value, stack }) {
 }
 
 export default function NumberCard({ block, accent }) {
+  const { t } = useTranslation();
   if (!block || !block.planet) {
     return (
       <div className="glass-card p-6">
@@ -65,17 +68,17 @@ export default function NumberCard({ block, accent }) {
       <div className="font-body text-sm text-zinc-300 leading-relaxed">{block.traits}</div>
 
       <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-xs font-body">
-        <Field label="Gemstone" value={block.gemstone} />
-        <Field label="Deity" value={block.deity} />
-        <Field label="Mantra" value={block.mantra} />
-        <Field label="Lucky Days" value={block.lucky_days?.join(", ")} />
-        <Field label="Lucky Colors" value={block.lucky_colors?.join(", ")} />
-        <Field label="Lucky Numbers" value={block.lucky_numbers?.join(", ")} />
+        <Field label={t("premium_numerology.gemstone")} value={block.gemstone} />
+        <Field label={t("premium_numerology.deity")} value={block.deity} />
+        <Field label={t("premium_numerology.mantra")} value={block.mantra} />
+        <Field label={t("premium_numerology.lucky_days")} value={block.lucky_days?.join(", ")} />
+        <Field label={t("premium_numerology.lucky_colors")} value={block.lucky_colors?.join(", ")} />
+        <Field label={t("premium_numerology.lucky_numbers")} value={block.lucky_numbers?.join(", ")} />
       </div>
 
       <div className="mt-4 pt-4 border-t border-[rgba(212,175,55,0.12)] grid grid-cols-1 gap-2 text-xs font-body">
-        <Field label="Career" value={block.career} stack />
-        <Field label="Challenges" value={block.challenges} stack />
+        <Field label={t("premium_numerology.career")} value={block.career} stack />
+        <Field label={t("premium_numerology.challenges")} value={block.challenges} stack />
       </div>
     </div>
   );

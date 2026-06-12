@@ -141,8 +141,8 @@ export default function PremiumTier() {
               <button
                 type="button"
                 onClick={() => setExpanded({
-                  title: "Kundali Lagna Chart · D1",
-                  ascendantLabel: "Ascendant (Lagna)",
+                  title: t("result.d1_title"),
+                  ascendantLabel: t("result.ascendant_lagna"),
                   ascendantName: result.chart.ascendant_english,
                   chart: result.chart,
                   accentColor: "#D4AF37",
@@ -153,11 +153,11 @@ export default function PremiumTier() {
               >
                 <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
+                  <span className="font-accent text-xs text-[#D4AF37]">{t("result.d1_title")}</span>
                 </div>
                 <KundaliChart chart={result.chart} large />
                 <div className="mt-4 text-center">
-                  <div className="font-accent text-[10px] text-zinc-500">Ascendant (Lagna)</div>
+                  <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant_lagna")}</div>
                   <div className="font-heading text-2xl text-[#FFD700]">
                     {result.chart.ascendant_english}
                   </div>
@@ -168,8 +168,8 @@ export default function PremiumTier() {
                 <button
                   type="button"
                   onClick={() => setExpanded({
-                    title: "Chandra Rashi Chart",
-                    ascendantLabel: "Chandra Lagna",
+                    title: t("result.chandra_title"),
+                    ascendantLabel: t("result.chandra_lagna"),
                     ascendantName: result.chart.chandra.ascendant_english,
                     chart: result.chart.chandra,
                     accentColor: "#FF9933",
@@ -180,11 +180,11 @@ export default function PremiumTier() {
                 >
                   <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#FF9933] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
+                    <span className="font-accent text-xs text-[#D4AF37]">{t("result.chandra_title")}</span>
                   </div>
                   <KundaliChart chart={result.chart.chandra} large />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
+                    <div className="font-accent text-[10px] text-zinc-500">{t("result.chandra_lagna")}</div>
                     <div className="font-heading text-2xl text-[#FF9933]">
                       {result.chart.chandra.ascendant_english}
                     </div>
@@ -196,8 +196,8 @@ export default function PremiumTier() {
                 <button
                   type="button"
                   onClick={() => setExpanded({
-                    title: "Navamsha Chart · D9",
-                    ascendantLabel: "Navamsha Ascendant",
+                    title: t("result.navamsha_title"),
+                    ascendantLabel: t("result.navamsha_asc"),
                     ascendantName: result.chart.navamsha.ascendant_english,
                     chart: result.chart.navamsha,
                     accentColor: "#D4AF37",
@@ -257,7 +257,7 @@ export default function PremiumTier() {
 
               <div className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-6">
-                  <span className="font-accent text-xs text-[#D4AF37]">Detailed Reading</span>
+                  <span className="font-accent text-xs text-[#D4AF37]">{t("result.detailed_reading")}</span>
                 </div>
                 <div
                   className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap prose"
@@ -294,14 +294,12 @@ export default function PremiumTier() {
         {/* Chaldean Name Numerology — standalone section, always visible */}
         <div className="mt-20 fade-up" data-testid="chaldean-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">Chaldean Name Numerology</p>
+            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.name_section")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
-              The hidden numbers of <span className="text-gold-gradient italic">your name.</span>
+              {t("premium_numerology.name_title_a")} <span className="text-gold-gradient italic">{t("premium_numerology.name_title_b")}</span>
             </h2>
             <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
-              In the Chaldean tradition, every letter carries a numeric vibration (no letter is
-              assigned 9 — it is sacred). The compound total of your name's letters reveals the
-              graha guiding how the world receives you.
+              {t("premium_numerology.name_intro")}
             </p>
           </div>
 
@@ -311,15 +309,15 @@ export default function PremiumTier() {
             data-testid="chaldean-form"
           >
             <div className="md:col-span-2">
-              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest">
-                FULL NAME
+              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+                {t("premium_numerology.name_label")}
               </label>
               <input
                 type="text"
                 required
                 value={chaldeanName}
                 onChange={(e) => setChaldeanName(e.target.value)}
-                placeholder="e.g., Satish Kumar"
+                placeholder={t("premium_numerology.name_placeholder")}
                 data-testid="chaldean-input"
                 className="w-full bg-[#0F1320] border border-[rgba(212,175,55,0.25)] rounded-md px-3 py-2 text-zinc-100 font-body focus:outline-none focus:border-[#FF9933]"
               />
@@ -330,7 +328,7 @@ export default function PremiumTier() {
               data-testid="chaldean-calculate-btn"
               className="btn-saffron w-full md:w-auto disabled:opacity-50"
             >
-              {chaldeanLoading ? "Reading…" : "Reveal Name Number"}
+              {chaldeanLoading ? t("premium_numerology.reading_btn") : t("premium_numerology.name_cta")}
             </button>
           </form>
 
@@ -345,7 +343,7 @@ export default function PremiumTier() {
               {/* Letter-by-letter breakdown */}
               <div className="glass-card p-6">
                 <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-4">
-                  Letter-by-letter values
+                  {t("premium_numerology.letters_title")}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {chaldeanResult.letters.map((l, i) => (
@@ -414,12 +412,12 @@ export default function PremiumTier() {
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-xs font-body">
                   {[
-                    ["Gemstone", chaldeanResult.name_number.gemstone],
-                    ["Deity", chaldeanResult.name_number.deity],
-                    ["Mantra", chaldeanResult.name_number.mantra],
-                    ["Lucky Days", (chaldeanResult.name_number.lucky_days || []).join(", ")],
-                    ["Lucky Colors", (chaldeanResult.name_number.lucky_colors || []).join(", ")],
-                    ["Lucky Numbers", (chaldeanResult.name_number.lucky_numbers || []).join(", ")],
+                    [t("premium_numerology.gemstone"), chaldeanResult.name_number.gemstone],
+                    [t("premium_numerology.deity"), chaldeanResult.name_number.deity],
+                    [t("premium_numerology.mantra"), chaldeanResult.name_number.mantra],
+                    [t("premium_numerology.lucky_days"), (chaldeanResult.name_number.lucky_days || []).join(", ")],
+                    [t("premium_numerology.lucky_colors"), (chaldeanResult.name_number.lucky_colors || []).join(", ")],
+                    [t("premium_numerology.lucky_numbers"), (chaldeanResult.name_number.lucky_numbers || []).join(", ")],
                   ].map(([label, val]) => (
                     <div key={label} className="flex justify-between gap-3">
                       <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</span>
@@ -429,11 +427,11 @@ export default function PremiumTier() {
                 </div>
                 <div className="mt-4 pt-4 border-t border-[rgba(212,175,55,0.12)] grid grid-cols-1 gap-2 text-xs font-body">
                   <div>
-                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Career</div>
+                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.career")}</div>
                     <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.career}</div>
                   </div>
                   <div>
-                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Challenges</div>
+                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.challenges")}</div>
                     <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.challenges}</div>
                   </div>
                 </div>
@@ -445,14 +443,12 @@ export default function PremiumTier() {
         {/* Mobile Number Numerology */}
         <div className="mt-20 fade-up" data-testid="mobile-numerology-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">Mobile Number Ank</p>
+            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
-              Your phone number, <span className="text-gold-gradient italic">vibrating with you.</span>
+              {t("premium_numerology.mobile_title_a2")} <span className="text-gold-gradient italic">{t("premium_numerology.mobile_title_b2")}</span>
             </h2>
             <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
-              Every number you carry — including the one you give out a hundred times a week —
-              radiates a planetary frequency. The sum of your mobile number's digits reveals
-              the graha quietly shaping every call, every message.
+              {t("premium_numerology.mobile_intro2")}
             </p>
           </div>
 
@@ -462,15 +458,15 @@ export default function PremiumTier() {
             data-testid="mobile-form"
           >
             <div className="md:col-span-2">
-              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest">
-                MOBILE NUMBER
+              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+                {t("premium_numerology.mobile_label")}
               </label>
               <input
                 type="tel"
                 required
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder="e.g., +91 98765 43210"
+                placeholder={t("premium_numerology.mobile_ph2")}
                 data-testid="mobile-input"
                 className="w-full bg-[#0F1320] border border-[rgba(212,175,55,0.25)] rounded-md px-3 py-2 text-zinc-100 font-body focus:outline-none focus:border-[#FF9933]"
               />
@@ -481,7 +477,7 @@ export default function PremiumTier() {
               data-testid="mobile-calculate-btn"
               className="btn-saffron w-full md:w-auto disabled:opacity-50"
             >
-              {mobileLoading ? "Reading…" : "Reveal Vibration"}
+              {mobileLoading ? t("premium_numerology.reading_btn") : t("premium_numerology.mobile_cta2")}
             </button>
           </form>
 
@@ -498,10 +494,10 @@ export default function PremiumTier() {
               </div>
               <div className="glass-card p-6">
                 <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-3">
-                  Digit Composition
+                  {t("premium_numerology.digit_comp")}
                 </div>
                 <div className="font-body text-sm text-zinc-300 mb-4">
-                  Number: <span className="text-zinc-100 font-mono">{mobileResult.digits_used}</span>
+                  {t("premium_numerology.number_label")} <span className="text-zinc-100 font-mono">{mobileResult.digits_used}</span>
                 </div>
                 <div className="grid grid-cols-5 gap-2 mb-5">
                   {Object.entries(mobileResult.frequency).map(([d, count]) => (
@@ -523,16 +519,16 @@ export default function PremiumTier() {
                 </div>
                 <div className="space-y-2 text-xs font-body">
                   <div className="flex justify-between gap-3">
-                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Sum of all digits</span>
+                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.digit_sum")}</span>
                     <span className="text-zinc-200">{mobileResult.digit_sum}</span>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Dominant digit</span>
+                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.dominant_digit")}</span>
                     <span className="text-zinc-200">{mobileResult.dominant_digit}</span>
                   </div>
                   {mobileResult.missing_digits.length > 0 && (
                     <div className="flex justify-between gap-3">
-                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">Missing digits</span>
+                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.missing_digits")}</span>
                       <span className="text-zinc-200">{mobileResult.missing_digits.join(", ")}</span>
                     </div>
                   )}
