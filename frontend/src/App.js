@@ -17,6 +17,7 @@ import Numerology from "./pages/Numerology";
 import BasicTier from "./pages/BasicTier";
 import PremiumTier from "./pages/PremiumTier";
 import Pricing from "./pages/Pricing";
+import Testimonials from "./pages/Testimonials";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/nakshatras" element={<Shell><Nakshatras /></Shell>} />
       <Route path="/numerology" element={<Shell><Numerology /></Shell>} />
       <Route path="/pricing" element={<Shell><Pricing /></Shell>} />
+      <Route path="/testimonials" element={<Shell><Testimonials /></Shell>} />
       <Route path="/basic" element={<Shell><ProtectedRoute><BasicTier /></ProtectedRoute></Shell>} />
       <Route path="/premium" element={<Shell><ProtectedRoute><PremiumTier /></ProtectedRoute></Shell>} />
       <Route path="/admin" element={<Shell><ProtectedRoute><Admin /></ProtectedRoute></Shell>} />

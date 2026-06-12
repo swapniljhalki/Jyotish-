@@ -12,7 +12,8 @@
     "begin_journey": "Begin Journey",
     "logout": "Logout",
     "admin": "ADMIN",
-    "language": "Language"
+    "language": "Language",
+    "testimonials": "Testimonials"
   },
   "common": {
     "loading": "Loading…",
@@ -297,5 +298,11 @@
     "pob": "Place of Birth",
     "numdasha_title": "Numerology Dasha · 81-year ank cycle (Mulank {{mulank}})",
     "numdasha_blurb": "Driven by your Mulank ({{mulank}}), this 81-year cycle of nine ank-mahadashas tracks the numerological vibration of your unfolding life."
+  },
+  "testimonials": {
+    "eyebrow": "Client Testimonials",
+    "title_a": "Words from",
+    "title_b": "our seekers.",
+    "intro": "Real experiences from those who found clarity through their charts and numbers."
   }
 }

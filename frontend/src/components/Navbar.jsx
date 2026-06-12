@@ -14,6 +14,7 @@ const navItems = [
   { to: "/book",       k: "nav.book_1on1",  authOnly: true, accent: true },
   { to: "/readings",   k: "nav.my_readings", authOnly: true },
   { to: "/pricing",    k: "nav.pricing" },
+  { to: "/testimonials", k: "nav.testimonials" },
 ];
 
 export default function Navbar() {

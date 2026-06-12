@@ -229,3 +229,7 @@ See `/app/memory/test_credentials.md`.
 
 ## June 12, 2026 — Footer cleanup
 - Removed the "Learn" column (Nine Grahas / 27 Nakshatras / Houses & Bhavas) from the global footer; layout reflows to 2 columns.
+
+## June 12, 2026 — Testimonials page
+- New public page /testimonials (`Testimonials.jsx`) with 5 client testimonials (Rachana, Thomas, Priraj, Madhavi, R.P) in ornate quote cards with 5-star ratings.
+- "Testimonials" nav link added to top navbar on every page (translated in en/hi/te/ta via nav.testimonials; page header via testimonials.* keys). Quotes kept in original English.
