@@ -207,3 +207,8 @@ See `/app/memory/test_credentials.md`.
 - exportPdf.js stamps the logo (centered, 55% width, 8% opacity) on EVERY page of downloaded Basic/Premium PDFs.
 - Browser print (window.print) also shows the watermark on each printed page via fixed-position `.print-watermark` (print-only CSS).
 - Verified: 3-page Basic PDF inspected, watermark present on all pages.
+
+## June 12, 2026 — PDF/print report fixes
+- ROOT CAUSE (print): `.glass-card` backdrop-filter triggers a Chrome print bug that DROPS elements crossing a page break — the Planetary Positions table vanished entirely from printed output. Fixed by flattening cards (no backdrop-filter/translucency) inside `.printable-area` in @media print; also forced overflow:visible on table wrappers in print.
+- Download PDFs now capture at a fixed ≥1024px width so tables are never clipped behind scrollbars (covers mobile downloads).
+- Verified: print PDF now contains full planetary table + Asc/Sun/Moon values; download PDF shows summary values and the complete table flowing across pages.

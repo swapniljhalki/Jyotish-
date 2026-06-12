@@ -16,10 +16,15 @@ const loadLogo = () =>
  * and Indic scripts) and slices the resulting canvas into page-sized chunks.
  */
 export async function downloadNodeAsPdf(node, filename) {
+  // Capture at a fixed desktop-like width so tables never clip behind
+  // scrollbars (e.g. when downloading from a phone).
+  const captureWidth = Math.max(node.offsetWidth, 1024);
   const canvas = await toCanvas(node, {
     pixelRatio: 2,
     backgroundColor: "#FDFBF7",
     cacheBust: true,
+    width: captureWidth,
+    style: { width: `${captureWidth}px`, maxWidth: "none" },
     filter: (n) => !(n.classList && n.classList.contains("no-print")),
   });
 

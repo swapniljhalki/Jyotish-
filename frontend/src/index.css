@@ -397,6 +397,24 @@ td, th { color: #1A1C29; }
   .no-print {
     display: none !important;
   }
+  /* Scrollable containers (e.g. shadcn Table wrapper) lose their content at
+     page breaks when printing — make them fully visible so the whole
+     planetary positions table prints. */
+  .printable-area .overflow-auto,
+  .printable-area .overflow-x-auto,
+  .printable-area .overflow-y-auto {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  /* Chrome drops elements with backdrop-filter that cross a page break —
+     flatten cards for print so the planetary positions table always prints. */
+  .printable-area .glass-card,
+  .printable-area .premium-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+  }
   .print-watermark {
     display: block !important;
     position: fixed;
