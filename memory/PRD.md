@@ -179,3 +179,7 @@ See `/app/memory/test_credentials.md`.
 ## June 12, 2026 — Birth details summary above charts
 - New `BirthDetailsSummary.jsx` shows Name, Date of Birth, Time of Birth, Place of Birth (as user submitted) above the Kundali Lagna chart on both Basic and Premium results.
 - Included in print/PDF export (inside printable area). Test IDs: `basic-birth-details`, `premium-birth-details`.
+
+## June 12, 2026 — Zodiac image background
+- All pages (.cosmic-bg) now use the user-provided zodiac wheel GIF (`/app/frontend/src/assets/zodiac-bg.gif`) as a fixed, full-cover background.
+- A translucent ivory veil (rgba(253,251,247,0.82)) sits over the image so all existing dark typography stays readable. Veil opacity is the tuning knob if user wants the image more/less prominent.
