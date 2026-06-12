@@ -24,14 +24,20 @@ PRICING = {
 }
 
 
+def _key(name: str) -> str:
+    """Read a Razorpay env key defensively — strips whitespace and stray quotes
+    that some deployment env-injection layers leave around values."""
+    return os.environ.get(name, "").strip().strip('"').strip("'").strip()
+
+
 def is_live() -> bool:
-    return bool(os.environ.get("RAZORPAY_KEY_ID")) and bool(os.environ.get("RAZORPAY_KEY_SECRET"))
+    return bool(_key("RAZORPAY_KEY_ID")) and bool(_key("RAZORPAY_KEY_SECRET"))
 
 
 def _client():
     import razorpay
     return razorpay.Client(auth=(
-        os.environ["RAZORPAY_KEY_ID"], os.environ["RAZORPAY_KEY_SECRET"],
+        _key("RAZORPAY_KEY_ID"), _key("RAZORPAY_KEY_SECRET"),
     ))
 
 
@@ -76,7 +82,7 @@ def create_custom_order(
             "amount":   amount_paise,
             "currency": "INR",
             "receipt":  receipt,
-            "key_id":   os.environ["RAZORPAY_KEY_ID"],
+            "key_id":   _key("RAZORPAY_KEY_ID"),
             "label":    label,
         }
 
@@ -94,7 +100,7 @@ def create_custom_order(
 def verify_signature(order_id: str, payment_id: str, signature: str) -> bool:
     if not is_live():
         return True  # mock mode accepts anything
-    secret = os.environ["RAZORPAY_KEY_SECRET"]
+    secret = _key("RAZORPAY_KEY_SECRET")
     body = f"{order_id}|{payment_id}".encode()
     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature or "")

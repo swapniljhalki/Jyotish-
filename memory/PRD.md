@@ -233,3 +233,9 @@ See `/app/memory/test_credentials.md`.
 ## June 12, 2026 — Testimonials page
 - New public page /testimonials (`Testimonials.jsx`) with 5 client testimonials (Rachana, Thomas, Priraj, Madhavi, R.P) in ornate quote cards with 5-star ratings.
 - "Testimonials" nav link added to top navbar on every page (translated in en/hi/te/ta via nav.testimonials; page header via testimonials.* keys). Quotes kept in original English.
+
+## June 13, 2026 — Production payments 500 diagnosis + hardening
+- PROD ISSUE: /api/payments/create-order → 500 "Razorpay error: Authentication failed" in production while preview works with identical keys → production env has stale/corrupted RAZORPAY_KEY_SECRET.
+- deployment_agent scan: PASS, no code-level deploy blockers.
+- Hardening: razorpay_service.py now reads keys via _key() (strips whitespace + stray quotes from env injection); Razorpay values in backend/.env unquoted. Preview re-verified: live order created post-change.
+- USER ACTION: redeploy; if still failing, contact Emergent Support to verify RAZORPAY_* env vars on the deployment.
