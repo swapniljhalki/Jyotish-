@@ -528,9 +528,12 @@ async def payments_create_order(body: PaymentCreateIn, user: dict = Depends(get_
     if body.tier not in RZP_PRICING:
         raise HTTPException(status_code=400, detail="Unknown tier")
     try:
-        order = rzp_create_order(body.tier, user["id"])
+        # Razorpay's SDK does a blocking HTTPS call — offload so the event
+        # loop doesn't stall under concurrent checkout traffic.
+        order = await asyncio.to_thread(rzp_create_order, body.tier, user["id"])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Razorpay error: {e}")
+        logger.exception("Razorpay create_order failed for user=%s tier=%s", user.get("id"), body.tier)
+        raise HTTPException(status_code=502, detail=f"Razorpay error: {e}")
 
     # Record pending payment
     await db.payments.insert_one({
@@ -828,7 +831,8 @@ async def scheduler_book(body: BookingIn, user: dict = Depends(get_current_user)
 
     # Create a Razorpay order for the consultation fee (independent of any tier pricing).
     try:
-        order = rzp_create_custom_order(
+        order = await asyncio.to_thread(
+            rzp_create_custom_order,
             amount_paise=CONSULTATION["amount_paise"],
             label=CONSULTATION["label"],
             user_id=user["id"],
@@ -836,7 +840,8 @@ async def scheduler_book(body: BookingIn, user: dict = Depends(get_current_user)
             notes={"booking_slot": start_iso},
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Razorpay error: {e}")
+        logger.exception("Razorpay create_custom_order failed for user=%s slot=%s", user.get("id"), start_iso)
+        raise HTTPException(status_code=502, detail=f"Razorpay error: {e}")
 
     booking_id = str(uuid.uuid4())
     booking = {
