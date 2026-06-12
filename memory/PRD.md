@@ -186,3 +186,12 @@ See `/app/memory/test_credentials.md`.
 
 ## June 12, 2026 — Premium reading layout
 - Detailed Reading now renders full-width below the Planetary Positions table (was side-by-side); removed max-h-800px/overflow scrollbar so the entire reading shows.
+
+## June 12, 2026 — LIVE Razorpay payments enabled
+- RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET (LIVE keys) added to backend/.env. /api/payments/config → mode "live".
+- Sadhaka ₹99, Jyotishi ₹999 one-time unlocks via Razorpay checkout (UPI/cards/netbanking). Phone modal collects contact before checkout.
+- Free unlock removed: UpgradeButton PAYMENTS_DISABLED/FREE_TIER_UNLOCK flags deleted; POST /api/subscribe now 403s for paid tiers (free downgrade only).
+- /api/payments/verify hardened: order must belong to user, claimed tier must match order tier, HMAC signature verified.
+- Pricing page note updated ("One-time payment · secured by Razorpay").
+- NOTE: 1:1 consultation bookings also use Razorpay → now live charging too.
+- PENDING (user said "hold on"): webhook endpoint + RAZORPAY_WEBHOOK_SECRET for payment.captured edge cases (browser closed before verify).

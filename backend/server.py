@@ -477,11 +477,14 @@ async def google_session(response: Response, x_session_id: str = Header(None)):
     return {**public_user(user), "access_token": access}
 
 
-# --- Subscription (mock — legacy, kept for compatibility) ---
+# --- Subscription (self-service only for the free tier; paid tiers require Razorpay) ---
 @api.post("/subscribe")
 async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
-    if body.tier not in ("free", "basic", "premium"):
-        raise HTTPException(status_code=400, detail="Invalid tier")
+    if body.tier != "free":
+        raise HTTPException(
+            status_code=403,
+            detail="Paid tiers require payment — use the Razorpay checkout.",
+        )
     await db.users.update_one({"id": user["id"]}, {"$set": {"tier": body.tier}})
     updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
     return public_user(updated)
@@ -557,14 +560,19 @@ async def payments_create_order(body: PaymentCreateIn, user: dict = Depends(get_
 
 @api.post("/payments/verify")
 async def payments_verify(body: PaymentVerifyIn, user: dict = Depends(get_current_user)):
+    # The order must have been created by this user, and the tier being claimed
+    # must match what was paid for (prevents paying ₹99 and claiming premium).
+    payment = await db.payments.find_one({"order_id": body.razorpay_order_id, "user_id": user["id"]})
+    if not payment:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if payment["tier"] != body.tier:
+        raise HTTPException(status_code=400, detail="Tier mismatch for this order")
+
     if not rzp_verify_signature(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature):
         raise HTTPException(status_code=400, detail="Signature mismatch")
 
-    if body.tier not in RZP_PRICING:
-        raise HTTPException(status_code=400, detail="Unknown tier")
-
     # Upgrade the user's tier permanently
-    await db.users.update_one({"id": user["id"]}, {"$set": {"tier": body.tier}})
+    await db.users.update_one({"id": user["id"]}, {"$set": {"tier": payment["tier"]}})
     updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
 
     # Record successful payment
@@ -576,10 +584,9 @@ async def payments_verify(body: PaymentVerifyIn, user: dict = Depends(get_curren
             "signature": body.razorpay_signature,
             "paid_at": datetime.now(timezone.utc).isoformat(),
         }},
-        upsert=True,
     )
 
-    return {**public_user(updated), "tier": body.tier, "payment_status": "success"}
+    return {**public_user(updated), "tier": payment["tier"], "payment_status": "success"}
 
 
 # =============================================================================

@@ -152,60 +152,6 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
       ? "inline-flex items-center gap-2 transition-all disabled:opacity-50"
       : "btn-saffron disabled:opacity-50 inline-flex items-center gap-2";
 
-  if (PAYMENTS_DISABLED) {
-    if (FREE_TIER_UNLOCK) {
-      const grantFree = async () => {
-        setBusy(true);
-        try {
-          await api.post("/subscribe", { tier });
-          toast.success(`You're now ${label} — enjoy.`);
-          await refresh();
-          onSuccess?.();
-        } catch (e) {
-          toast.error(formatApiError(e.response?.data?.detail) || e.message);
-        } finally {
-          setBusy(false);
-        }
-      };
-      const freeCls =
-        variant === "unstyled"
-          ? `inline-flex items-center gap-2 transition-all disabled:opacity-50 ${className}`
-          : `btn-saffron disabled:opacity-50 inline-flex items-center gap-2 ${className}`;
-      return (
-        <button
-          type="button"
-          onClick={grantFree}
-          disabled={busy}
-          data-testid={`upgrade-btn-${tier}`}
-          title={`Unlock ${label} — currently free.`}
-          className={freeCls}
-        >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Gift className="h-4 w-4" />}
-          <span>
-            Unlock {label} <span className="opacity-90">— Free</span>
-          </span>
-        </button>
-      );
-    }
-
-    const disabledCls =
-      variant === "unstyled"
-        ? `inline-flex items-center gap-2 ${className}`
-        : `inline-flex items-center gap-2 px-6 py-3 border border-[rgba(212,175,55,0.4)] text-[#6B7080] font-body cursor-not-allowed bg-zinc-50 ${className}`;
-    return (
-      <button
-        type="button"
-        disabled
-        data-testid={`upgrade-btn-${tier}`}
-        title="Online payments are temporarily disabled — please contact the astrologer to unlock this tier."
-        className={disabledCls}
-      >
-        <Sparkles className="h-4 w-4 opacity-60" />
-        <span>Coming soon</span>
-      </button>
-    );
-  }
-
   return (
     <>
       <button
