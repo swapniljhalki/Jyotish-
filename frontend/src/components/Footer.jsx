@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="ornate-divider mb-8">
           <span className="font-accent text-xs text-[#D4AF37]">ॐ शान्ति</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-zinc-400">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-zinc-400">
           <div>
             <div className="flex items-center gap-3 mb-3">
               <img
@@ -19,14 +19,6 @@ export default function Footer() {
               Ancient sidereal wisdom, read through a modern lens. Charts computed deterministically;
               interpretations offered as guidance — not destiny.
             </p>
-          </div>
-          <div>
-            <h4 className="font-accent text-xs text-[#D4AF37] mb-3">Learn</h4>
-            <ul className="space-y-2 font-body">
-              <li>The Nine Grahas</li>
-              <li>The 27 Nakshatras</li>
-              <li>Houses & Bhavas</li>
-            </ul>
           </div>
           <div>
             <h4 className="font-accent text-xs text-[#D4AF37] mb-3">Disclaimer</h4>

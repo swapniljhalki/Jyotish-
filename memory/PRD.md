@@ -226,3 +226,6 @@ See `/app/memory/test_credentials.md`.
 - Auth resilience: axios default timeout 120s; /auth/me 15s timeout + 1 retry (no more infinite "consulting the stars" on a stalled request).
 - NOTE: several search_replace edits silently failed this session — always grep-verify after batch edits.
 - Verified e2e: Hindi Basic (native table), Telugu Premium (సూర్యుడు/వృషభం/కృత్తిక + Telugu reading via polling).
+
+## June 12, 2026 — Footer cleanup
+- Removed the "Learn" column (Nine Grahas / 27 Nakshatras / Houses & Bhavas) from the global footer; layout reflows to 2 columns.
