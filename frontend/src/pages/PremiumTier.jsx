@@ -220,7 +220,7 @@ export default function PremiumTier() {
               )}
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-8">
               <div className="glass-card p-6">
                 <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
                 <Table>
@@ -253,7 +253,7 @@ export default function PremiumTier() {
                 </Table>
               </div>
 
-              <div className="premium-card p-6 md:p-8 max-h-[800px] overflow-auto">
+              <div className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-6">
                   <span className="font-accent text-xs text-[#D4AF37]">Detailed Reading</span>
                 </div>

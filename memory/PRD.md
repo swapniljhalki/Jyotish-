@@ -183,3 +183,6 @@ See `/app/memory/test_credentials.md`.
 ## June 12, 2026 — Zodiac image background
 - All pages (.cosmic-bg) now use the user-provided zodiac wheel GIF (`/app/frontend/src/assets/zodiac-bg.gif`) as a fixed, full-cover background.
 - A translucent ivory veil (rgba(253,251,247,0.82)) sits over the image so all existing dark typography stays readable. Veil opacity is the tuning knob if user wants the image more/less prominent.
+
+## June 12, 2026 — Premium reading layout
+- Detailed Reading now renders full-width below the Planetary Positions table (was side-by-side); removed max-h-800px/overflow scrollbar so the entire reading shows.
