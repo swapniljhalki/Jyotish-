@@ -9,6 +9,7 @@ import uuid
 import secrets
 import hashlib
 import logging
+import asyncio
 import bcrypt
 import jwt
 import httpx
@@ -1341,15 +1342,21 @@ async def _build_chart(body: AstroIn) -> dict:
     )
 
 
-async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
+def _ask_claude_blocking(system: str, user_msg: str, session_id: str) -> str:
+    """Runs the LLM call in its own event loop — executed via asyncio.to_thread so
+    long generations can never block the main server loop."""
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     chat = LlmChat(
         api_key=os.environ["EMERGENT_LLM_KEY"],
         session_id=session_id,
         system_message=system,
     ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+    return asyncio.run(chat.send_message(UserMessage(text=user_msg)))
+
+
+async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
     try:
-        return await chat.send_message(UserMessage(text=user_msg))
+        return await asyncio.to_thread(_ask_claude_blocking, system, user_msg, session_id)
     except Exception as e:
         logger.exception("LLM call failed")
         raise HTTPException(status_code=502, detail=f"AI service error: {e}")
@@ -1433,11 +1440,7 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
 
 
 # --- Premium tier ---
-@api.post("/astrology/premium")
-async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user)):
-    require_tier(user, "premium")
-    chart = await _build_chart(body)
-
+def _premium_prompts(body: "AstroIn", chart: dict):
     planet_lines = "\n".join(
         f"- {p['name']}: {p['rashi_english']} ({p['rashi']}) "
         f"{p['degree']}°, house {p['house']}, nakshatra {p.get('nakshatra','—')}"
@@ -1481,21 +1484,78 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         f"## Current Focus & Remedies\n\n"
         f"End with a short closing blessing in Sanskrit with English translation."
     )
-    advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
-    reading_id = str(uuid.uuid4())
-    summary = {
+    return system, user_msg
+
+
+def _premium_summary(chart: dict) -> dict:
+    return {
         "ascendant": chart["ascendant_english"],
         "sun_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su"),
         "moon_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo"),
     }
+
+
+@api.post("/astrology/premium")
+async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user)):
+    require_tier(user, "premium")
+    chart = await _build_chart(body)
+    system, user_msg = _premium_prompts(body, chart)
+    advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
+    reading_id = str(uuid.uuid4())
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "premium",
         "inputs": body.model_dump(), "chart": chart, "advice": advice,
-        "summary": summary,
+        "summary": _premium_summary(chart),
         "is_shared": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
     return {"id": reading_id, "chart": chart, "advice": advice}
+
+
+# Async variant — long LLM generations (especially Hindi/Telugu/Tamil) can exceed
+# the ingress timeout (~100s), so the frontend starts the job and polls for status.
+@api.post("/astrology/premium/start")
+async def astrology_premium_start(body: AstroIn, user: dict = Depends(get_current_user)):
+    require_tier(user, "premium")
+    chart = await _build_chart(body)
+    reading_id = str(uuid.uuid4())
+    await db.readings.insert_one({
+        "id": reading_id, "user_id": user["id"], "tier": "premium",
+        "inputs": body.model_dump(), "chart": chart, "advice": "",
+        "status": "processing",
+        "summary": _premium_summary(chart),
+        "is_shared": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    async def _generate():
+        try:
+            system, user_msg = _premium_prompts(body, chart)
+            advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
+            await db.readings.update_one(
+                {"id": reading_id}, {"$set": {"advice": advice, "status": "done"}}
+            )
+        except Exception as e:
+            logging.exception("Premium reading generation failed")
+            await db.readings.update_one(
+                {"id": reading_id}, {"$set": {"status": "failed", "error": str(e)}}
+            )
+
+    asyncio.create_task(_generate())
+    return {"id": reading_id, "status": "processing", "chart": chart}
+
+
+@api.get("/astrology/premium/status/{reading_id}")
+async def astrology_premium_status(reading_id: str, user: dict = Depends(get_current_user)):
+    r = await db.readings.find_one({"id": reading_id, "user_id": user["id"]}, {"_id": 0})
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    return {
+        "id": r["id"],
+        "status": r.get("status", "done"),
+        "chart": r.get("chart"),
+        "advice": r.get("advice"),
+    }
 
 
 # --- Readings: list / fetch / delete / share ---

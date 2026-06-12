@@ -1,4 +1,7 @@
 // Renders coloured chips for classical planet states.
+import { useTranslation } from "react-i18next";
+import { localizeState } from "../lib/vedicNames";
+
 const STATE_STYLE = {
   Retrograde:   "border-[#FF9933] text-[#FF9933]",
   Combust:      "border-[#FF6347] text-[#FF6347]",
@@ -16,6 +19,8 @@ const SHORT = {
 };
 
 export default function PlanetStates({ states, compact = false }) {
+  const { i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage;
   if (!states || states.length === 0) {
     return <span className="text-zinc-600 text-xs">—</span>;
   }
@@ -24,11 +29,11 @@ export default function PlanetStates({ states, compact = false }) {
       {states.map((s) => (
         <span
           key={s}
-          title={s}
+          title={localizeState(s, lang)}
           data-testid={`planet-state-${s.toLowerCase()}`}
           className={`px-1.5 py-0.5 rounded border bg-transparent font-accent text-[10px] tracking-wide leading-none ${STATE_STYLE[s] || "border-zinc-500 text-zinc-400"}`}
         >
-          {compact ? SHORT[s] || s : s}
+          {compact ? SHORT[s] || s : localizeState(s, lang)}
         </span>
       ))}
     </div>

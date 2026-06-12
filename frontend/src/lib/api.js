@@ -5,6 +5,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const api = axios.create({
   baseURL: `${BACKEND_URL}/api`,
   withCredentials: true,
+  timeout: 120000,
 });
 
 // --- 401 → try /auth/refresh once → replay original request ---

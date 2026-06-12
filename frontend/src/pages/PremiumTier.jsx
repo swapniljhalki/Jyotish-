@@ -15,6 +15,7 @@ import UpgradeButton from "../components/UpgradeButton";
 import ResultActions from "../components/ResultActions";
 import BirthDetailsSummary from "../components/BirthDetailsSummary";
 import snwLogo from "../assets/snw-logo.jpg";
+import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -39,15 +40,29 @@ export default function PremiumTier() {
   // Expanded Kundali Modal
   const [expanded, setExpanded] = useState(null); // { title, ascendantLabel, ascendantName, chart, accentColor }
   const resultRef = useRef(null);
+  const lang = i18n.resolvedLanguage;
 
   const submit = async (values) => {
     setErr("");
     setResult(null);
     setLoading(true);
     try {
-      const { data } = await api.post("/astrology/premium", { ...values, lang: i18n.resolvedLanguage });
+      // Start generation server-side, then poll — long readings (esp. Hindi/Telugu)
+      // can exceed the gateway timeout on a single request.
+      const { data: start } = await api.post("/astrology/premium/start", { ...values, lang: i18n.resolvedLanguage });
       setInputs(values);
-      setResult(data);
+      for (let i = 0; i < 120; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const { data: st } = await api.get(`/astrology/premium/status/${start.id}`);
+        if (st.status === "done") {
+          setResult(st);
+          return;
+        }
+        if (st.status === "failed") {
+          throw new Error("The reading could not be generated. Please try again.");
+        }
+      }
+      throw new Error("The reading is taking longer than expected. Check your Readings archive in a few minutes.");
     } catch (e) {
       setErr(formatApiError(e.response?.data?.detail) || e.message);
     } finally {
@@ -143,7 +158,7 @@ export default function PremiumTier() {
                 onClick={() => setExpanded({
                   title: t("result.d1_title"),
                   ascendantLabel: t("result.ascendant_lagna"),
-                  ascendantName: result.chart.ascendant_english,
+                  ascendantName: localizeRashi(result.chart.ascendant_english, lang),
                   chart: result.chart,
                   accentColor: "#D4AF37",
                 })}
@@ -159,9 +174,9 @@ export default function PremiumTier() {
                 <div className="mt-4 text-center">
                   <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant_lagna")}</div>
                   <div className="font-heading text-2xl text-[#FFD700]">
-                    {result.chart.ascendant_english}
+                    {localizeRashi(result.chart.ascendant_english, lang)}
                   </div>
-                  <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                  <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
                 </div>
               </button>
               {result.chart.chandra && (
@@ -170,7 +185,7 @@ export default function PremiumTier() {
                   onClick={() => setExpanded({
                     title: t("result.chandra_title"),
                     ascendantLabel: t("result.chandra_lagna"),
-                    ascendantName: result.chart.chandra.ascendant_english,
+                    ascendantName: localizeRashi(result.chart.chandra.ascendant_english, lang),
                     chart: result.chart.chandra,
                     accentColor: "#FF9933",
                   })}
@@ -186,9 +201,9 @@ export default function PremiumTier() {
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">{t("result.chandra_lagna")}</div>
                     <div className="font-heading text-2xl text-[#FF9933]">
-                      {result.chart.chandra.ascendant_english}
+                      {localizeRashi(result.chart.chandra.ascendant_english, lang)}
                     </div>
-                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
                   </div>
                 </button>
               )}
@@ -198,7 +213,7 @@ export default function PremiumTier() {
                   onClick={() => setExpanded({
                     title: t("result.navamsha_title"),
                     ascendantLabel: t("result.navamsha_asc"),
-                    ascendantName: result.chart.navamsha.ascendant_english,
+                    ascendantName: localizeRashi(result.chart.navamsha.ascendant_english, lang),
                     chart: result.chart.navamsha,
                     accentColor: "#D4AF37",
                   })}
@@ -212,11 +227,11 @@ export default function PremiumTier() {
                   </div>
                   <KundaliChart chart={result.chart.navamsha} large />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
+                    <div className="font-accent text-[10px] text-zinc-500">{t("result.navamsha_asc")}</div>
                     <div className="font-heading text-2xl text-[#D4AF37]">
-                      {result.chart.navamsha.ascendant_english}
+                      {localizeRashi(result.chart.navamsha.ascendant_english, lang)}
                     </div>
-                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">Click to expand</div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
                   </div>
                 </button>
               )}
@@ -224,28 +239,28 @@ export default function PremiumTier() {
 
             <div className="space-y-8">
               <div className="glass-card p-6">
-                <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
+                <div className="font-accent text-xs text-[#D4AF37] mb-4">{t("result.planetary_positions")}</div>
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(212,175,55,0.2)]">
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_graha")}</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_rashi")}</TableHead>
                       <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">States</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_house")}</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_navamsha")}</TableHead>
+                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_states")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {result.chart.planets.map((p) => (
                       <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                         <TableCell className="font-body text-zinc-100">
-                          {p.name}
+                          {localizePlanet(p.name, lang)}
                         </TableCell>
-                        <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
+                        <TableCell className="font-body text-zinc-300">{localizeRashi(p.rashi_english, lang)}</TableCell>
                         <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
                         <TableCell className="font-body text-[#FFD700]">{p.house}</TableCell>
-                        <TableCell className="font-body text-[#D4AF37]">{p.navamsha_sign_english || "—"}</TableCell>
+                        <TableCell className="font-body text-[#D4AF37]">{p.navamsha_sign_english ? localizeRashi(p.navamsha_sign_english, lang) : "—"}</TableCell>
                         <TableCell>
                           <PlanetStates states={p.states} />
                         </TableCell>

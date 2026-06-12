@@ -218,3 +218,11 @@ See `/app/memory/test_credentials.md`.
 - Added new `result` i18n namespace + extended `premium_numerology` + `pricing.pay_note` in all 4 locale files; wired every hardcoded string through t().
 - Covers: result labels (Ascendant/Sun/Moon), chart titles, planetary table headers, Detailed Reading, Print/Download PDF buttons, birth details labels, numerology dasha copy, Chaldean & Mobile numerology sections, NumberCard field labels, pricing payment note.
 - Verified live in Hindi (Basic flow) and Telugu (Premium + Pricing).
+
+## June 12, 2026 — Native Vedic names + premium stability fixes
+- New `/app/frontend/src/lib/vedicNames.js`: planets, 12 rashis, 27 nakshatras, planet states localized in hi/te/ta (fallback English). Wired into Basic/Premium tables, summary values, chart ascendant labels, expanded modal, PlanetStates chips.
+- CRITICAL FIX: LLM calls were blocking the FastAPI event loop (server frozen during every generation — caused intermittent 502s/hangs). _ask_claude now runs via asyncio.to_thread.
+- CRITICAL FIX: Premium readings in Hindi/Telugu took 116–126s > ~100s gateway timeout → always failed. Added POST /api/astrology/premium/start (+ background generation) and GET /api/astrology/premium/status/{id}; PremiumTier polls every 3s. Old sync endpoint retained.
+- Auth resilience: axios default timeout 120s; /auth/me 15s timeout + 1 retry (no more infinite "consulting the stars" on a stalled request).
+- NOTE: several search_replace edits silently failed this session — always grep-verify after batch edits.
+- Verified e2e: Hindi Basic (native table), Telugu Premium (సూర్యుడు/వృషభం/కృత్తిక + Telugu reading via polling).

@@ -8,14 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    try {
-      const { data } = await api.get("/auth/me");
-      setUser(data);
-    } catch {
-      setUser(false);
-    } finally {
-      setLoading(false);
+    // Short timeout + one retry — a single stalled request must never leave the
+    // whole app stuck on the auth loading screen.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const { data } = await api.get("/auth/me", { timeout: 15000 });
+        setUser(data);
+        setLoading(false);
+        return;
+      } catch (e) {
+        if (e.response) break; // real auth response (401 etc.) — not a network stall
+      }
     }
+    setUser(false);
+    setLoading(false);
   }, []);
 
   useEffect(() => {

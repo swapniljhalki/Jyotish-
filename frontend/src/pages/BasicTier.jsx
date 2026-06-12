@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import ResultActions from "../components/ResultActions";
 import BirthDetailsSummary from "../components/BirthDetailsSummary";
 import snwLogo from "../assets/snw-logo.jpg";
+import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
 export default function BasicTier() {
   const { user } = useAuth();
@@ -40,6 +41,7 @@ export default function BasicTier() {
   };
 
   const canRead = user && (user.tier === "basic" || user.tier === "premium");
+  const lang = i18n.resolvedLanguage;
 
   return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
@@ -95,16 +97,16 @@ export default function BasicTier() {
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               <div>
                 <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant")}</div>
-                <div className="font-heading text-xl text-[#FFD700]">{result.ascendant}</div>
+                <div className="font-heading text-xl text-[#FFD700]">{localizeRashi(result.ascendant, lang)}</div>
                 <div className="font-body text-xs text-zinc-500">{result.ascendant_sanskrit}</div>
               </div>
               <div>
                 <div className="font-accent text-[10px] text-zinc-500">{t("result.sun_sign")}</div>
-                <div className="font-heading text-xl text-[#FF9933]">{result.sun_sign}</div>
+                <div className="font-heading text-xl text-[#FF9933]">{localizeRashi(result.sun_sign, lang)}</div>
               </div>
               <div>
                 <div className="font-accent text-[10px] text-zinc-500">{t("result.moon_sign")}</div>
-                <div className="font-heading text-xl text-[#D4AF37]">{result.moon_sign}</div>
+                <div className="font-heading text-xl text-[#D4AF37]">{localizeRashi(result.moon_sign, lang)}</div>
               </div>
             </div>
             {result.chart && (
@@ -124,7 +126,7 @@ export default function BasicTier() {
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant_lagna")}</div>
                     <div className="font-heading text-2xl text-[#FFD700]">
-                      {result.chart.ascendant_english}
+                      {localizeRashi(result.chart.ascendant_english, lang)}
                     </div>
                     <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
                   </div>
@@ -145,11 +147,11 @@ export default function BasicTier() {
                     <TableBody>
                       {result.chart.planets.map((p) => (
                         <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
-                          <TableCell className="font-body text-zinc-100">{p.name}</TableCell>
-                          <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
+                          <TableCell className="font-body text-zinc-100">{localizePlanet(p.name, lang)}</TableCell>
+                          <TableCell className="font-body text-zinc-300">{localizeRashi(p.rashi_english, lang)}</TableCell>
                           <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
                           <TableCell className="font-body text-[#FFD700]">{p.house}</TableCell>
-                          <TableCell className="font-body text-[#D4AF37]">{p.nakshatra || "—"}</TableCell>
+                          <TableCell className="font-body text-[#D4AF37]">{p.nakshatra ? localizeNakshatra(p.nakshatra, lang) : "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -175,7 +177,7 @@ export default function BasicTier() {
         onClose={() => setExpanded(false)}
         title={t("result.d1_title")}
         ascendantLabel={t("result.ascendant_lagna")}
-        ascendantName={result?.chart?.ascendant_english}
+        ascendantName={result?.chart ? localizeRashi(result.chart.ascendant_english, lang) : undefined}
         chart={result?.chart}
         accentColor="#D4AF37"
       />
