@@ -106,7 +106,7 @@ export default function BasicTier() {
               </div>
             </div>
             {result.chart && (
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="space-y-8 mb-8">
                 <button
                   type="button"
                   onClick={() => setExpanded(true)}
@@ -118,7 +118,7 @@ export default function BasicTier() {
                   <div className="ornate-divider mb-4">
                     <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart · D1</span>
                   </div>
-                  <KundaliChart chart={result.chart} />
+                  <KundaliChart chart={result.chart} large />
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">Ascendant (Lagna)</div>
                     <div className="font-heading text-2xl text-[#FFD700]">

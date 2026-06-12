@@ -198,3 +198,6 @@ See `/app/memory/test_credentials.md`.
 
 ## June 12, 2026 — Darker chart fonts
 - KundaliChart house/rashi numbers: pale gold #D4AF37 @0.8 → bold #6B4308, size 10→11. "Asc" label #FF9933 → bold #9A3E00. Applies to D1/Chandra/Navamsha inline charts and expanded modal (shared component).
+
+## June 12, 2026 — Basic tier layout
+- Kundali Lagna chart now renders large (640px) with Planetary Positions table stacked below it (was 2-col side-by-side).
