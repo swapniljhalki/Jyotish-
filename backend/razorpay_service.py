@@ -104,3 +104,13 @@ def verify_signature(order_id: str, payment_id: str, signature: str) -> bool:
     body = f"{order_id}|{payment_id}".encode()
     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature or "")
+
+
+def verify_webhook_signature(raw_body: bytes, signature: str) -> bool:
+    """Razorpay webhook signatures use the webhook-specific secret
+    (set in Razorpay Dashboard → Settings → Webhooks), not the API secret."""
+    secret = _key("RAZORPAY_WEBHOOK_SECRET")
+    if not secret:
+        return False
+    expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature or "")

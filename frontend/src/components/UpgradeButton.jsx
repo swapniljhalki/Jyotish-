@@ -111,9 +111,17 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
           ondismiss: () => setBusy(false),
         },
       });
+      rzp.on('payment.failed', (resp) => {
+        const err = resp?.error || {};
+        console.error('Razorpay payment.failed', err);
+        toast.error(`Payment failed: ${err.description || err.reason || 'unknown error'} (code: ${err.code || 'n/a'})`);
+        setBusy(false);
+      });
       rzp.open();
     } catch (e) {
-      toast.error(formatApiError(e.response?.data?.detail) || e.message);
+      console.error('Payment flow error', e, e.response?.data);
+      const detail = formatApiError(e.response?.data?.detail) || e.message;
+      toast.error(`Could not start payment: ${detail}`);
     } finally {
       setBusy(false);
     }

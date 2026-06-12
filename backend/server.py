@@ -8,6 +8,7 @@ import os
 import uuid
 import secrets
 import hashlib
+import json
 import logging
 import asyncio
 import bcrypt
@@ -32,6 +33,7 @@ from razorpay_service import (
     create_order as rzp_create_order,
     create_custom_order as rzp_create_custom_order,
     verify_signature as rzp_verify_signature,
+    verify_webhook_signature as rzp_verify_webhook_signature,
     is_live as rzp_is_live,
     PRICING as RZP_PRICING,
 )
@@ -588,6 +590,91 @@ async def payments_verify(body: PaymentVerifyIn, user: dict = Depends(get_curren
     )
 
     return {**public_user(updated), "tier": payment["tier"], "payment_status": "success"}
+
+
+@api.post("/payments/webhook")
+async def payments_webhook(request: Request):
+    """Razorpay webhook — backend-to-backend payment confirmation safety net.
+
+    If the user closes the browser before /payments/verify fires, Razorpay still
+    POSTs `payment.captured` here, and we upgrade their tier from the order
+    notes (which include user_id + tier).
+
+    Setup: Razorpay Dashboard → Settings → Webhooks → add
+      URL: https://<your-domain>/api/payments/webhook
+      Secret: copy into RAZORPAY_WEBHOOK_SECRET env var
+      Events: payment.captured, payment.failed
+    """
+    raw = await request.body()
+    signature = request.headers.get("X-Razorpay-Signature", "")
+
+    if not rzp_verify_webhook_signature(raw, signature):
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
+    try:
+        payload = json.loads(raw.decode())
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    event = payload.get("event", "")
+    entity = payload.get("payload", {}).get("payment", {}).get("entity", {}) or {}
+    order_id = entity.get("order_id")
+    payment_id = entity.get("id")
+    notes = entity.get("notes", {}) or {}
+
+    if not order_id:
+        return {"ok": True, "ignored": True}
+
+    payment = await db.payments.find_one({"order_id": order_id})
+
+    if event == "payment.captured":
+        # Resolve user + tier — prefer DB record, fall back to order notes.
+        tier = (payment or {}).get("tier") or notes.get("tier")
+        user_id = (payment or {}).get("user_id") or notes.get("user_id")
+
+        if tier and user_id and tier in RZP_PRICING:
+            await db.users.update_one({"id": user_id}, {"$set": {"tier": tier}})
+
+        if payment:
+            await db.payments.update_one(
+                {"order_id": order_id},
+                {"$set": {
+                    "status": "paid",
+                    "payment_id": payment_id,
+                    "paid_at": datetime.now(timezone.utc).isoformat(),
+                    "via_webhook": True,
+                }},
+            )
+        else:
+            # No prior /create-order record (rare) — log it anyway for audit.
+            await db.payments.insert_one({
+                "id": str(uuid.uuid4()),
+                "order_id": order_id,
+                "payment_id": payment_id,
+                "user_id": user_id,
+                "tier": tier,
+                "amount_paise": entity.get("amount"),
+                "currency": entity.get("currency", "INR"),
+                "mode": "live",
+                "status": "paid",
+                "via_webhook": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "paid_at": datetime.now(timezone.utc).isoformat(),
+            })
+
+    elif event == "payment.failed":
+        if payment:
+            await db.payments.update_one(
+                {"order_id": order_id},
+                {"$set": {
+                    "status": "failed",
+                    "payment_id": payment_id,
+                    "failed_at": datetime.now(timezone.utc).isoformat(),
+                    "failure_reason": entity.get("error_description", ""),
+                }},
+            )
+
+    return {"ok": True, "event": event}
 
 
 # =============================================================================
