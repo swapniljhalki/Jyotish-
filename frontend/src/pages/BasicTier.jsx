@@ -12,6 +12,7 @@ import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import ResultActions from "../components/ResultActions";
 import BirthDetailsSummary from "../components/BirthDetailsSummary";
+import snwLogo from "../assets/snw-logo.jpg";
 
 export default function BasicTier() {
   const { user } = useAuth();
@@ -84,6 +85,7 @@ export default function BasicTier() {
           <div className="mt-10 fade-up">
           <ResultActions targetRef={resultRef} filename="Kundali-Basic-Reading.pdf" testIdPrefix="basic" />
           <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
+            <img src={snwLogo} alt="" className="print-watermark" />
             <div className="ornate-divider mb-6">
               <span className="font-accent text-xs text-[#D4AF37]">Your Reading</span>
             </div>

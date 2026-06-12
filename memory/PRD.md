@@ -201,3 +201,9 @@ See `/app/memory/test_credentials.md`.
 
 ## June 12, 2026 — Basic tier layout
 - Kundali Lagna chart now renders large (640px) with Planetary Positions table stacked below it (was 2-col side-by-side).
+
+## June 12, 2026 — SNW logo watermark on PDF pages
+- User's SNW logo saved at /app/frontend/src/assets/snw-logo.jpg.
+- exportPdf.js stamps the logo (centered, 55% width, 8% opacity) on EVERY page of downloaded Basic/Premium PDFs.
+- Browser print (window.print) also shows the watermark on each printed page via fixed-position `.print-watermark` (print-only CSS).
+- Verified: 3-page Basic PDF inspected, watermark present on all pages.

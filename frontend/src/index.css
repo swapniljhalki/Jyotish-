@@ -397,4 +397,18 @@ td, th { color: #1A1C29; }
   .no-print {
     display: none !important;
   }
+  .print-watermark {
+    display: block !important;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 55%;
+    opacity: 0.08;
+    z-index: 0;
+  }
+}
+
+.print-watermark {
+  display: none;
 }

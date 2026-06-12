@@ -14,6 +14,7 @@ import NumberCard from "../components/NumberCard";
 import UpgradeButton from "../components/UpgradeButton";
 import ResultActions from "../components/ResultActions";
 import BirthDetailsSummary from "../components/BirthDetailsSummary";
+import snwLogo from "../assets/snw-logo.jpg";
 
 export default function PremiumTier() {
   const { user } = useAuth();
@@ -132,6 +133,7 @@ export default function PremiumTier() {
           <div className="mt-10 fade-up">
           <ResultActions targetRef={resultRef} filename="Kundali-Premium-Reading.pdf" testIdPrefix="premium" />
           <div ref={resultRef} className="mt-4 space-y-8 printable-area" data-testid="premium-result">
+            <img src={snwLogo} alt="" className="print-watermark" />
             {/* Birth details exactly as submitted */}
             <BirthDetailsSummary inputs={inputs} testIdPrefix="premium" />
             {/* Charts — D1 Lagna, Chandra Rashi & D9 Navamsha stacked one below the other */}
