@@ -26,7 +26,7 @@ const HOUSE_CENTERS = {
 
 const RASHI_SHORT = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
-export default function KundaliChart({ chart }) {
+export default function KundaliChart({ chart, large = false }) {
   if (!chart) return null;
   const { ascendant_index, house_signs, houses } = chart;
 
@@ -55,7 +55,7 @@ export default function KundaliChart({ chart }) {
     <div className="flex justify-center">
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="w-full max-w-[440px] h-auto"
+        className={`w-full ${large ? "max-w-[640px]" : "max-w-[440px]"} h-auto`}
         data-testid="kundali-chart"
       >
         <defs>

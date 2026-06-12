@@ -13,11 +13,13 @@ import NumDashaTimeline from "../components/NumDashaTimeline";
 import NumberCard from "../components/NumberCard";
 import UpgradeButton from "../components/UpgradeButton";
 import ResultActions from "../components/ResultActions";
+import BirthDetailsSummary from "../components/BirthDetailsSummary";
 
 export default function PremiumTier() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [result, setResult] = useState(null);
+  const [inputs, setInputs] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -43,6 +45,7 @@ export default function PremiumTier() {
     setLoading(true);
     try {
       const { data } = await api.post("/astrology/premium", { ...values, lang: i18n.resolvedLanguage });
+      setInputs(values);
       setResult(data);
     } catch (e) {
       setErr(formatApiError(e.response?.data?.detail) || e.message);
@@ -129,8 +132,10 @@ export default function PremiumTier() {
           <div className="mt-10 fade-up">
           <ResultActions targetRef={resultRef} filename="Kundali-Premium-Reading.pdf" testIdPrefix="premium" />
           <div ref={resultRef} className="mt-4 space-y-8 printable-area" data-testid="premium-result">
-            {/* Charts row — D1 Lagna + Chandra Rashi + D9 Navamsha side by side */}
-            <div className="grid md:grid-cols-3 gap-6">
+            {/* Birth details exactly as submitted */}
+            <BirthDetailsSummary inputs={inputs} testIdPrefix="premium" />
+            {/* Charts — D1 Lagna, Chandra Rashi & D9 Navamsha stacked one below the other */}
+            <div className="space-y-8">
               <button
                 type="button"
                 onClick={() => setExpanded({
@@ -148,7 +153,7 @@ export default function PremiumTier() {
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
                 </div>
-                <KundaliChart chart={result.chart} />
+                <KundaliChart chart={result.chart} large />
                 <div className="mt-4 text-center">
                   <div className="font-accent text-[10px] text-zinc-500">Ascendant (Lagna)</div>
                   <div className="font-heading text-2xl text-[#FFD700]">
@@ -175,7 +180,7 @@ export default function PremiumTier() {
                   <div className="ornate-divider mb-4">
                     <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
                   </div>
-                  <KundaliChart chart={result.chart.chandra} />
+                  <KundaliChart chart={result.chart.chandra} large />
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
                     <div className="font-heading text-2xl text-[#FF9933]">
@@ -203,7 +208,7 @@ export default function PremiumTier() {
                   <div className="ornate-divider mb-4">
                     <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
                   </div>
-                  <KundaliChart chart={result.chart.navamsha} />
+                  <KundaliChart chart={result.chart.navamsha} large />
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
                     <div className="font-heading text-2xl text-[#D4AF37]">

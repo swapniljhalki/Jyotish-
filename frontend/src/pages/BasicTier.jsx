@@ -11,11 +11,13 @@ import ExpandedKundaliModal from "../components/ExpandedKundaliModal";
 import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import ResultActions from "../components/ResultActions";
+import BirthDetailsSummary from "../components/BirthDetailsSummary";
 
 export default function BasicTier() {
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const [result, setResult] = useState(null);
+  const [inputs, setInputs] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -27,6 +29,7 @@ export default function BasicTier() {
     setLoading(true);
     try {
       const { data } = await api.post("/astrology/basic", { ...values, lang: i18n.resolvedLanguage });
+      setInputs(values);
       setResult(data);
     } catch (e) {
       setErr(formatApiError(e.response?.data?.detail) || e.message);
@@ -83,6 +86,9 @@ export default function BasicTier() {
           <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
             <div className="ornate-divider mb-6">
               <span className="font-accent text-xs text-[#D4AF37]">Your Reading</span>
+            </div>
+            <div className="mb-8">
+              <BirthDetailsSummary inputs={inputs} testIdPrefix="basic" />
             </div>
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               <div>

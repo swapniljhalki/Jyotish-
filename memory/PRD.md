@@ -171,3 +171,11 @@ See `/app/memory/test_credentials.md`.
 - PDF export via html-to-image (handles inline SVG kundali charts + Indic scripts) + jsPDF multi-page A4 slicing (`/app/frontend/src/lib/exportPdf.js`).
 - Print uses window.print() with @media print CSS in index.css (`.printable-area` / `.no-print`).
 - Verified e2e: PDFs downloaded on both tiers, content inspected (chart, table, reading render correctly).
+
+## June 11, 2026 — Premium charts layout change
+- D1 Lagna, Chandra Rashi and Navamsha D9 charts no longer render side-by-side; they now stack one below the other in a large (max-w-640px) expanded format on the Premium results page.
+- KundaliChart gained a `large` prop; click-to-expand modal behavior retained.
+
+## June 12, 2026 — Birth details summary above charts
+- New `BirthDetailsSummary.jsx` shows Name, Date of Birth, Time of Birth, Place of Birth (as user submitted) above the Kundali Lagna chart on both Basic and Premium results.
+- Included in print/PDF export (inside printable area). Test IDs: `basic-birth-details`, `premium-birth-details`.
