@@ -97,16 +97,16 @@ export default function BasicTier() {
             <div className="grid grid-cols-3 gap-4 mb-8 text-center">
               <div>
                 <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant")}</div>
-                <div className="font-heading text-xl text-[#FFD700]">{localizeRashi(result.ascendant, lang)}</div>
+                <div className="font-heading text-xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{localizeRashi(result.ascendant, lang)}</div>
                 <div className="font-body text-xs text-zinc-500">{result.ascendant_sanskrit}</div>
               </div>
               <div>
                 <div className="font-accent text-[10px] text-zinc-500">{t("result.sun_sign")}</div>
-                <div className="font-heading text-xl text-[#FF9933]">{localizeRashi(result.sun_sign, lang)}</div>
+                <div className="font-heading text-xl" style={{ color: "#8B2500", fontWeight: 600 }}>{localizeRashi(result.sun_sign, lang)}</div>
               </div>
               <div>
                 <div className="font-accent text-[10px] text-zinc-500">{t("result.moon_sign")}</div>
-                <div className="font-heading text-xl text-[#D4AF37]">{localizeRashi(result.moon_sign, lang)}</div>
+                <div className="font-heading text-xl" style={{ color: "#6B3410", fontWeight: 600 }}>{localizeRashi(result.moon_sign, lang)}</div>
               </div>
             </div>
             {result.chart && (
@@ -125,7 +125,7 @@ export default function BasicTier() {
                   <KundaliChart chart={result.chart} large />
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant_lagna")}</div>
-                    <div className="font-heading text-2xl text-[#FFD700]">
+                    <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>
                       {localizeRashi(result.chart.ascendant_english, lang)}
                     </div>
                     <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
