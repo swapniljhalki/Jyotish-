@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link } from "react-router-dom";
@@ -7,8 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Button } from "../components/ui/button";
-import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays } from "lucide-react";
+import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays, Download, Loader2 } from "lucide-react";
 import SchedulerAdmin from "../components/SchedulerAdmin";
+import { downloadNodeAsPdf } from "../lib/exportPdf";
+import KundaliChart from "../components/KundaliChart";
+import snwLogo from "../assets/snw-logo.jpg";
 
 export default function Admin() {
   const { user, loading } = useAuth();
@@ -16,6 +19,8 @@ export default function Admin() {
   const [emails, setEmails] = useState([]);
   const [readings, setReadings] = useState([]);
   const [readingDetail, setReadingDetail] = useState(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const printableRef = useRef(null);
   const [err, setErr] = useState("");
 
   const loadUsers = async () => {
@@ -41,6 +46,23 @@ export default function Admin() {
       const { data } = await api.get(`/admin/readings/${id}`);
       setReadingDetail(data);
     } catch (e) { toast.error(formatApiError(e.response?.data?.detail) || e.message); }
+  };
+
+  const downloadReadingPdf = async () => {
+    if (!printableRef.current || downloadingPdf || !readingDetail) return;
+    setDownloadingPdf(true);
+    try {
+      const userTag = (readingDetail.user_name || readingDetail.user_email || "user")
+        .replace(/[^a-zA-Z0-9]+/g, "-").slice(0, 40);
+      const filename = `Reading-${readingDetail.tier}-${userTag}.pdf`;
+      await downloadNodeAsPdf(printableRef.current, filename);
+      toast.success("PDF downloaded");
+    } catch (e) {
+      console.error("Admin reading PDF export failed", e);
+      toast.error("Could not generate PDF. Please try again.");
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   useEffect(() => {
@@ -254,22 +276,24 @@ export default function Admin() {
             data-testid="admin-reading-modal"
           >
             <div
-              className="bg-[#0F1320] border border-[rgba(212,175,55,0.3)] rounded-lg max-w-3xl w-full max-h-[85vh] overflow-auto p-6 md:p-8"
+              className="bg-[#0F1320] border border-[rgba(212,175,55,0.3)] rounded-lg max-w-3xl w-full max-h-[85vh] overflow-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-start justify-between mb-4 gap-4">
-                <div>
-                  <div className="font-accent text-[10px] text-[#D4AF37] mb-1 uppercase tracking-widest">
-                    {readingDetail.tier} reading
-                  </div>
-                  <h3 className="font-heading text-2xl text-zinc-50">
-                    {readingDetail.user_name || "Unknown"}{" "}
-                    <span className="text-zinc-500 text-base font-body">({readingDetail.user_email || "deleted user"})</span>
-                  </h3>
-                  <div className="text-xs text-zinc-500 font-body mt-1">
-                    {new Date(readingDetail.created_at).toLocaleString()}
-                  </div>
-                </div>
+              {/* Action bar — not printed */}
+              <div className="no-print sticky top-0 z-10 flex items-center justify-end gap-2 px-6 py-3 border-b border-[rgba(212,175,55,0.15)] bg-[#0F1320]">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={downloadReadingPdf}
+                  disabled={downloadingPdf}
+                  className="text-[#FF9933] hover:text-[#FFD700] hover:bg-transparent disabled:opacity-50"
+                  data-testid="admin-reading-download-pdf"
+                >
+                  {downloadingPdf
+                    ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                    : <Download className="w-4 h-4 mr-1.5" />}
+                  {downloadingPdf ? "Preparing..." : "Download PDF"}
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -281,51 +305,109 @@ export default function Admin() {
                 </Button>
               </div>
 
-              {readingDetail.inputs && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 rounded border border-[rgba(212,175,55,0.15)] bg-[#0A0D14] text-xs font-body">
-                  {Object.entries(readingDetail.inputs).map(([k, v]) => (
-                    <div key={k}>
-                      <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{k.replace(/_/g, " ")}</div>
-                      <div className="text-zinc-200 mt-0.5 break-words">{String(v || "—")}</div>
+              {/* Printable content */}
+              <div ref={printableRef} className="printable-area p-6 md:p-8 relative">
+                <img src={snwLogo} alt="" className="print-watermark" />
+                <div className="mb-4">
+                  <div className="font-accent text-[10px] uppercase tracking-widest mb-1" style={{ color: "#8B5E1A" }}>
+                    {readingDetail.tier} reading
+                  </div>
+                  <h3 className="font-heading text-2xl text-zinc-50">
+                    {readingDetail.user_name || "Unknown"}{" "}
+                    <span className="text-zinc-500 text-base font-body">({readingDetail.user_email || "deleted user"})</span>
+                  </h3>
+                  <div className="text-xs text-zinc-500 font-body mt-1">
+                    {new Date(readingDetail.created_at).toLocaleString()}
+                  </div>
+                </div>
+
+                {readingDetail.inputs && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 rounded border border-[rgba(212,175,55,0.15)] bg-[#0A0D14] text-xs font-body">
+                    {Object.entries(readingDetail.inputs).map(([k, v]) => (
+                      <div key={k}>
+                        <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{k.replace(/_/g, " ")}</div>
+                        <div className="text-zinc-200 mt-0.5 break-words">{String(v || "—")}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {readingDetail.summary && (
+                  <div className="grid grid-cols-3 gap-4 mb-6 text-center">
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                      <div className="font-heading text-lg" style={{ color: "#5C3A09", fontWeight: 600 }}>
+                        {readingDetail.summary.ascendant || "—"}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                      <div className="font-heading text-lg" style={{ color: "#8B2500", fontWeight: 600 }}>
+                        {readingDetail.summary.sun_sign || "—"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                      <div className="font-heading text-lg" style={{ color: "#6B3410", fontWeight: 600 }}>
+                        {readingDetail.summary.moon_sign || "—"}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-              {readingDetail.summary && (
-                <div className="grid grid-cols-3 gap-4 mb-6 text-center">
-                  <div>
-                    <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
-                    <div className="font-heading text-lg text-[#FFD700]">{readingDetail.summary.ascendant || "—"}</div>
+                {readingDetail.chart && (
+                  <div className="glass-card p-5 mb-6">
+                    <div className="font-accent text-xs mb-3" style={{ color: "#8B5E1A" }}>Lagna Chart · D1</div>
+                    <KundaliChart chart={readingDetail.chart} large />
                   </div>
-                  <div>
-                    <div className="font-accent text-[10px] text-zinc-500">Sun</div>
-                    <div className="font-heading text-lg text-[#FF9933]">{readingDetail.summary.sun_sign || "—"}</div>
-                  </div>
-                  <div>
-                    <div className="font-accent text-[10px] text-zinc-500">Moon</div>
-                    <div className="font-heading text-lg text-[#D4AF37]">{readingDetail.summary.moon_sign || "—"}</div>
-                  </div>
-                </div>
-              )}
+                )}
 
-              <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap" data-testid="admin-reading-advice">
-                {readingDetail.advice || <span className="text-zinc-500 italic">No advice text recorded.</span>}
+                {readingDetail.chart?.planets?.length > 0 && (
+                  <div className="glass-card p-5 mb-6">
+                    <div className="font-accent text-xs mb-3" style={{ color: "#8B5E1A" }}>Planetary Positions</div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-[rgba(212,175,55,0.2)]">
+                          <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
+                          <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
+                          <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
+                          <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
+                          <TableHead className="text-zinc-400 font-accent text-[10px]">Nakshatra</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {readingDetail.chart.planets.map((p) => (
+                          <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
+                            <TableCell className="font-body text-zinc-100">{p.name}</TableCell>
+                            <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
+                            <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
+                            <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
+                            <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.nakshatra || "—"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+
+                <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap" data-testid="admin-reading-advice">
+                  {readingDetail.advice || <span className="text-zinc-500 italic">No advice text recorded.</span>}
+                </div>
+
+                {readingDetail.is_shared && readingDetail.share_token && (
+                  <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-sm">
+                    <span className="font-accent text-[10px] text-[#D4AF37] mr-2">PUBLIC LINK</span>
+                    <Link
+                      to={`/r/${readingDetail.share_token}`}
+                      className="text-[#FF9933] hover:text-[#FFD700] font-body break-all"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      /r/{readingDetail.share_token}
+                    </Link>
+                  </div>
+                )}
               </div>
-
-              {readingDetail.is_shared && readingDetail.share_token && (
-                <div className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-sm">
-                  <span className="font-accent text-[10px] text-[#D4AF37] mr-2">PUBLIC LINK</span>
-                  <Link
-                    to={`/r/${readingDetail.share_token}`}
-                    className="text-[#FF9933] hover:text-[#FFD700] font-body break-all"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    /r/{readingDetail.share_token}
-                  </Link>
-                </div>
-              )}
             </div>
           </div>
         )}
