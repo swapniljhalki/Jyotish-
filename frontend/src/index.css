@@ -421,6 +421,29 @@ td, th { color: #1A1C29; }
   display: none;
 }
 
+/* When capturing for PDF export, hide all scrollbars inside the printable
+ * area so they don't appear in the rendered image. Combined with the JS
+ * `neutralizeOverflow` helper this guarantees a clean, scrollbar-free PDF. */
+.printable-area,
+.printable-area * {
+  scrollbar-width: none !important;       /* Firefox */
+}
+.printable-area::-webkit-scrollbar,
+.printable-area *::-webkit-scrollbar {
+  display: none !important;                /* WebKit / Chrome */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Each tagged section flows naturally on screen but renders as its own
+ * fresh page when printed (browser print fallback / @media print). */
+[data-pdf-page] {
+  page-break-inside: avoid;
+}
+[data-pdf-page] + [data-pdf-page] {
+  page-break-before: always;
+}
+
 
 /* ============================================================================
  *  STARBUCKS-STYLE LAYOUT SYSTEM

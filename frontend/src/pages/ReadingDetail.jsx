@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import api, { formatApiError } from "../lib/api";
 import KundaliChart from "../components/KundaliChart";
@@ -8,6 +8,8 @@ import NumDashaTimeline from "../components/NumDashaTimeline";
 import { Switch } from "../components/ui/switch";
 import { Share2, Copy, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import ResultActions from "../components/ResultActions";
+import snwLogo from "../assets/snw-logo.jpg";
 
 export default function ReadingDetail() {
   const { id } = useParams();
@@ -16,6 +18,7 @@ export default function ReadingDetail() {
   const [err, setErr] = useState("");
   const [toggling, setToggling] = useState(false);
   const [copied, setCopied] = useState(false);
+  const resultRef = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -64,19 +67,21 @@ export default function ReadingDetail() {
     </div>
   );
 
+  const filename = `Reading-${r.tier}-${(r.summary?.ascendant || r.id).slice(0, 24)}.pdf`;
+
   return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-5xl mx-auto px-6 md:px-12 py-12">
         <button
           onClick={() => nav("/readings")}
-          className="flex items-center gap-1 text-sm text-zinc-400 hover:text-[#FF9933] mb-6"
+          className="flex items-center gap-1 text-sm text-zinc-400 hover:text-[#FF9933] mb-6 no-print"
           data-testid="reading-back-btn"
         >
           <ArrowLeft className="h-4 w-4" /> Archive
         </button>
 
-        {/* Share card */}
-        <div className="glass-card p-6 mb-8 fade-up" data-testid="reading-share-panel">
+        {/* Share card + PDF button — not printed */}
+        <div className="glass-card p-6 mb-6 fade-up no-print" data-testid="reading-share-panel">
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -120,50 +125,81 @@ export default function ReadingDetail() {
           )}
         </div>
 
-        {/* Reading content */}
-        {r.tier === "premium" && r.chart ? (
-          <div className="space-y-8" data-testid="reading-premium-content">
-            {/* Charts row — D1 + Chandra + D9 */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="premium-card p-6">
+        {/* PDF download */}
+        <ResultActions targetRef={resultRef} filename={filename} testIdPrefix="reading-detail" />
+
+        {/* Reading content — capture target */}
+        <div ref={resultRef} className="mt-4 printable-area" data-testid="reading-printable">
+          <img src={snwLogo} alt="" className="print-watermark" />
+
+          {r.tier === "premium" && r.chart ? (
+            <div className="space-y-8" data-testid="reading-premium-content">
+              {/* PAGE 1 — Cover: Ascendant / Sun / Moon */}
+              {r.summary && (
+                <section data-pdf-page="cover" className="premium-card p-6 md:p-10">
+                  <div className="ornate-divider mb-6">
+                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Your reading</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                      <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.summary.ascendant}</div>
+                    </div>
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                      <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.summary.sun_sign}</div>
+                    </div>
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                      <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.summary.moon_sign}</div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* PAGE 2 — D1 Lagna chart */}
+              <section data-pdf-page="lagna-chart" className="premium-card p-6">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
+                  <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Kundali Lagna Chart</span>
                 </div>
-                <KundaliChart chart={r.chart} />
+                <KundaliChart chart={r.chart} large />
                 <div className="mt-4 text-center">
                   <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
-                  <div className="font-heading text-2xl text-[#FFD700]">{r.chart.ascendant_english}</div>
+                  <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.chart.ascendant_english}</div>
                 </div>
-              </div>
+              </section>
+
+              {/* PAGE 3 — Chandra chart */}
               {r.chart.chandra && (
-                <div className="premium-card p-6">
+                <section data-pdf-page="chandra-chart" className="premium-card p-6">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
+                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Chandra Rashi Chart</span>
                   </div>
-                  <KundaliChart chart={r.chart.chandra} />
+                  <KundaliChart chart={r.chart.chandra} large />
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
-                    <div className="font-heading text-2xl text-[#FF9933]">{r.chart.chandra.ascendant_english}</div>
+                    <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.chart.chandra.ascendant_english}</div>
                   </div>
-                </div>
+                </section>
               )}
+
+              {/* PAGE 4 — Navamsha D9 chart */}
               {r.chart.navamsha && (
-                <div className="premium-card p-6">
+                <section data-pdf-page="navamsha-chart" className="premium-card p-6">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Navamsha Chart · D9</span>
                   </div>
-                  <KundaliChart chart={r.chart.navamsha} />
+                  <KundaliChart chart={r.chart.navamsha} large />
                   <div className="mt-4 text-center">
                     <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
-                    <div className="font-heading text-2xl text-[#D4AF37]">{r.chart.navamsha.ascendant_english}</div>
+                    <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.chart.navamsha.ascendant_english}</div>
                   </div>
-                </div>
+                </section>
               )}
-            </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="glass-card p-6">
-                <div className="font-accent text-xs text-[#D4AF37] mb-4">Planetary Positions</div>
+              {/* PAGE 5 — Planetary positions */}
+              <section data-pdf-page="planets" className="glass-card p-6">
+                <div className="font-accent text-xs mb-4" style={{ color: "#8B5E1A", fontWeight: 600 }}>Planetary Positions</div>
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(212,175,55,0.2)]">
@@ -178,66 +214,72 @@ export default function ReadingDetail() {
                   <TableBody>
                     {r.chart.planets.map((p) => (
                       <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
-                        <TableCell className="text-zinc-100 font-body">
-                          {p.name}
-                        </TableCell>
+                        <TableCell className="text-zinc-100 font-body">{p.name}</TableCell>
                         <TableCell className="text-zinc-300 font-body">{p.rashi_english}</TableCell>
                         <TableCell className="text-zinc-400 font-body">{p.degree}°</TableCell>
-                        <TableCell className="text-[#FFD700] font-body">{p.house}</TableCell>
-                        <TableCell className="text-[#D4AF37] font-body">{p.navamsha_sign_english || "—"}</TableCell>
+                        <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
+                        <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.navamsha_sign_english || "—"}</TableCell>
                         <TableCell><PlanetStates states={p.states} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </div>
-              <div className="premium-card p-6 md:p-8 max-h-[800px] overflow-auto">
+              </section>
+
+              {/* PAGE 6 — Detailed reading (scrollbar removed — full text flows naturally) */}
+              <section data-pdf-page="advice" className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Reading</span>
+                  <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Reading</span>
                 </div>
                 <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
                   {r.advice}
                 </div>
-              </div>
-            </div>
+              </section>
 
-            {r.chart.numerology_dasha && (
-              <div className="premium-card p-6 md:p-8">
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">
-                    Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
-                  </span>
-                </div>
-                <NumDashaTimeline dasha={r.chart.numerology_dasha} />
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="premium-card p-8 md:p-12" data-testid="reading-basic-content">
-            <div className="ornate-divider mb-6">
-              <span className="font-accent text-xs text-[#D4AF37]">Basic Reading</span>
+              {/* PAGE 7 — Numerology Dasha */}
+              {r.chart.numerology_dasha && (
+                <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
+                      Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
+                    </span>
+                  </div>
+                  <NumDashaTimeline dasha={r.chart.numerology_dasha} />
+                </section>
+              )}
             </div>
-            {r.summary && (
-              <div className="grid grid-cols-3 gap-4 mb-8 text-center">
-                <div>
-                  <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
-                  <div className="font-heading text-xl text-[#FFD700]">{r.summary.ascendant}</div>
+          ) : (
+            // BASIC tier — single cover page + advice page
+            <div className="space-y-8" data-testid="reading-basic-content">
+              {r.summary && (
+                <section data-pdf-page="cover" className="premium-card p-8 md:p-12">
+                  <div className="ornate-divider mb-6">
+                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Basic Reading</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                      <div className="font-heading text-xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.summary.ascendant}</div>
+                    </div>
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                      <div className="font-heading text-xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.summary.sun_sign}</div>
+                    </div>
+                    <div>
+                      <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                      <div className="font-heading text-xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.summary.moon_sign}</div>
+                    </div>
+                  </div>
+                </section>
+              )}
+              <section data-pdf-page="advice" className="premium-card p-8 md:p-12">
+                <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
+                  {r.advice}
                 </div>
-                <div>
-                  <div className="font-accent text-[10px] text-zinc-500">Sun</div>
-                  <div className="font-heading text-xl text-[#FF9933]">{r.summary.sun_sign}</div>
-                </div>
-                <div>
-                  <div className="font-accent text-[10px] text-zinc-500">Moon</div>
-                  <div className="font-heading text-xl text-[#D4AF37]">{r.summary.moon_sign}</div>
-                </div>
-              </div>
-            )}
-            <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
-              {r.advice}
+              </section>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
