@@ -84,7 +84,7 @@ function Router() {
         <Route path="/readings" element={<Shell><ProtectedRoute><ReadingsList /></ProtectedRoute></Shell>} />
         <Route path="/readings/:id" element={<Shell><ProtectedRoute><ReadingDetail /></ProtectedRoute></Shell>} />
         <Route path="/r/:token" element={<PublicReading />} />
-        <Route path="/book" element={<Shell><BookConsultation /></Shell>} />
+        <Route path="/book" element={<Shell><ProtectedRoute><BookConsultation /></ProtectedRoute></Shell>} />
         <Route path="/my-bookings" element={<Shell><ProtectedRoute><MyBookings /></ProtectedRoute></Shell>} />
       </Routes>
     </>

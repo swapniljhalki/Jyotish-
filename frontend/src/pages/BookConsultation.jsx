@@ -2,7 +2,8 @@ import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../context/AuthContext";
-import { ArrowRight, Loader2, ExternalLink } from "lucide-react";
+import { ArrowRight, Loader2, ExternalLink, Lock } from "lucide-react";
+import UpgradeButton from "../components/UpgradeButton";
 
 const CALENDLY_URL = "https://calendly.com/satishnumeroworld7";
 
@@ -10,6 +11,8 @@ export default function BookConsultation() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [scheduled, setScheduled] = useState(false);
+
+  const isPremium = user?.tier === "premium";
 
   // Build the prefilled URL using URLSearchParams; safe URL encoding handled automatically.
   const calendlyUrl = useMemo(() => {
@@ -61,49 +64,82 @@ export default function BookConsultation() {
         </div>
       </section>
 
-      {/* CALENDLY EMBED */}
+      {/* CALENDLY EMBED (premium-only) */}
       <section className="pb-24">
         <div className="sb-container">
-          <div className="max-w-4xl mx-auto sb-card" data-testid="book-calendly-card" style={{ padding: 0, overflow: "hidden" }}>
-            {isLoading && (
-              <div
-                className="flex items-center justify-center gap-3 py-12 border-b border-[rgba(92,58,9,0.08)]"
-                data-testid="book-loading"
-              >
-                <Loader2 className="h-5 w-5 animate-spin text-[#FF8C00]" strokeWidth={2} />
-                <span className="text-[14px] font-medium text-[#6B3410]">
-                  Loading available time slots…
-                </span>
+          {isPremium ? (
+            <>
+              <div className="max-w-4xl mx-auto sb-card" data-testid="book-calendly-card" style={{ padding: 0, overflow: "hidden" }}>
+                {isLoading && (
+                  <div
+                    className="flex items-center justify-center gap-3 py-12 border-b border-[rgba(92,58,9,0.08)]"
+                    data-testid="book-loading"
+                  >
+                    <Loader2 className="h-5 w-5 animate-spin text-[#FF8C00]" strokeWidth={2} />
+                    <span className="text-[14px] font-medium text-[#6B3410]">
+                      Loading available time slots…
+                    </span>
+                  </div>
+                )}
+
+                <InlineWidget
+                  url={calendlyUrl}
+                  styles={{ height: "780px", width: "100%", minWidth: "320px" }}
+                  pageSettings={{
+                    backgroundColor: "ffffff",
+                    primaryColor:    "ff8c00",
+                    textColor:       "2A1A05",
+                    hideEventTypeDetails: false,
+                    hideLandingPageDetails: false,
+                    hideGdprBanner: true,
+                  }}
+                />
               </div>
-            )}
 
-            <InlineWidget
-              url={calendlyUrl}
-              styles={{ height: "780px", width: "100%", minWidth: "320px" }}
-              pageSettings={{
-                backgroundColor: "ffffff",
-                primaryColor:    "ff8c00",
-                textColor:       "2A1A05",
-                hideEventTypeDetails: false,
-                hideLandingPageDetails: false,
-                hideGdprBanner: true,
-              }}
-            />
-          </div>
-
-          {/* Fallback link in case the widget is blocked (privacy tools / restrictive CSP) */}
-          <p className="text-center text-[13px] text-[#8B5E1A] mt-6">
-            Trouble loading the scheduler?{" "}
-            <a
-              href={calendlyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-semibold text-[#FF8C00] hover:text-[#E67A00] underline-offset-2 hover:underline"
-              data-testid="book-fallback-link"
-            >
-              Open Calendly directly <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
-            </a>
-          </p>
+              {/* Fallback link in case the widget is blocked (privacy tools / restrictive CSP) */}
+              <p className="text-center text-[13px] text-[#8B5E1A] mt-6">
+                Trouble loading the scheduler?{" "}
+                <a
+                  href={calendlyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold text-[#FF8C00] hover:text-[#E67A00] underline-offset-2 hover:underline"
+                  data-testid="book-fallback-link"
+                >
+                  Open Calendly directly <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
+                </a>
+              </p>
+            </>
+          ) : (
+            <div className="max-w-2xl mx-auto sb-card-dark text-center fade-up" data-testid="book-upgrade-gate">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(212,175,55,0.18)] mb-5">
+                <Lock className="h-5 w-5 text-[#D4AF37]" strokeWidth={1.75} />
+              </div>
+              <div className="sb-eyebrow" style={{ color: "#D4AF37" }}>Premium members only</div>
+              <h3 className="font-heading font-bold text-3xl md:text-4xl text-white mb-4 tracking-tight">
+                1:1 sessions are reserved for Jyotishi members.
+              </h3>
+              <p className="text-[15px] text-[#FDFBF7]/80 leading-relaxed mb-8 max-w-md mx-auto">
+                Unlock the Premium (Jyotishi) tier to schedule a private one-on-one consultation with Satissh.
+                You'll also get the full Kundali reading, Numerology Dasha timeline, and all written insights.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <UpgradeButton tier="premium" data-testid="book-upgrade-btn" />
+                <Link
+                  to="/pricing?need=premium"
+                  className="text-[12px] font-medium tracking-wider uppercase text-[#D4AF37] hover:text-[#FF8C00] transition-colors"
+                  data-testid="book-compare-tiers"
+                >
+                  Compare all tiers
+                </Link>
+              </div>
+              {user?.tier === "basic" && (
+                <p className="text-[12px] text-[#FDFBF7]/60 mt-6">
+                  You're currently on the Sadhaka (Basic) tier — upgrade unlocks 1:1 consultations.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
