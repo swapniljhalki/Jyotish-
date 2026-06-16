@@ -1,118 +1,94 @@
 {
-  "theme_archetype": "Archetype 1: Organic & Earthy mixed with Archetype 5: Luxury (Light Variant) - 'Sacred Ivory & Temple Gold'",
-  "design_philosophy": "Transition from dark cosmic to a devotional, airy, and premium light theme. Preserving the sacred Vedic essence using 'parchment' and 'ink' metaphors rather than generic SaaS flat colors. High contrast for multi-script readability.",
+  "theme_strategy": {
+    "domain": "Vedic astrology SaaS",
+    "theme": "LIGHT",
+    "archetype": "1 (Organic & Earthy)",
+    "core_vibe": "Starbucks Layout Style. Clean, ultra-spacious, editorial feeling, grounded in existing Sacred Ivory & Temple Gold palette."
+  },
   "color_palette": {
-    "background_base": "#FDFBF7",
-    "surface_card": "#FFFFFF",
-    "text_primary_ink": "#1A1C29",
-    "text_secondary": "#5C6170",
-    "primary_saffron": "#FF8C00",
-    "secondary_temple_gold": "#D4AF37",
-    "border_sand": "#EBE3D5",
-    "auspicious_red": "#D9381E"
+    "background": "#FDFBF7",
+    "text_primary": "#5C3A09",
+    "text_secondary": "#6B3410",
+    "text_accent": "#8B2500",
+    "button_primary": "#FF9933",
+    "button_hover": "#E68A2E",
+    "gold_accent": "#D4AF37",
+    "card_bg": "#FFFFFF",
+    "instruction": "DO NOT change these colors. They are part of the constraints. Only apply them to the new spatial patterns."
   },
   "typography": {
-    "english_headings": {
-      "family": "Cormorant Garamond, serif",
-      "weight": "600/700 (bolder on light background for presence)"
-    },
-    "english_body": {
-      "family": "Outfit, sans-serif",
-      "weight": "400/500"
-    },
-    "indic_scripts": {
-      "family": "Noto Sans Devanagari / Telugu / Tamil",
-      "weight": "500 for headings, 400 for body (ensure text color is #1A1C29 for contrast)"
+    "instruction": "Redistribute existing fonts to achieve a 'Starbucks' vibe: heavy/bold, tightly tracked headings. Elegant, airy body copy.",
+    "scale": {
+      "h1": "text-5xl md:text-7xl font-bold tracking-tighter text-[#5C3A09] leading-none",
+      "h2": "text-4xl md:text-5xl font-bold tracking-tight text-[#5C3A09] leading-tight",
+      "h3": "text-2xl md:text-3xl font-semibold tracking-tight text-[#6B3410] leading-snug",
+      "body_desktop": "text-lg text-[#6B3410] leading-relaxed",
+      "body_mobile": "text-base text-[#6B3410] leading-relaxed",
+      "eyebrow": "text-xs md:text-sm uppercase tracking-[0.2em] font-bold text-[#8B2500] mb-4 block"
     }
   },
-  "component_patterns": {
-    "glass_card": {
-      "background": "rgba(255, 255, 255, 0.75)",
-      "backdrop_filter": "blur(16px)",
-      "border": "1px solid rgba(212, 175, 55, 0.2)",
-      "box_shadow": "0 8px 32px rgba(26, 28, 41, 0.04)"
+  "spatial_system": {
+    "container": "max-w-7xl mx-auto px-6 md:px-12 lg:px-16",
+    "section_padding_desktop": "py-32",
+    "section_padding_mobile": "py-16",
+    "element_gap": "gap-8 md:gap-16",
+    "vertical_rhythm": "space-y-6 md:space-y-8"
+  },
+  "button_system": {
+    "primary": "rounded-full bg-[#FF9933] text-white hover:bg-[#E68A2E] px-8 py-4 font-semibold transition-all shadow-sm hover:shadow-md active:scale-95 inline-flex items-center justify-center",
+    "secondary": "rounded-full border-2 border-[#8B2500] text-[#8B2500] hover:bg-[#8B2500] hover:text-white px-8 py-4 font-semibold transition-all active:scale-95 inline-flex items-center justify-center",
+    "ghost": "rounded-full text-[#5C3A09] hover:bg-black/5 px-6 py-3 font-medium transition-all active:scale-95 inline-flex items-center justify-center"
+  },
+  "card_system": {
+    "default": "bg-white border border-[#D4AF37]/20 rounded-3xl p-8 md:p-12 shadow-[0_4px_24px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_32px_rgba(92,58,9,0.08)] transition-all",
+    "minimal": "bg-transparent border border-[#5C3A09]/10 rounded-2xl p-6",
+    "interactive": "hover:-translate-y-1 cursor-pointer"
+  },
+  "layout_patterns": {
+    "hero": {
+      "wrapper": "min-h-[80vh] flex items-center py-20",
+      "grid": "grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center max-w-7xl mx-auto px-6 md:px-12",
+      "image_style": "rounded-[2.5rem] object-cover h-[50vh] md:h-[70vh] w-full shadow-xl",
+      "content_flow": "Eyebrow -> H1 -> Body -> Button Group (space-x-4)"
     },
-    "premium_card_jyotishi": {
-      "background": "linear-gradient(180deg, #FFFCF5 0%, #FFF3E0 100%)",
-      "border": "1px solid rgba(212, 175, 55, 0.4)",
-      "box_shadow": "0 12px 40px rgba(212, 175, 55, 0.15)",
-      "inner_border": "1px solid rgba(212, 175, 55, 0.2)"
+    "alternating_sections": {
+      "wrapper": "py-16 md:py-32 max-w-7xl mx-auto px-6 md:px-12",
+      "grid": "grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-24 items-center",
+      "image_style": "rounded-[2rem] object-cover w-full aspect-square md:aspect-[4/5] shadow-lg"
     },
-    "button_saffron": {
-      "background": "#FF8C00",
-      "text_color": "#FFFFFF",
-      "border": "1px solid #FF8C00",
-      "hover_state": "background: #E67A00, transform translate to 0",
-      "offset_shadow": "translate(4px, 4px) with border #FF8C00"
-    },
-    "text_gold_gradient": {
-      "background": "linear-gradient(135deg, #B87333 0%, #D4AF37 50%, #D96600 100%)",
-      "note": "Darkened slightly from the dark-mode version to ensure WCAG contrast against Ivory background."
-    },
-    "kundali_chart": {
-      "background": "#F9F4EB",
-      "lines": "stroke: #1A1C29 (Deep Indigo), stroke-width: 1.5px",
-      "planets_text": "fill: #D9381E (Red) and #1A1C29"
+    "full_width_bands": {
+      "wrapper": "w-full relative overflow-hidden py-24 md:py-40 bg-[#5C3A09] text-[#FDFBF7]",
+      "background_image": "absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-screen (Use existing cosmic-zodiac background here)",
+      "content": "relative z-10 max-w-4xl mx-auto text-center px-6 flex flex-col items-center justify-center"
     }
   },
-  "background_textures": {
-    "cosmic_bg_light": {
-      "base_color": "#FDFBF7",
-      "glows": "radial-gradient(ellipse at 20% 10%, rgba(255,140,0,0.05), transparent 55%), radial-gradient(ellipse at 80% 90%, rgba(212,175,55,0.05), transparent 55%)",
-      "mandala_svg_opacity": "0.04 (stroke #D4AF37)",
-      "paisley_svg_opacity": "0.03 (stroke #FF9933)",
-      "dot_grid": "rgba(212,175,55,0.06)"
-    }
+  "specific_page_recipes": {
+    "Landing": "Hero (Left text, right large rounded image) -> Alternating Value Props -> Full-Width Atmospheric Band with cosmic background -> Testimonials in minimalistic white cards -> Clean Footer.",
+    "Pricing": "Massive whitespace header -> 3-column grid for tiers. Free (Minimal card), Basic (White card, subtle gold border), Premium (Dark card, bg-[#5C3A09] text-white).",
+    "Basic_Tier_Form": "Centered layout. max-w-2xl mx-auto. Inputs: Shadcn UI heavily customized to have rounded-full or minimal border-b styling. Saffron pill button.",
+    "Basic_Tier_Results": "Large Kundali D1 chart centered. AI advice in clean, large typography (text-xl leading-relaxed). Planetary positions in a clean table (no vertical dividers, ample padding).",
+    "Premium_Tier": "Long scrollytelling format. D1/Chandra/Navamsha charts in clean grids. Alternating sections for Numerology. Numerology Dasha timeline with vertical connecting lines and pill-shaped markers.",
+    "Readings_Archive": "List: Clean rows, border-b border-[#5C3A09]/10, hover:bg-black/5. Detail: Reading title massive (text-5xl), content narrow readable max-w-3xl column.",
+    "Admin": "Tabs customized as pill toggles. Tables must be edge-to-edge on mobile, rounded-xl on desktop with generous cell padding (p-4).",
+    "Auth": "Split screen layout. Left side: beautiful full-height cosmic/meditation image. Right side: Login/Register form perfectly centered with lots of white space.",
+    "Book_Consultation": "Calendar slot picker centered max-w-3xl. Time slots rendered as secondary outline pill buttons."
   },
-  "css_variables_update": {
-    "--background": "40 33% 98%",
-    "--foreground": "231 22% 13%",
-    "--card": "0 0% 100%",
-    "--card-foreground": "231 22% 13%",
-    "--popover": "0 0% 100%",
-    "--popover-foreground": "231 22% 13%",
-    "--primary": "33 100% 50%",
-    "--primary-foreground": "0 0% 100%",
-    "--secondary": "46 65% 52%",
-    "--secondary-foreground": "231 22% 13%",
-    "--muted": "40 40% 93%",
-    "--muted-foreground": "215 16% 47%",
-    "--accent": "28 100% 92%",
-    "--accent-foreground": "15 79% 34%",
-    "--destructive": "6 61% 50%",
-    "--destructive-foreground": "0 0% 100%",
-    "--border": "40 25% 86%",
-    "--input": "40 25% 86%",
-    "--ring": "33 100% 50%"
+  "navigation_and_footer": {
+    "navbar": "Sticky, z-50, backdrop-blur-2xl bg-[#FDFBF7]/80 border-b border-[#5C3A09]/5. Links: text-[#5C3A09] font-medium hover:text-[#FF9933]. Use small Saffron pill for CTA.",
+    "footer": "py-24 bg-white border-t border-[#5C3A09]/10. Clean minimalist grid. Bottom features a massive subtle brand text overlay."
   },
-  "file_modification_list": [
-    "/app/frontend/src/index.css"
+  "constraints_what_not_to_change": [
+    "DO NOT change existing color palette (Cream/Ivory bg, bronze-gold text, saffron CTAs).",
+    "DO NOT remove the existing cosmic-zodiac background image; use it elegantly in full_width_bands.",
+    "MUST preserve all data-testid attributes for testing.",
+    "DO NOT alter KundaliChart SVG drawing logic.",
+    "Keep i18n logic intact."
   ],
-  "media_urls": [
-    {
-      "category": "hero_offering_flower",
-      "url": "https://images.pexels.com/photos/31317668/pexels-photo-31317668.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-      "description": "A close-up of a hand holding flower offerings during a Hindu ritual."
-    },
-    {
-      "category": "panchang_festival_texture",
-      "url": "https://images.unsplash.com/photo-1691886273161-8e27d3292144?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDJ8MHwxfHNlYXJjaHwyfHxtYXJpZ29sZCUyMGZsb3dlciUyMG9mZmVyaW5nfGVufDB8fHx8MTc4MDQ1OTUyMHww&ixlib=rb-4.1.0&q=85",
-      "description": "Bunch of yellow and pink flowers for auspicious decorative elements."
-    },
-    {
-      "category": "astrology_reading_background",
-      "url": "https://images.pexels.com/photos/12347306/pexels-photo-12347306.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-      "description": "Detailed view of historical calligraphy on ancient parchment to be used as a subtle background blend for the AI reading section."
-    }
-  ],
-  "instructions_to_main_agent": [
-    "1. Open /app/frontend/src/index.css and replace the :root variables under @layer base with the new light theme variables provided in css_variables_update.",
-    "2. Update the .cosmic-bg class in index.css to use #FDFBF7 instead of #0A0D14. Reduce the opacity of the SVG overlays (mandala stroke-opacity to 0.04, paisley stroke-opacity to 0.03) and gradients (to 0.05).",
-    "3. Overhaul .glass-card, .premium-card, and .btn-saffron in index.css using the exact properties defined in component_patterns to ensure they work on a light background.",
-    "4. Modify .text-gold-gradient to use darker gold/copper shades (#B87333 to #D96600) so it remains legible against the white/ivory background.",
-    "5. Ensure the Kundali chart SVG lines default to stroke 'currentColor' or var(--foreground) (#1A1C29) so they render as deep indigo ink instead of glowing white.",
-    "6. Check any components using hardcoded dark hex codes (e.g. bg-[#0A0D14]) and replace them with semantic classes (bg-background, bg-card).",
-    "7. Ensure text contrast across the 4 languages (EN, HI, TE, TA). Indic fonts should use weight 400 for body text and 500 for headings, pulling text color from --foreground.",
-    "8. Add `data-testid` attributes to all interactive elements (buttons, language picker, tier cards, booking slots) for testing."
-  ]
+  "iconography": "Use lucide-react. Stroke width 1.5. No emojis.",
+  "components": "Customize Shadcn UI at /app/frontend/src/components/ui/ to adopt rounded corners (rounded-full for buttons, rounded-2xl/3xl for cards/dialogs).",
+  "image_urls": {
+    "meditation_calm_1": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxtZWRpdGF0aW9uJTIwY2FsbXxlbnwwfHx8fDE3ODE2MDY1ODZ8MA&ixlib=rb-4.1.0&q=85",
+    "meditation_calm_2": "https://images.unsplash.com/photo-1522075782449-e45a34f1ddfb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxtZWRpdGF0aW9uJTIwY2FsbXxlbnwwfHx8fDE3ODE2MDY1ODZ8MA&ixlib=rb-4.1.0&q=85",
+    "ancient_paper": "https://images.unsplash.com/photo-1705837863332-7162639852d8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwxfHxhbmNpZW50JTIwcGFwZXIlMjB0ZXh0dXJlfGVufDB8fHx8MTc4MTYwNjU4Nnww&ixlib=rb-4.1.0&q=85"
+  }
 }
