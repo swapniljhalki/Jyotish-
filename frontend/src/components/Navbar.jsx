@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { LogOut, Menu, X } from "lucide-react";
 
 const navItems = [
+  { to: "/about",        k: "nav.about", fallback: "About" },
   { to: "/grahas",       k: "nav.grahas" },
   { to: "/nakshatras",   k: "nav.nakshatras" },
   { to: "/numerology",   k: "nav.numerology" },
@@ -52,7 +53,7 @@ export default function Navbar() {
               data-testid={`nav-${item.to.slice(1)}`}
               className={linkClass}
             >
-              {t(item.k)}
+              {t(item.k, item.fallback ?? item.k)}
             </NavLink>
           ))}
         </nav>
@@ -116,7 +117,7 @@ export default function Navbar() {
                   }`
                 }
               >
-                {t(item.k)}
+                {t(item.k, item.fallback ?? item.k)}
               </NavLink>
             ))}
             <div className="mt-4 pt-4 border-t border-[rgba(92,58,9,0.08)] flex flex-col gap-2">

@@ -25,6 +25,7 @@ export default function Footer() {
           <div className="md:col-span-3">
             <p className="sb-eyebrow" style={{ marginBottom: "1rem" }}>Explore</p>
             <ul className="space-y-3 text-[14px] text-[#5C3A09]">
+              <li><Link to="/about" className="hover:text-[#FF8C00] transition-colors">About</Link></li>
               <li><Link to="/grahas" className="hover:text-[#FF8C00] transition-colors">{t("nav.grahas")}</Link></li>
               <li><Link to="/nakshatras" className="hover:text-[#FF8C00] transition-colors">{t("nav.nakshatras")}</Link></li>
               <li><Link to="/numerology" className="hover:text-[#FF8C00] transition-colors">{t("nav.numerology")}</Link></li>
