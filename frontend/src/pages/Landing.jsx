@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import { Sparkles, Star, Moon, Sun, Check, ArrowRight } from "lucide-react";
+import { Sparkles, Check, ArrowRight, Sun, Moon, Star } from "lucide-react";
 import PanchangSection from "../components/PanchangSection";
 import RashifalTile from "../components/RashifalTile";
 import VisitorStats from "../components/VisitorStats";
@@ -22,7 +22,7 @@ export default function Landing() {
         t("landing.tier_seeker_f3"),
       ],
       cta: { to: "/grahas", label: t("landing.tier_seeker_cta") },
-      style: "glass-card",
+      variant: "minimal",
     },
     {
       key: "basic",
@@ -35,7 +35,7 @@ export default function Landing() {
         t("landing.tier_sadhaka_f2"),
       ],
       cta: { to: "/pricing?need=basic", label: t("landing.tier_sadhaka_cta") },
-      style: "glass-card border-[rgba(255,153,51,0.4)]",
+      variant: "default",
     },
     {
       key: "premium",
@@ -53,132 +53,133 @@ export default function Landing() {
         t("landing.tier_jyotishi_f7"),
       ],
       cta: { to: "/pricing?need=premium", label: t("landing.tier_jyotishi_cta") },
-      style: "premium-card",
+      variant: "dark",
       popular: true,
     },
   ];
 
   return (
-    <div>
-      {/* HERO */}
-      <section className="relative overflow-hidden cosmic-bg">
-        <div className="absolute inset-0 starfield opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0A0D14]/40 to-[#0A0D14]" />
-
-        <div className="relative max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-            <div className="lg:col-span-7 fade-up">
-              <div className="mandala-border inline-flex items-center gap-2 text-[#D4AF37] mb-8">
-                <span className="font-accent text-[10px]">{t("landing.hero_eyebrow")}</span>
-              </div>
-              <h1 className="font-heading text-5xl md:text-7xl font-medium leading-[1.05] tracking-tight text-zinc-50" data-testid="hero-title">
-                {t("landing.hero_title_a")}<br />
-                <span className="text-gold-gradient italic">{t("landing.hero_title_b")}</span>
+    <div className="bg-[#FDFBF7]">
+      {/* HERO — split 50/50 */}
+      <section className="relative">
+        <div className="sb-container py-20 md:py-28 lg:py-32">
+          <div className="sb-hero-grid">
+            <div className="fade-up">
+              <span className="sb-eyebrow" data-testid="hero-eyebrow">{t("landing.hero_eyebrow")}</span>
+              <h1 className="sb-h1" data-testid="hero-title">
+                {t("landing.hero_title_a")}{" "}
+                <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("landing.hero_title_b")}</span>
               </h1>
-              <p className="mt-8 text-lg text-zinc-300 font-body leading-relaxed max-w-xl">
+              <p className="sb-lead mt-8">
                 {t("landing.hero_subtitle")}
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
+              <div className="mt-10 flex flex-wrap items-center gap-4">
                 <Link to={user ? "/basic" : "/register"} data-testid="hero-cta-primary">
-                  <button className="btn-saffron">
+                  <button className="sb-btn-primary">
                     {t("landing.hero_cta_begin")} <ArrowRight className="h-4 w-4" />
                   </button>
                 </Link>
                 <Link to="/grahas" data-testid="hero-cta-secondary">
-                  <button className="px-8 py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body">
+                  <button className="sb-btn-outline">
                     {t("landing.hero_cta_learn")}
                   </button>
                 </Link>
               </div>
 
-              <div className="mt-16 grid grid-cols-3 gap-6 max-w-xl">
+              <div className="mt-16 grid grid-cols-3 gap-8 max-w-md">
                 {[
                   { icon: Sun,  label: t("landing.stat_grahas") },
                   { icon: Moon, label: t("landing.stat_nakshatras") },
                   { icon: Star, label: t("landing.stat_bhavas") },
-                ].map(({ icon: Icon, label }, i) => (
-                  <div key={label} className={`flex items-center gap-3 fade-up delay-${(i + 1) * 100}`}>
-                    <Icon className="h-5 w-5 text-[#FFD700]" />
-                    <span className="font-accent text-[11px] text-zinc-400">{label}</span>
+                ].map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.5} />
+                    <span className="text-[11px] font-bold tracking-widest uppercase text-[#8B5E1A]">{label}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="lg:col-span-5 lg:sticky lg:top-24">
-              <RashifalTile compact />
+            <div className="fade-up delay-200">
+              <div className="sb-card sb-card-hover">
+                <RashifalTile compact />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* PANCHANG */}
       <PanchangSection />
 
-      <section className="relative cosmic-bg py-24 md:py-32">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center mb-16 fade-up">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("landing.pricing_eyebrow")}</p>
-            <h2 className="font-heading text-4xl md:text-5xl text-zinc-50">
+      {/* PRICING */}
+      <section className="sb-section">
+        <div className="sb-container">
+          <div className="max-w-2xl mb-16 fade-up">
+            <span className="sb-eyebrow">{t("landing.pricing_eyebrow")}</span>
+            <h2 className="sb-h2">
               {t("landing.pricing_title")}
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {tiers.map((tier, i) => (
-              <div
-                key={tier.key}
-                className={`${tier.style} p-10 fade-up delay-${(i + 1) * 100} relative hover:-translate-y-1 transition-transform duration-500`}
-                data-testid={`pricing-card-${tier.key}`}
-              >
-                {tier.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#8B0000] text-[#FFD700] font-accent text-[10px] px-4 py-1">
-                    {t("landing.most_sought")}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {tiers.map((tier, i) => {
+              const isDark = tier.variant === "dark";
+              const cardCls = tier.variant === "minimal"
+                ? "sb-card sb-card-hover"
+                : tier.variant === "dark"
+                ? "sb-card-dark relative"
+                : "sb-card sb-card-hover border-[rgba(255,140,0,0.35)]";
+              return (
+                <div
+                  key={tier.key}
+                  className={`${cardCls} fade-up delay-${(i + 1) * 100} flex flex-col`}
+                  data-testid={`pricing-card-${tier.key}`}
+                >
+                  {tier.popular && (
+                    <div className="absolute -top-3 left-8 bg-[#FF8C00] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+                      {t("landing.most_sought")}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-5">
+                    <Sparkles className={`h-4 w-4 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
+                    <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#D4AF37]" : "text-[#8B5E1A]"}`}>{tier.name}</span>
                   </div>
-                )}
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-4 w-4 text-[#D4AF37]" />
-                  <span className="font-accent text-xs text-[#D4AF37]">{tier.name}</span>
+                  <div className="flex items-baseline gap-2 mb-3">
+                    <span className={`font-heading font-bold text-5xl md:text-6xl tracking-tight ${isDark ? "text-white" : "text-[#2A1A05]"}`}>{tier.price}</span>
+                    {tier.period && <span className={`text-sm ${isDark ? "text-[#D4AF37]/70" : "text-[#8B5E1A]"}`}>{tier.period}</span>}
+                  </div>
+                  <p className={`text-[15px] italic mb-8 ${isDark ? "text-[#FDFBF7]/80" : "text-[#6B3410]"}`}>{tier.tagline}</p>
+                  <ul className="space-y-3 mb-10 flex-1">
+                    {tier.features.map((f) => (
+                      <li key={f} className={`flex items-start gap-3 text-[14px] leading-relaxed ${isDark ? "text-[#FDFBF7]/90" : "text-[#5C3A09]"}`}>
+                        <Check className={`h-4 w-4 mt-1 flex-shrink-0 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={2} /> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to={tier.cta.to} data-testid={`pricing-cta-${tier.key}`}>
+                    <button className={isDark ? "sb-btn-saffron w-full" : tier.variant === "minimal" ? "sb-btn-outline w-full" : "sb-btn-primary w-full"}>
+                      {tier.cta.label}
+                    </button>
+                  </Link>
                 </div>
-                <div className="flex items-baseline gap-1 mb-2">
-                  <span className="font-heading text-5xl text-zinc-50">{tier.price}</span>
-                  {tier.period && <span className="font-body text-sm text-zinc-500">{tier.period}</span>}
-                </div>
-                <p className="font-body text-zinc-400 italic mb-6">{tier.tagline}</p>
-                <ul className="space-y-3 mb-8">
-                  {tier.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm font-body text-zinc-300">
-                      <Check className="h-4 w-4 text-[#FF9933] mt-0.5 flex-shrink-0" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link to={tier.cta.to} data-testid={`pricing-cta-${tier.key}`}>
-                  <button
-                    className={
-                      tier.popular
-                        ? "w-full bg-gradient-to-r from-[#D4AF37] to-[#FF9933] text-[#0A0D14] font-medium py-3 rounded-full shadow-[0_0_30px_rgba(255,153,51,0.3)] hover:shadow-[0_0_40px_rgba(255,153,51,0.5)] transition-all"
-                        : "w-full py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body"
-                    }
-                  >
-                    {tier.cta.label}
-                  </button>
-                </Link>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="relative border-y border-[rgba(212,175,55,0.15)] bg-[#121824]">
-        <div className="max-w-5xl mx-auto px-6 md:px-12 py-20 text-center">
-          <div className="ornate-divider mb-6">
-            <span className="font-accent text-xs text-[#D4AF37]">ज्योतिष</span>
-          </div>
-          <p className="font-heading italic text-3xl md:text-4xl text-zinc-200 leading-snug">
+      {/* FULL-WIDTH INVOCATION BAND */}
+      <section className="sb-band-dark">
+        <div className="sb-container relative z-10 text-center">
+          <span className="sb-eyebrow" style={{ color: "#D4AF37" }}>ज्योतिष</span>
+          <p className="font-heading italic font-medium text-3xl md:text-5xl leading-snug max-w-4xl mx-auto text-[#FDFBF7]">
             {t("landing.invocation")}
           </p>
         </div>
       </section>
 
+      {/* VISITOR STATS */}
       <VisitorStats />
     </div>
   );

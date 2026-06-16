@@ -7,8 +7,6 @@ import { Sparkles, Check } from "lucide-react";
 import UpgradeButton from "../components/UpgradeButton";
 import api from "../lib/api";
 
-const TIER_KEYS = ["free", "basic", "premium"];
-
 export default function Pricing() {
   const { user, subscribe } = useAuth();
   const { t } = useTranslation();
@@ -21,7 +19,8 @@ export default function Pricing() {
 
   useEffect(() => {
     api.get("/payments/config").then((r) => setPayMode(r.data?.mode)).catch(() => {});
-  }, []);
+    void payMode;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const TIERS = [
     {
@@ -29,12 +28,14 @@ export default function Pricing() {
       name: t("pricing.tier_seeker.name"),
       price: t("pricing.tier_seeker.price"),
       features: [t("pricing.tier_seeker.f1"), t("pricing.tier_seeker.f2"), t("pricing.tier_seeker.f3")],
+      variant: "minimal",
     },
     {
       key: "basic",
       name: t("pricing.tier_sadhaka.name"),
       price: t("pricing.tier_sadhaka.price"),
       features: [t("pricing.tier_sadhaka.f1"), t("pricing.tier_sadhaka.f2")],
+      variant: "default",
     },
     {
       key: "premium",
@@ -49,13 +50,14 @@ export default function Pricing() {
         t("pricing.tier_jyotishi.f6"),
         t("pricing.tier_jyotishi.f7"),
       ],
+      variant: "dark",
       popular: true,
     },
   ];
 
   const upgrade = async (tier) => {
     if (!user) return nav("/login");
-    if (tier !== "free") return; // paid tiers handled by <UpgradeButton />
+    if (tier !== "free") return;
     setPending(tier);
     try {
       await subscribe(tier);
@@ -72,57 +74,60 @@ export default function Pricing() {
     else if (tier === "premium") nav("/premium");
   };
 
-  // Suppress unused-var
-  void TIER_KEYS;
-
   return (
-    <div className="cosmic-bg min-h-[calc(100vh-64px)]">
-      <div className="max-w-6xl mx-auto px-6 md:px-12 py-16 md:py-24">
-        <div className="text-center mb-14 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("pricing.eyebrow")}</p>
-          <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
-            {t("pricing.title_a")} <span className="text-gold-gradient italic">{t("pricing.title_b")}</span>
+    <div className="bg-[#FDFBF7] min-h-[calc(100vh-64px)]">
+      <div className="sb-container sb-section">
+        <div className="max-w-3xl mb-16 fade-up">
+          <span className="sb-eyebrow">{t("pricing.eyebrow")}</span>
+          <h1 className="sb-h1">
+            {t("pricing.title_a")}{" "}
+            <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("pricing.title_b")}</span>
           </h1>
-          <p className="mt-3 font-body text-zinc-500 text-sm italic" data-testid="pricing-pay-mode">
+          <p className="sb-lead mt-6" data-testid="pricing-pay-mode">
             {t("pricing.pay_note")}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {TIERS.map((tier, i) => {
             const isCurrent = user && user.tier === tier.key;
             const isRecommended = recommend === tier.key;
+            const isDark = tier.variant === "dark";
+            const cardCls = tier.variant === "minimal"
+              ? "sb-card sb-card-hover"
+              : isDark
+              ? "sb-card-dark relative"
+              : "sb-card sb-card-hover border-[rgba(255,140,0,0.35)]";
             return (
               <div
                 key={tier.key}
-                className={`${tier.popular ? "premium-card" : "glass-card"} p-8 fade-up delay-${(i + 1) * 100} ${
-                  isRecommended ? "ring-2 ring-[#FF9933]" : ""
-                }`}
+                className={`${cardCls} ${isRecommended && !isDark ? "ring-2 ring-[#FF8C00]" : ""} fade-up delay-${(i + 1) * 100} flex flex-col`}
                 data-testid={`tier-card-${tier.key}`}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#D4AF37]" />
-                    <span className="font-accent text-xs text-[#D4AF37]">{tier.name}</span>
+                {tier.popular && (
+                  <div className="absolute -top-3 left-8 bg-[#FF8C00] text-white text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full">
+                    {t("pricing.most_sought")}
                   </div>
-                  {tier.popular && (
-                    <span className="text-[9px] font-accent text-[#FFD700] bg-[#8B0000] px-2 py-0.5">
-                      {t("pricing.most_sought")}
-                    </span>
-                  )}
+                )}
+                <div className="flex items-center gap-2 mb-5">
+                  <Sparkles className={`h-4 w-4 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
+                  <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#D4AF37]" : "text-[#8B5E1A]"}`}>{tier.name}</span>
                 </div>
-                <div className="font-heading text-5xl text-zinc-50 mb-6">{tier.price}</div>
-                <ul className="space-y-2 mb-8">
+                <div className={`font-heading font-bold text-5xl md:text-6xl tracking-tight mb-8 ${isDark ? "text-white" : "text-[#2A1A05]"}`}>
+                  {tier.price}
+                </div>
+                <ul className="space-y-3 mb-10 flex-1">
                   {tier.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm font-body text-zinc-300">
-                      <Check className="h-4 w-4 text-[#FF9933] mt-0.5 flex-shrink-0" /> {f}
+                    <li key={f} className={`flex items-start gap-3 text-[14px] leading-relaxed ${isDark ? "text-[#FDFBF7]/90" : "text-[#5C3A09]"}`}>
+                      <Check className={`h-4 w-4 mt-1 flex-shrink-0 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={2} /> {f}
                     </li>
                   ))}
                 </ul>
                 {isCurrent ? (
                   <button
                     disabled
-                    className="w-full py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] font-body opacity-70"
+                    className={isDark ? "sb-btn-outline w-full opacity-70" : "sb-btn-outline w-full opacity-70"}
+                    style={isDark ? { borderColor: "#D4AF37", color: "#D4AF37" } : {}}
                     data-testid={`tier-current-${tier.key}`}
                   >
                     {t("common.current_tier")}
@@ -132,7 +137,7 @@ export default function Pricing() {
                     <button
                       onClick={() => upgrade(tier.key)}
                       disabled={pending === tier.key}
-                      className="w-full py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body disabled:opacity-60"
+                      className="sb-btn-outline w-full"
                       data-testid={`tier-upgrade-${tier.key}`}
                     >
                       {pending === tier.key ? t("common.switching") : t("pricing.switch_to_free")}
@@ -142,15 +147,11 @@ export default function Pricing() {
                       tier={tier.key}
                       variant="unstyled"
                       onSuccess={() => onPaidSuccess(tier.key)}
-                      className={`w-full justify-center py-3 ${
-                        tier.popular
-                          ? "bg-gradient-to-r from-[#D4AF37] to-[#FF9933] text-[#0A0D14] font-medium rounded-full shadow-[0_0_30px_rgba(255,153,51,0.3)] hover:shadow-[0_0_40px_rgba(255,153,51,0.5)]"
-                          : "border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] font-body"
-                      }`}
+                      className={isDark ? "sb-btn-saffron w-full" : "sb-btn-primary w-full"}
                     />
                   )
                 ) : (
-                  <Link to="/login" className="block w-full text-center py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] transition-colors font-body">
+                  <Link to="/login" className={isDark ? "sb-btn-saffron w-full" : "sb-btn-outline w-full"}>
                     {t("common.sign_in_to_subscribe")}
                   </Link>
                 )}

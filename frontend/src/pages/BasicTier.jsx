@@ -44,42 +44,43 @@ export default function BasicTier() {
   const lang = i18n.resolvedLanguage;
 
   return (
-    <div className="cosmic-bg min-h-[calc(100vh-64px)]">
-      <div className="max-w-4xl mx-auto px-6 md:px-12 py-16 md:py-24">
-        <div className="mb-10 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("basic.eyebrow")}</p>
-          <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
-            {t("basic.title_a")} <span className="text-gold-gradient italic">{t("basic.title_b")}</span>
+    <div className="bg-[#FDFBF7] min-h-[calc(100vh-64px)]">
+      <div className="sb-container sb-section">
+        <div className="max-w-3xl mb-12 fade-up">
+          <span className="sb-eyebrow">{t("basic.eyebrow")}</span>
+          <h1 className="sb-h1">
+            {t("basic.title_a")}{" "}
+            <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("basic.title_b")}</span>
           </h1>
-          <p className="mt-4 font-body text-zinc-400 max-w-2xl leading-relaxed">
+          <p className="sb-lead mt-6">
             {t("basic.intro")}
           </p>
         </div>
 
         {!canRead ? (
-          <div className="glass-card p-10 text-center fade-up" data-testid="basic-upgrade-notice">
-            <div className="font-accent text-xs text-[#D4AF37] mb-3">{t("basic.tier_required")}</div>
-            <h3 className="font-heading text-3xl text-zinc-50 mb-3">{t("basic.unlock_title")}</h3>
-            <p className="font-body text-zinc-400 mb-6">
+          <div className="sb-card sb-card-hover text-center max-w-2xl mx-auto fade-up" data-testid="basic-upgrade-notice">
+            <div className="sb-eyebrow">{t("basic.tier_required")}</div>
+            <h3 className="font-heading font-bold text-3xl md:text-4xl text-[#2A1A05] mb-4 tracking-tight">{t("basic.unlock_title")}</h3>
+            <p className="text-[15px] text-[#6B3410] leading-relaxed mb-8 max-w-md mx-auto">
               {t("basic.unlock_blurb")}
             </p>
             {user ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <UpgradeButton tier="basic" data-testid="basic-upgrade-btn" />
-                <Link to="/pricing?need=basic" className="text-xs text-[#D4AF37] underline-offset-4 hover:underline font-accent">
+                <Link to="/pricing?need=basic" className="text-[12px] font-medium tracking-wider uppercase text-[#8B5E1A] hover:text-[#FF8C00] transition-colors">
                   {t("common.compare_all_tiers")}
                 </Link>
               </div>
             ) : (
               <Link to="/login">
-                <button className="btn-saffron" data-testid="basic-upgrade-btn">{t("common.sign_in_to_upgrade")}</button>
+                <button className="sb-btn-primary" data-testid="basic-upgrade-btn">{t("common.sign_in_to_upgrade")}</button>
               </Link>
             )}
           </div>
         ) : (
-          <div className="glass-card p-8 md:p-10 fade-up">
+          <div className="sb-card max-w-2xl mx-auto fade-up">
             <BirthForm onSubmit={submit} loading={loading} cta={t("basic.cta_cast")} testIdPrefix="basic" />
-            {err && <div className="mt-4 text-sm text-red-400 font-body" data-testid="basic-error">{err}</div>}
+            {err && <div className="mt-4 text-sm text-red-600 font-medium" data-testid="basic-error">{err}</div>}
           </div>
         )}
 
