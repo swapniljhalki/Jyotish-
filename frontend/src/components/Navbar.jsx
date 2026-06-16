@@ -1,13 +1,18 @@
-import { useState } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
 
+// Dropdown grouping for "Know the Basics"
+const KNOW_BASICS_ITEMS = [
+  { to: "/grahas",     label: "Grahas",     blurb: "The 9 planetary deities",     icon: Sun },
+  { to: "/nakshatras", label: "Nakshatras", blurb: "The 27 lunar mansions",       icon: Moon },
+];
+
+// Flat items (excluding the two that moved into the dropdown)
 const navItems = [
   { to: "/about",        k: "nav.about", fallback: "About" },
-  { to: "/grahas",       k: "nav.grahas" },
-  { to: "/nakshatras",   k: "nav.nakshatras" },
   { to: "/numerology",   k: "nav.numerology" },
   { to: "/basic",        k: "nav.basic_reading" },
   { to: "/premium",      k: "nav.premium_numerology" },
@@ -16,6 +21,88 @@ const navItems = [
   { to: "/pricing",      k: "nav.pricing" },
   { to: "/testimonials", k: "nav.testimonials" },
 ];
+
+function KnowBasicsDropdown({ linkClass }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const location = useLocation();
+  const isActive = KNOW_BASICS_ITEMS.some((i) => location.pathname.startsWith(i.to));
+
+  // Close on outside click or Escape
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // Close on route change
+  // eslint-disable-next-line
+  useEffect(() => { setOpen(false); }, [location.pathname]);
+
+  return (
+    <div
+      ref={wrapRef}
+      className="relative"
+      onMouseEnter={() => setOpen(true)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        onFocus={() => setOpen(true)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        data-testid="nav-know-basics-trigger"
+        className={`flex items-center gap-1 text-[13px] font-medium tracking-wide transition-colors hover:text-[#FF8C00] ${
+          isActive ? "text-[#FF8C00]" : "text-[#2A1A05]"
+        }`}
+      >
+        Know the Basics
+        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} strokeWidth={2} />
+      </button>
+
+      {/* Invisible bridge so hover doesn't drop while moving cursor into the menu */}
+      <div className={`absolute left-0 right-0 h-3 top-full ${open ? "" : "pointer-events-none"}`} aria-hidden="true" />
+
+      {open && (
+        <div
+          role="menu"
+          data-testid="nav-know-basics-menu"
+          className="absolute left-1/2 top-[calc(100%+0.75rem)] -translate-x-1/2 w-[340px] bg-white border border-[rgba(92,58,9,0.10)] rounded-2xl shadow-[0_16px_40px_rgba(26,28,41,0.10)] p-2 z-50"
+        >
+          {KNOW_BASICS_ITEMS.map(({ to, label, blurb, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              role="menuitem"
+              data-testid={`nav-know-basics-${to.slice(1)}`}
+              className="flex items-start gap-4 px-4 py-3 rounded-xl hover:bg-[rgba(255,140,0,0.07)] transition-colors group"
+            >
+              <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(255,140,0,0.10)] group-hover:bg-[rgba(255,140,0,0.18)] transition-colors">
+                <Icon className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.75} />
+              </span>
+              <span className="flex-1">
+                <span className="block text-[14px] font-semibold text-[#2A1A05] group-hover:text-[#FF8C00] transition-colors">{label}</span>
+                <span className="block text-[12px] text-[#6B3410] mt-0.5">{blurb}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+      {/* keep linter happy */}
+      <span className="sr-only">{linkClass ? "" : ""}</span>
+    </div>
+  );
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -46,7 +133,21 @@ export default function Navbar() {
         </Link>
 
         <nav className="hidden lg:flex items-center gap-7">
-          {navItems.filter((item) => !item.authOnly || user).map((item) => (
+          {/* About sits first */}
+          <NavLink
+            key="/about"
+            to="/about"
+            data-testid="nav-about"
+            className={linkClass}
+          >
+            About
+          </NavLink>
+
+          {/* Know the Basics dropdown (Grahas + Nakshatras) */}
+          <KnowBasicsDropdown linkClass={linkClass} />
+
+          {/* Remaining flat items */}
+          {navItems.filter((item) => item.to !== "/about" && (!item.authOnly || user)).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -105,7 +206,46 @@ export default function Navbar() {
       {open && (
         <div className="lg:hidden border-t border-[rgba(92,58,9,0.08)] bg-[#FDFBF7]" data-testid="nav-mobile-drawer">
           <nav className="sb-container py-6 flex flex-col gap-1">
-            {navItems.filter((item) => !item.authOnly || user).map((item) => (
+            {/* About */}
+            <NavLink
+              to="/about"
+              onClick={() => setOpen(false)}
+              data-testid="nav-mobile-about"
+              className={({ isActive }) =>
+                `block px-4 py-3 rounded-2xl text-sm font-medium transition ${
+                  isActive ? "bg-[rgba(255,140,0,0.10)] text-[#FF8C00]" : "text-[#2A1A05] hover:bg-black/5"
+                }`
+              }
+            >
+              About
+            </NavLink>
+
+            {/* Know the Basics group (mobile: shown as a labelled cluster, not collapsed) */}
+            <div className="mt-2 px-4 pb-1 text-[11px] font-bold tracking-widest uppercase text-[#8B5E1A]">
+              Know the Basics
+            </div>
+            {KNOW_BASICS_ITEMS.map(({ to, label, blurb, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setOpen(false)}
+                data-testid={`nav-mobile-${to.slice(1)}`}
+                className={({ isActive }) =>
+                  `flex items-start gap-3 px-4 py-3 rounded-2xl transition ${
+                    isActive ? "bg-[rgba(255,140,0,0.10)] text-[#FF8C00]" : "text-[#2A1A05] hover:bg-black/5"
+                  }`
+                }
+              >
+                <Icon className="h-4 w-4 mt-1 text-[#FF8C00]" strokeWidth={1.75} />
+                <span>
+                  <span className="block text-sm font-medium">{label}</span>
+                  <span className="block text-[12px] text-[#6B3410]">{blurb}</span>
+                </span>
+              </NavLink>
+            ))}
+
+            {/* Remaining flat items */}
+            {navItems.filter((item) => item.to !== "/about" && (!item.authOnly || user)).map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
@@ -120,6 +260,7 @@ export default function Navbar() {
                 {t(item.k, item.fallback ?? item.k)}
               </NavLink>
             ))}
+
             <div className="mt-4 pt-4 border-t border-[rgba(92,58,9,0.08)] flex flex-col gap-2">
               {user ? (
                 <>
