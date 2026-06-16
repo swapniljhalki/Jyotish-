@@ -3,7 +3,6 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { LogOut, Menu, X } from "lucide-react";
-import LanguagePicker from "./LanguagePicker";
 
 const navItems = [
   { to: "/grahas",       k: "nav.grahas" },
@@ -59,7 +58,6 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <LanguagePicker />
           {user ? (
             <div className="hidden md:flex items-center gap-3">
               <span className="text-[11px] font-medium tracking-wider uppercase text-[#8B5E1A]" data-testid="nav-user-tier">
