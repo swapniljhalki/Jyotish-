@@ -435,13 +435,11 @@ td, th { color: #1A1C29; }
   height: 0 !important;
 }
 
-/* Each tagged section flows naturally on screen but renders as its own
- * fresh page when printed (browser print fallback / @media print). */
+/* Section markers — sections are preserved as cohesive blocks (no orphan
+ * splits) but content flows naturally; we no longer force a fresh page per
+ * section. */
 [data-pdf-page] {
   page-break-inside: avoid;
-}
-[data-pdf-page] + [data-pdf-page] {
-  page-break-before: always;
 }
 
 
