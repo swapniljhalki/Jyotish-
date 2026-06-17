@@ -421,6 +421,45 @@ td, th { color: #1A1C29; }
   display: none;
 }
 
+/* PDF-safe eyebrow labels (Ascendant / Sun / Moon / "Your Reading" etc.)
+ * — guaranteed dark, slightly larger and bolder so they read clearly when
+ * the reading is rendered to PDF on the cream background. Inline-style
+ * helpers further override any Tailwind color class that may apply. */
+.pdf-eyebrow {
+  color: #8B5E1A !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  font-family: 'Cinzel', serif;
+}
+
+/* Inside the printable area, every gold/faded eyebrow class is forcibly
+ * upgraded to a darker, bolder, slightly bigger style so the captured PDF
+ * (which renders on cream) shows section titles and labels clearly. */
+.printable-area .font-accent,
+.printable-area .text-\[\#D4AF37\],
+.printable-area .text-\[#D4AF37\],
+.printable-area .text-zinc-500,
+.printable-area .text-zinc-400,
+.printable-area .text-zinc-300,
+.printable-area .text-zinc-200,
+.printable-area .text-zinc-100 {
+  color: #5C3A09 !important;
+}
+.printable-area .font-accent {
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+}
+.printable-area .text-\[10px\],
+.printable-area .text-\[10px\].font-accent {
+  font-size: 11px !important;
+}
+.printable-area .text-xs {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
 /* When capturing for PDF export, hide all scrollbars inside the printable
  * area so they don't appear in the rendered image. Combined with the JS
  * `neutralizeOverflow` helper this guarantees a clean, scrollbar-free PDF. */

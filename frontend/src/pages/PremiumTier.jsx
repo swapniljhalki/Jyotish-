@@ -163,16 +163,16 @@ export default function PremiumTier() {
               <BirthDetailsSummary inputs={inputs} testIdPrefix="premium" />
               <div className="grid grid-cols-3 gap-4 mt-8 text-center">
                 <div>
-                  <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant")}</div>
+                  <div className="pdf-eyebrow">{t("result.ascendant")}</div>
                   <div className="font-heading text-xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{localizeRashi(result.ascendant, lang)}</div>
                   <div className="font-body text-xs text-zinc-500">{result.ascendant_sanskrit}</div>
                 </div>
                 <div>
-                  <div className="font-accent text-[10px] text-zinc-500">{t("result.sun_sign")}</div>
+                  <div className="pdf-eyebrow">{t("result.sun_sign")}</div>
                   <div className="font-heading text-xl" style={{ color: "#8B2500", fontWeight: 600 }}>{localizeRashi(result.sun_sign, lang)}</div>
                 </div>
                 <div>
-                  <div className="font-accent text-[10px] text-zinc-500">{t("result.moon_sign")}</div>
+                  <div className="pdf-eyebrow">{t("result.moon_sign")}</div>
                   <div className="font-heading text-xl" style={{ color: "#6B3410", fontWeight: 600 }}>{localizeRashi(result.moon_sign, lang)}</div>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function PremiumTier() {
                 </div>
                 <KundaliChart chart={result.chart} large />
                 <div className="mt-4 text-center">
-                  <div className="font-accent text-[10px] text-zinc-500">{t("result.ascendant_lagna")}</div>
+                  <div className="pdf-eyebrow">{t("result.ascendant_lagna")}</div>
                   <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>
                     {localizeRashi(result.chart.ascendant_english, lang)}
                   </div>
@@ -227,7 +227,7 @@ export default function PremiumTier() {
                 </div>
                 <KundaliChart chart={result.chart.chandra} large />
                 <div className="mt-4 text-center">
-                  <div className="font-accent text-[10px] text-zinc-500">{t("result.chandra_lagna")}</div>
+                  <div className="pdf-eyebrow">{t("result.chandra_lagna")}</div>
                   <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>
                     {localizeRashi(result.chart.chandra.ascendant_english, lang)}
                   </div>
@@ -255,7 +255,7 @@ export default function PremiumTier() {
                 </div>
                 <KundaliChart chart={result.chart.navamsha} large />
                 <div className="mt-4 text-center">
-                  <div className="font-accent text-[10px] text-zinc-500">{t("result.navamsha_asc")}</div>
+                  <div className="pdf-eyebrow">{t("result.navamsha_asc")}</div>
                   <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>
                     {localizeRashi(result.chart.navamsha.ascendant_english, lang)}
                   </div>

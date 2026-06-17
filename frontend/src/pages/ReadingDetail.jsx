@@ -142,15 +142,15 @@ export default function ReadingDetail() {
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                      <div className="pdf-eyebrow">Ascendant</div>
                       <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.summary.ascendant}</div>
                     </div>
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                      <div className="pdf-eyebrow">Sun</div>
                       <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.summary.sun_sign}</div>
                     </div>
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                      <div className="pdf-eyebrow">Moon</div>
                       <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.summary.moon_sign}</div>
                     </div>
                   </div>
@@ -164,7 +164,7 @@ export default function ReadingDetail() {
                 </div>
                 <KundaliChart chart={r.chart} large />
                 <div className="mt-4 text-center">
-                  <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                  <div className="pdf-eyebrow">Ascendant</div>
                   <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.chart.ascendant_english}</div>
                 </div>
               </section>
@@ -177,7 +177,7 @@ export default function ReadingDetail() {
                   </div>
                   <KundaliChart chart={r.chart.chandra} large />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
+                    <div className="pdf-eyebrow">Chandra Lagna</div>
                     <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.chart.chandra.ascendant_english}</div>
                   </div>
                 </section>
@@ -191,7 +191,7 @@ export default function ReadingDetail() {
                   </div>
                   <KundaliChart chart={r.chart.navamsha} large />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
+                    <div className="pdf-eyebrow">Navamsha Ascendant</div>
                     <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.chart.navamsha.ascendant_english}</div>
                   </div>
                 </section>
@@ -258,15 +258,15 @@ export default function ReadingDetail() {
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                      <div className="pdf-eyebrow">Ascendant</div>
                       <div className="font-heading text-xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.summary.ascendant}</div>
                     </div>
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                      <div className="pdf-eyebrow">Sun</div>
                       <div className="font-heading text-xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.summary.sun_sign}</div>
                     </div>
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                      <div className="pdf-eyebrow">Moon</div>
                       <div className="font-heading text-xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.summary.moon_sign}</div>
                     </div>
                   </div>
