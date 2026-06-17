@@ -74,6 +74,28 @@ export async function downloadNodeAsPdf(node, filename) {
     const chunkPx = Math.floor((usableH / imgW) * canvas.width);
     const logo = await loadLogo();
 
+    // Page header: faded sky-blue brand wordmark drawn on every PDF page.
+    const HEADER_TEXT = "Satish Numero World";
+    const HEADER_COLOR = [135, 206, 235]; // sky blue (#87CEEB)
+    const HEADER_OPACITY = 0.35;
+    const drawPageHeader = () => {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(22);
+      pdf.setTextColor(HEADER_COLOR[0], HEADER_COLOR[1], HEADER_COLOR[2]);
+      pdf.setCharSpace(2);
+      if (typeof pdf.setGState === "function") {
+        pdf.setGState(pdf.GState({ opacity: HEADER_OPACITY }));
+      }
+      // Vertically centered in the top margin band
+      pdf.text(HEADER_TEXT, pageW / 2, margin - 8, { align: "center", baseline: "middle" });
+      // Reset for subsequent drawing
+      if (typeof pdf.setGState === "function") {
+        pdf.setGState(pdf.GState({ opacity: 1 }));
+      }
+      pdf.setCharSpace(0);
+      pdf.setTextColor(0, 0, 0);
+    };
+
     let renderedPx = 0;
     let firstPage = true;
     while (renderedPx < canvas.height) {
@@ -97,7 +119,12 @@ export async function downloadNodeAsPdf(node, filename) {
       }
 
       if (!firstPage) pdf.addPage();
+      // Paint the full page cream so the brand header band matches the
+      // captured content background.
+      pdf.setFillColor("#FDFBF7");
+      pdf.rect(0, 0, pageW, pageH, "F");
       pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, imgW, usableH);
+      drawPageHeader();
 
       renderedPx += sliceH;
       firstPage = false;
