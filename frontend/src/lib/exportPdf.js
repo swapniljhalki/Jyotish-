@@ -81,14 +81,14 @@ export async function downloadNodeAsPdf(node, filename) {
     // Borders take a fixed band around the page; content area sits inside.
     const outerMargin   = 22;             // distance from paper edge to outer border
     const borderGap     = 6;              // gap between outer and inner gold lines
-    const headerBand    = 36;             // top band reserved for brand header
-    const footerBand    = 28;             // bottom band reserved for footer
-    const contentInset  = 12;             // breathing room from inner border to content
+    const headerBand    = 56;             // top band reserved for brand header
+    const footerBand    = 32;             // bottom band reserved for footer
+    const contentInset  = 14;             // breathing room from chrome to content
 
     const innerLeft   = outerMargin + borderGap + contentInset;
     const innerRight  = pageW - outerMargin - borderGap - contentInset;
-    const innerTop    = outerMargin + borderGap + headerBand;
-    const innerBottom = pageH - outerMargin - borderGap - footerBand;
+    const innerTop    = outerMargin + borderGap + headerBand + contentInset;
+    const innerBottom = pageH - outerMargin - borderGap - footerBand - contentInset / 2;
     const imgW = innerRight - innerLeft;
     const imgH = innerBottom - innerTop;
 
@@ -123,20 +123,27 @@ export async function downloadNodeAsPdf(node, filename) {
         pageH - (outerMargin + borderGap) * 2,
       );
 
-      // Brand header — faded sky blue, centred in header band
+      // Brand header — faded sky blue, centred in header band (smaller +
+      // letter-spaced for elegance, leaving plenty of clearance above content)
       pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(22);
+      pdf.setFontSize(15);
       pdf.setTextColor(HEADER_COLOR[0], HEADER_COLOR[1], HEADER_COLOR[2]);
-      pdf.setCharSpace(2);
-      setOpacity(0.35);
+      pdf.setCharSpace(3);
+      setOpacity(0.45);
       pdf.text(
-        HEADER_TEXT,
+        HEADER_TEXT.toUpperCase(),
         pageW / 2,
-        outerMargin + borderGap + headerBand / 2 + 4,
+        outerMargin + borderGap + headerBand / 2 - 2,
         { align: "center", baseline: "middle" },
       );
       setOpacity(1);
       pdf.setCharSpace(0);
+
+      // Thin gold divider rule between header and content
+      pdf.setDrawColor(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2]);
+      pdf.setLineWidth(0.3);
+      const dividerY = outerMargin + borderGap + headerBand + contentInset / 2;
+      pdf.line(innerLeft, dividerY, innerRight, dividerY);
 
       // Footer rule + page number (counter)
       pdf.setDrawColor(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2]);
