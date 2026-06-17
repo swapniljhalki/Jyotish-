@@ -47,15 +47,26 @@ function neutralizeOverflow(root) {
  * Render a DOM node to a multi-page A4 PDF and trigger a download.
  *
  * Flow: capture the entire node as one tall canvas, then slice it into
- * A4-sized chunks so content flows naturally across pages (no forced
- * one-section-per-page breaks).
+ * A4-sized chunks so content flows naturally across pages.
+ *
+ * Layout per page:
+ *   ┌─ outer gold border ─────────────┐
+ *   │  ┌─ inner gold rule ──────────┐ │
+ *   │  │ "Satish Numero World"      │ │   ← faded sky-blue header
+ *   │  │                            │ │
+ *   │  │      [ content slice ]     │ │
+ *   │  │                            │ │
+ *   │  │ — page n —                 │ │   ← footer rule + page counter
+ *   │  └────────────────────────────┘ │
+ *   └────────────────────────────────-┘
  */
 export async function downloadNodeAsPdf(node, filename) {
   const restore = neutralizeOverflow(node);
   try {
-    const captureWidth = Math.max(node.offsetWidth, 1024);
+    // Higher resolution capture → crisp text & SVG charts in the PDF.
+    const captureWidth = Math.max(node.offsetWidth, 1100);
     const canvas = await toCanvas(node, {
-      pixelRatio: 2,
+      pixelRatio: 3,
       backgroundColor: "#FDFBF7",
       cacheBust: true,
       width: captureWidth,
@@ -66,69 +77,128 @@ export async function downloadNodeAsPdf(node, filename) {
     const pdf = new jsPDF({ unit: "pt", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
-    const margin = 28;
-    const imgW = pageW - margin * 2;
-    const usableH = pageH - margin * 2;
+
+    // Borders take a fixed band around the page; content area sits inside.
+    const outerMargin   = 22;             // distance from paper edge to outer border
+    const borderGap     = 6;              // gap between outer and inner gold lines
+    const headerBand    = 36;             // top band reserved for brand header
+    const footerBand    = 28;             // bottom band reserved for footer
+    const contentInset  = 12;             // breathing room from inner border to content
+
+    const innerLeft   = outerMargin + borderGap + contentInset;
+    const innerRight  = pageW - outerMargin - borderGap - contentInset;
+    const innerTop    = outerMargin + borderGap + headerBand;
+    const innerBottom = pageH - outerMargin - borderGap - footerBand;
+    const imgW = innerRight - innerLeft;
+    const imgH = innerBottom - innerTop;
 
     // Height of one PDF page expressed in source-canvas pixels
-    const chunkPx = Math.floor((usableH / imgW) * canvas.width);
+    const chunkPx = Math.floor((imgH / imgW) * canvas.width);
     const logo = await loadLogo();
 
-    // Page header: faded sky-blue brand wordmark drawn on every PDF page.
-    const HEADER_TEXT = "Satish Numero World";
-    const HEADER_COLOR = [135, 206, 235]; // sky blue (#87CEEB)
-    const HEADER_OPACITY = 0.35;
-    const drawPageHeader = () => {
+    // ---------- per-page chrome (border / header / footer) ---------- //
+    const HEADER_TEXT  = "Satish Numero World";
+    const HEADER_COLOR = [135, 206, 235];   // sky blue (#87CEEB)
+    const GOLD_DARK    = [184, 134, 11];    // #B8860B
+    const GOLD_LIGHT   = [212, 175, 55];    // #D4AF37
+    const TEXT_DIM     = [139, 94, 26];     // dim gold for footer (#8B5E1A)
+
+    const setOpacity = (v) => {
+      if (typeof pdf.setGState === "function") pdf.setGState(pdf.GState({ opacity: v }));
+    };
+
+    const drawChrome = (pageIndex, totalPages) => {
+      // Outer thin gold border
+      pdf.setDrawColor(GOLD_DARK[0], GOLD_DARK[1], GOLD_DARK[2]);
+      pdf.setLineWidth(1.2);
+      pdf.rect(outerMargin, outerMargin, pageW - outerMargin * 2, pageH - outerMargin * 2);
+
+      // Inner hairline gold border (double-line effect)
+      pdf.setDrawColor(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2]);
+      pdf.setLineWidth(0.4);
+      pdf.rect(
+        outerMargin + borderGap,
+        outerMargin + borderGap,
+        pageW - (outerMargin + borderGap) * 2,
+        pageH - (outerMargin + borderGap) * 2,
+      );
+
+      // Brand header — faded sky blue, centred in header band
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(22);
       pdf.setTextColor(HEADER_COLOR[0], HEADER_COLOR[1], HEADER_COLOR[2]);
       pdf.setCharSpace(2);
-      if (typeof pdf.setGState === "function") {
-        pdf.setGState(pdf.GState({ opacity: HEADER_OPACITY }));
-      }
-      // Vertically centered in the top margin band
-      pdf.text(HEADER_TEXT, pageW / 2, margin - 8, { align: "center", baseline: "middle" });
-      // Reset for subsequent drawing
-      if (typeof pdf.setGState === "function") {
-        pdf.setGState(pdf.GState({ opacity: 1 }));
-      }
+      setOpacity(0.35);
+      pdf.text(
+        HEADER_TEXT,
+        pageW / 2,
+        outerMargin + borderGap + headerBand / 2 + 4,
+        { align: "center", baseline: "middle" },
+      );
+      setOpacity(1);
+      pdf.setCharSpace(0);
+
+      // Footer rule + page number (counter)
+      pdf.setDrawColor(GOLD_LIGHT[0], GOLD_LIGHT[1], GOLD_LIGHT[2]);
+      pdf.setLineWidth(0.3);
+      pdf.line(
+        innerLeft,
+        innerBottom + contentInset / 2,
+        innerRight,
+        innerBottom + contentInset / 2,
+      );
+
+      pdf.setFont("helvetica", "italic");
+      pdf.setFontSize(9);
+      pdf.setTextColor(TEXT_DIM[0], TEXT_DIM[1], TEXT_DIM[2]);
+      pdf.setCharSpace(0.6);
+      pdf.text(
+        `Page ${pageIndex} of ${totalPages}`,
+        pageW / 2,
+        pageH - outerMargin - borderGap - 10,
+        { align: "center" },
+      );
       pdf.setCharSpace(0);
       pdf.setTextColor(0, 0, 0);
     };
 
+    // ---------- page rendering ---------- //
+    // First pass: render content slices only (so we know total page count).
+    const slices = [];
     let renderedPx = 0;
-    let firstPage = true;
     while (renderedPx < canvas.height) {
       const sliceH = Math.min(chunkPx, canvas.height - renderedPx);
       const slice = document.createElement("canvas");
       slice.width = canvas.width;
-      slice.height = chunkPx; // full page height so the watermark is centred consistently
+      slice.height = chunkPx;
       const ctx = slice.getContext("2d");
       ctx.fillStyle = "#FDFBF7";
       ctx.fillRect(0, 0, slice.width, slice.height);
-
       ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
 
-      // Logo watermark on every page (low alpha so it reads as background)
+      // Subtle SNW logo watermark behind content
       if (logo) {
         const w = slice.width * 0.55;
         const h = (logo.height / logo.width) * w;
-        ctx.globalAlpha = 0.08;
+        ctx.globalAlpha = 0.06;
         ctx.drawImage(logo, (slice.width - w) / 2, (chunkPx - h) / 2, w, h);
         ctx.globalAlpha = 1;
       }
+      slices.push(slice.toDataURL("image/png"));
+      renderedPx += sliceH;
+    }
 
-      if (!firstPage) pdf.addPage();
-      // Paint the full page cream so the brand header band matches the
-      // captured content background.
+    const totalPages = slices.length;
+
+    // Second pass: emit PDF pages with chrome that knows the total count.
+    slices.forEach((dataUrl, i) => {
+      const pageIndex = i + 1;
+      if (pageIndex > 1) pdf.addPage();
       pdf.setFillColor("#FDFBF7");
       pdf.rect(0, 0, pageW, pageH, "F");
-      pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, imgW, usableH);
-      drawPageHeader();
-
-      renderedPx += sliceH;
-      firstPage = false;
-    }
+      pdf.addImage(dataUrl, "PNG", innerLeft, innerTop, imgW, imgH);
+      drawChrome(pageIndex, totalPages);
+    });
 
     pdf.save(filename);
   } finally {
