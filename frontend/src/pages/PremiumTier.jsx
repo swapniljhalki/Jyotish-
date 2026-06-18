@@ -119,6 +119,13 @@ export default function PremiumTier() {
           <p className="sb-lead mt-6">
             {t("premium.intro")}
           </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link to="/book" data-testid="premium-book-cta">
+              <button className="sb-btn-outline text-sm py-2.5 px-5">
+                Or book a 1:1 consultation →
+              </button>
+            </Link>
+          </div>
         </div>
 
         {!canRead ? (
