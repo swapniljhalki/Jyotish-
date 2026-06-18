@@ -86,7 +86,7 @@ export default function Testimonials() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {TESTIMONIALS.slice(0, 4).map((x, i) => (
-            <TestimonialCard key={i} t9l={x} idx={i} />
+            <TestimonialCard key={x.author} t9l={x} idx={i} />
           ))}
         </div>
         <div className="mt-6">

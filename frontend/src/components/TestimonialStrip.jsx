@@ -158,13 +158,13 @@ export default function TestimonialStrip() {
 
         {/* Dots */}
         <div className="flex items-center justify-center gap-2 mt-6" role="tablist" aria-label="Testimonial pager">
-          {TESTIMONIALS.map((_, i) => (
+          {TESTIMONIALS.map((tx, i) => (
             <button
-              key={i}
+              key={tx.author}
               type="button"
               role="tab"
               aria-selected={i === index}
-              aria-label={`Show testimonial ${i + 1}`}
+              aria-label={`Show testimonial from ${tx.author}`}
               onClick={() => goTo(i)}
               data-testid={`strip-dot-${i}`}
               className="transition-all rounded-full"

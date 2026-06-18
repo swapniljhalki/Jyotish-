@@ -15,12 +15,16 @@ export default function VisitorStats() {
         try {
           await api.post("/stats/visit");
           sessionStorage.setItem(SESSION_KEY, "1");
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+          console.warn("VisitorStats: failed to record visit", e?.message || e);
+        }
       }
       try {
         const { data } = await api.get("/stats/visitors");
         if (!cancelled) setStats(data);
-      } catch (e) { /* ignore */ }
+      } catch (e) {
+        console.warn("VisitorStats: failed to fetch stats", e?.message || e);
+      }
     })();
     return () => { cancelled = true; };
   }, []);

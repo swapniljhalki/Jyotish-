@@ -11,8 +11,9 @@ try {
   if (typeof window !== "undefined" && window.localStorage) {
     window.localStorage.removeItem("snw_lang");
   }
-} catch (_) {
-  // ignore (private mode)
+} catch (err) {
+  // private mode / storage disabled — non-fatal
+  if (typeof console !== "undefined") console.warn("i18n: localStorage cleanup skipped", err);
 }
 
 i18n
