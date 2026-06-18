@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
 import AdviceMarkdown from "../components/AdviceMarkdown";
+import NumberCard from "../components/NumberCard";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -25,6 +26,18 @@ export default function BasicTier() {
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const resultRef = useRef(null);
+
+  // Chaldean Name Numerology (also accessible to Basic tier)
+  const [chaldeanName, setChaldeanName] = useState("");
+  const [chaldeanResult, setChaldeanResult] = useState(null);
+  const [chaldeanLoading, setChaldeanLoading] = useState(false);
+  const [chaldeanErr, setChaldeanErr] = useState("");
+
+  // Mobile Number Numerology (also accessible to Basic tier)
+  const [mobile, setMobile] = useState("");
+  const [mobileResult, setMobileResult] = useState(null);
+  const [mobileLoading, setMobileLoading] = useState(false);
+  const [mobileErr, setMobileErr] = useState("");
 
   const submit = async (values) => {
     setErr("");
@@ -43,6 +56,36 @@ export default function BasicTier() {
 
   const canRead = user && (user.tier === "basic" || user.tier === "premium");
   const lang = i18n.resolvedLanguage;
+
+  const submitChaldean = async (e) => {
+    e.preventDefault();
+    setChaldeanErr("");
+    setChaldeanResult(null);
+    setChaldeanLoading(true);
+    try {
+      const { data } = await api.post("/numerology/chaldean-name", { full_name: chaldeanName });
+      setChaldeanResult(data);
+    } catch (e2) {
+      setChaldeanErr(formatApiError(e2.response?.data?.detail) || e2.message);
+    } finally {
+      setChaldeanLoading(false);
+    }
+  };
+
+  const submitMobile = async (e) => {
+    e.preventDefault();
+    setMobileErr("");
+    setMobileResult(null);
+    setMobileLoading(true);
+    try {
+      const { data } = await api.post("/numerology/mobile", { mobile_number: mobile });
+      setMobileResult(data);
+    } catch (e2) {
+      setMobileErr(formatApiError(e2.response?.data?.detail) || e2.message);
+    } finally {
+      setMobileLoading(false);
+    }
+  };
 
   return (
     <div className="bg-[#FDFBF7] min-h-[calc(100vh-64px)]">
@@ -178,6 +221,255 @@ export default function BasicTier() {
             </div>
           </div>
           </div>
+        )}
+
+        {/* Chaldean Name Numerology — also available to Basic tier */}
+        {canRead && (
+        <div className="mt-20 fade-up" data-testid="basic-chaldean-section">
+          <div className="mb-8">
+            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.name_section")}</p>
+            <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
+              {t("premium_numerology.name_title_a")} <span className="text-gold-gradient italic">{t("premium_numerology.name_title_b")}</span>
+            </h2>
+            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+              {t("premium_numerology.name_intro")}
+            </p>
+          </div>
+
+          <form
+            onSubmit={submitChaldean}
+            className="glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+            data-testid="basic-chaldean-form"
+          >
+            <div className="md:col-span-2">
+              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+                {t("premium_numerology.name_label")}
+              </label>
+              <input
+                type="text"
+                required
+                value={chaldeanName}
+                onChange={(e) => setChaldeanName(e.target.value)}
+                placeholder={t("premium_numerology.name_placeholder")}
+                data-testid="basic-chaldean-input"
+                className="w-full bg-[#0F1320] border border-[rgba(212,175,55,0.25)] rounded-md px-3 py-2 text-zinc-100 font-body focus:outline-none focus:border-[#FF9933]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={chaldeanLoading}
+              data-testid="basic-chaldean-calculate-btn"
+              className="btn-saffron w-full md:w-auto disabled:opacity-50"
+            >
+              {chaldeanLoading ? t("premium_numerology.reading_btn") : t("premium_numerology.name_cta")}
+            </button>
+          </form>
+
+          {chaldeanErr && (
+            <div className="mt-4 text-sm text-red-400 font-body glass-card p-4" data-testid="basic-chaldean-error">
+              {chaldeanErr}
+            </div>
+          )}
+
+          {chaldeanResult && (
+            <div className="mt-8 space-y-6" data-testid="basic-chaldean-result">
+              <div className="glass-card p-6">
+                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-4">
+                  {t("premium_numerology.letters_title")}
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {chaldeanResult.letters.map((l, i) => (
+                    l.space ? (
+                      <div key={i} className="w-3" />
+                    ) : (
+                      <div
+                        key={i}
+                        className={`flex flex-col items-center justify-center w-10 h-12 rounded border ${
+                          l.value != null
+                            ? "border-[rgba(212,175,55,0.3)] bg-[rgba(255,153,51,0.05)]"
+                            : "border-[rgba(255,255,255,0.06)] opacity-40"
+                        }`}
+                        data-testid={`basic-chaldean-letter-${i}`}
+                      >
+                        <div className="font-heading text-lg text-zinc-100">{l.letter}</div>
+                        <div className="font-accent text-[9px] text-[#FF9933]">
+                          {l.value != null ? l.value : "—"}
+                        </div>
+                      </div>
+                    )
+                  ))}
+                </div>
+                <div className="flex items-baseline gap-4 mt-4 pt-4 border-t border-[rgba(212,175,55,0.15)]">
+                  <div>
+                    <div className="font-accent text-[10px] text-zinc-500 uppercase tracking-widest">Compound Total</div>
+                    <div className="font-heading text-3xl text-[#D4AF37]">
+                      {chaldeanResult.compound_total}
+                    </div>
+                  </div>
+                  <div className="text-zinc-500 font-heading text-2xl">→</div>
+                  <div>
+                    <div className="font-accent text-[10px] text-zinc-500 uppercase tracking-widest">Reduced</div>
+                    <div className="font-heading text-3xl text-[#FFD700]">
+                      {chaldeanResult.name_number.number}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="premium-card p-6 md:p-8">
+                <div className="font-accent text-[10px] text-[#D4AF37] mb-3 tracking-widest">
+                  {chaldeanResult.name_number.label}
+                </div>
+                <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
+                  <div>
+                    <div className="font-heading text-7xl text-[#FFD700] leading-none">
+                      {chaldeanResult.name_number.number}
+                    </div>
+                    <div className="mt-1 font-body text-xs text-zinc-500">
+                      {chaldeanResult.name_number.derivation}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-heading text-2xl text-zinc-100">
+                      {chaldeanResult.name_number.planet}
+                    </div>
+                    <div className="font-body text-xs text-zinc-500">
+                      {chaldeanResult.name_number.planet_english}
+                    </div>
+                  </div>
+                </div>
+                <p className="font-body text-zinc-200 leading-relaxed mb-5">
+                  {chaldeanResult.name_number.traits}
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-xs font-body">
+                  {[
+                    [t("premium_numerology.gemstone"), chaldeanResult.name_number.gemstone],
+                    [t("premium_numerology.deity"), chaldeanResult.name_number.deity],
+                    [t("premium_numerology.mantra"), chaldeanResult.name_number.mantra],
+                    [t("premium_numerology.lucky_days"), (chaldeanResult.name_number.lucky_days || []).join(", ")],
+                    [t("premium_numerology.lucky_colors"), (chaldeanResult.name_number.lucky_colors || []).join(", ")],
+                    [t("premium_numerology.lucky_numbers"), (chaldeanResult.name_number.lucky_numbers || []).join(", ")],
+                  ].map(([label, val]) => (
+                    <div key={label} className="flex justify-between gap-3">
+                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</span>
+                      <span className="text-zinc-300 text-right">{val}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-[rgba(212,175,55,0.12)] grid grid-cols-1 gap-2 text-xs font-body">
+                  <div>
+                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.career")}</div>
+                    <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.career}</div>
+                  </div>
+                  <div>
+                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.challenges")}</div>
+                    <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.challenges}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        )}
+
+        {/* Mobile Number Numerology — also available to Basic tier */}
+        {canRead && (
+        <div className="mt-20 fade-up" data-testid="basic-mobile-numerology-section">
+          <div className="mb-8">
+            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
+            <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
+              {t("premium_numerology.mobile_title_a2")} <span className="text-gold-gradient italic">{t("premium_numerology.mobile_title_b2")}</span>
+            </h2>
+            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+              {t("premium_numerology.mobile_intro2")}
+            </p>
+          </div>
+
+          <form
+            onSubmit={submitMobile}
+            className="glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+            data-testid="basic-mobile-form"
+          >
+            <div className="md:col-span-2">
+              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+                {t("premium_numerology.mobile_label")}
+              </label>
+              <input
+                type="tel"
+                required
+                value={mobile}
+                onChange={(e) => setMobile(e.target.value)}
+                placeholder={t("premium_numerology.mobile_ph2")}
+                data-testid="basic-mobile-input"
+                className="w-full bg-[#0F1320] border border-[rgba(212,175,55,0.25)] rounded-md px-3 py-2 text-zinc-100 font-body focus:outline-none focus:border-[#FF9933]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={mobileLoading}
+              data-testid="basic-mobile-calculate-btn"
+              className="btn-saffron w-full md:w-auto disabled:opacity-50"
+            >
+              {mobileLoading ? t("premium_numerology.reading_btn") : t("premium_numerology.mobile_cta2")}
+            </button>
+          </form>
+
+          {mobileErr && (
+            <div className="mt-4 text-sm text-red-400 font-body glass-card p-4" data-testid="basic-mobile-error">
+              {mobileErr}
+            </div>
+          )}
+
+          {mobileResult && (
+            <div className="mt-8 grid md:grid-cols-3 gap-6" data-testid="basic-mobile-result">
+              <div className="md:col-span-2">
+                <NumberCard block={mobileResult.mobile_number_ank} accent="text-[#FFD700]" />
+              </div>
+              <div className="glass-card p-6">
+                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-3">
+                  {t("premium_numerology.digit_comp")}
+                </div>
+                <div className="font-body text-sm text-zinc-300 mb-4">
+                  {t("premium_numerology.number_label")} <span className="text-zinc-100 font-mono">{mobileResult.digits_used}</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 mb-5">
+                  {Object.entries(mobileResult.frequency).map(([d, count]) => (
+                    <div
+                      key={d}
+                      className={`text-center p-2 rounded border ${
+                        count > 0
+                          ? "border-[rgba(212,175,55,0.3)] bg-[rgba(255,153,51,0.04)]"
+                          : "border-[rgba(255,255,255,0.06)] opacity-40"
+                      }`}
+                      data-testid={`basic-mobile-digit-${d}`}
+                    >
+                      <div className="font-heading text-lg text-[#FFD700]">{d}</div>
+                      <div className="font-accent text-[9px] text-zinc-500 tracking-widest">
+                        ×{count}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-2 text-xs font-body">
+                  <div className="flex justify-between gap-3">
+                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.digit_sum")}</span>
+                    <span className="text-zinc-200">{mobileResult.digit_sum}</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.dominant_digit")}</span>
+                    <span className="text-zinc-200">{mobileResult.dominant_digit}</span>
+                  </div>
+                  {mobileResult.missing_digits.length > 0 && (
+                    <div className="flex justify-between gap-3">
+                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.missing_digits")}</span>
+                      <span className="text-zinc-200">{mobileResult.missing_digits.join(", ")}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         )}
       </div>
       <ExpandedKundaliModal

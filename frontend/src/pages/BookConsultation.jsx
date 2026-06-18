@@ -14,13 +14,19 @@ export default function BookConsultation() {
 
   const isPremium = user?.tier === "premium";
 
-  // Build the prefilled URL using URLSearchParams; safe URL encoding handled automatically.
-  const calendlyUrl = useMemo(() => {
-    const params = new URLSearchParams();
-    if (user?.name) params.append("name", user.name);
-    if (user?.email) params.append("email", user.email);
-    const qs = params.toString();
-    return qs ? `${CALENDLY_URL}?${qs}` : CALENDLY_URL;
+  // Split full name into first/last so Calendly fills both fields cleanly
+  // (Calendly's default form has separate First name / Last name inputs).
+  const prefill = useMemo(() => {
+    if (!user?.email) return undefined;
+    const parts = (user.name || "").trim().split(/\s+/).filter(Boolean);
+    const firstName = parts[0] || "";
+    const lastName  = parts.slice(1).join(" ");
+    return {
+      email: user.email,
+      name: user.name || user.email,
+      firstName,
+      lastName,
+    };
   }, [user]);
 
   // Hide the loading state once Calendly signals the widget is ready.
@@ -83,7 +89,8 @@ export default function BookConsultation() {
                 )}
 
                 <InlineWidget
-                  url={calendlyUrl}
+                  url={CALENDLY_URL}
+                  prefill={prefill}
                   styles={{ height: "780px", width: "100%", minWidth: "320px" }}
                   pageSettings={{
                     backgroundColor: "ffffff",
@@ -100,7 +107,7 @@ export default function BookConsultation() {
               <p className="text-center text-[13px] text-[#8B5E1A] mt-6">
                 Trouble loading the scheduler?{" "}
                 <a
-                  href={calendlyUrl}
+                  href={CALENDLY_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 font-semibold text-[#FF8C00] hover:text-[#E67A00] underline-offset-2 hover:underline"
