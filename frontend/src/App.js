@@ -30,6 +30,7 @@ import ReadingDetail from "./pages/ReadingDetail";
 import PublicReading from "./pages/PublicReading";
 import BookConsultation from "./pages/BookConsultation";
 import MyBookings from "./pages/MyBookings";
+import Profile from "./pages/Profile";
 
 function Shell({ children }) {
   return (
@@ -86,6 +87,7 @@ function Router() {
         <Route path="/r/:token" element={<PublicReading />} />
         <Route path="/book" element={<Shell><ProtectedRoute><BookConsultation /></ProtectedRoute></Shell>} />
         <Route path="/my-bookings" element={<Shell><ProtectedRoute><MyBookings /></ProtectedRoute></Shell>} />
+        <Route path="/profile" element={<Shell><ProtectedRoute><Profile /></ProtectedRoute></Shell>} />
       </Routes>
     </>
   );
