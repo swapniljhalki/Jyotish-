@@ -1594,14 +1594,23 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
     system, user_msg = _premium_prompts(body, chart)
     advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
     reading_id = str(uuid.uuid4())
+    summary = _premium_summary(chart)
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "premium",
         "inputs": body.model_dump(), "chart": chart, "advice": advice,
-        "summary": _premium_summary(chart),
+        "summary": summary,
         "is_shared": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
-    return {"id": reading_id, "chart": chart, "advice": advice}
+    return {
+        "id": reading_id,
+        "chart": chart,
+        "advice": advice,
+        "ascendant": chart["ascendant_english"],
+        "ascendant_sanskrit": chart["ascendant"],
+        "sun_sign": summary["sun_sign"],
+        "moon_sign": summary["moon_sign"],
+    }
 
 
 # Async variant — long LLM generations (especially Hindi/Telugu/Tamil) can exceed
@@ -1634,7 +1643,16 @@ async def astrology_premium_start(body: AstroIn, user: dict = Depends(get_curren
             )
 
     asyncio.create_task(_generate())
-    return {"id": reading_id, "status": "processing", "chart": chart}
+    summary = _premium_summary(chart)
+    return {
+        "id": reading_id,
+        "status": "processing",
+        "chart": chart,
+        "ascendant": chart["ascendant_english"],
+        "ascendant_sanskrit": chart["ascendant"],
+        "sun_sign": summary["sun_sign"],
+        "moon_sign": summary["moon_sign"],
+    }
 
 
 @api.get("/astrology/premium/status/{reading_id}")
@@ -1642,11 +1660,17 @@ async def astrology_premium_status(reading_id: str, user: dict = Depends(get_cur
     r = await db.readings.find_one({"id": reading_id, "user_id": user["id"]}, {"_id": 0})
     if not r:
         raise HTTPException(status_code=404, detail="Reading not found")
+    chart = r.get("chart") or {}
+    summary = r.get("summary") or {}
     return {
         "id": r["id"],
         "status": r.get("status", "done"),
-        "chart": r.get("chart"),
+        "chart": chart,
         "advice": r.get("advice"),
+        "ascendant": chart.get("ascendant_english") or summary.get("ascendant"),
+        "ascendant_sanskrit": chart.get("ascendant"),
+        "sun_sign": summary.get("sun_sign"),
+        "moon_sign": summary.get("moon_sign"),
     }
 
 
