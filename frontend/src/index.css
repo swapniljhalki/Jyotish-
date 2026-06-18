@@ -529,6 +529,66 @@ td, th { color: #1A1C29; }
   .snw-cover-meta { grid-template-columns: 1fr; gap: 10px; }
 }
 
+/* Numerology Dasha current-state table — PDF-friendly combined view of
+ * Mahadasha / Antardasha / Pratyantardasha / Daily Dasha in one place. */
+.snw-dasha-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  color: #2A1A05;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(184, 134, 11, 0.30);
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+.snw-dasha-table thead tr {
+  background: #FBF6EC;
+  border-bottom: 1.5px solid rgba(184, 134, 11, 0.30);
+}
+.snw-dasha-table th {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8B5E1A;
+  padding: 12px 14px;
+  text-align: left;
+}
+.snw-dasha-table td {
+  padding: 14px 14px;
+  border-top: 1px solid rgba(184, 134, 11, 0.12);
+  vertical-align: middle;
+  word-break: break-word;
+}
+.snw-dasha-table tbody tr:first-child td { border-top: none; }
+.snw-dasha-level {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #2A1A05;
+  line-height: 1.2;
+}
+.snw-dasha-desc {
+  font-size: 11px;
+  color: #8B5E1A;
+  font-style: italic;
+  margin-top: 2px;
+}
+.snw-dasha-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.snw-dasha-planet {
+  color: #5C3A09;
+  font-weight: 500;
+}
+
+
 
 /* PDF-safe eyebrow labels (Ascendant / Sun / Moon / "Your Reading" etc.)
  * — guaranteed dark, slightly larger and bolder so they read clearly when
@@ -568,6 +628,40 @@ td, th { color: #1A1C29; }
   font-size: 12px !important;
   font-weight: 700 !important;
 }
+
+/* Markdown-rendered AI advice — ensure all elements remain dark brown when
+ * captured for PDF, and that nested headings/bold survive the global
+ * .printable-area .text-zinc-* override above. */
+.printable-area .advice-markdown,
+.printable-area .advice-markdown p,
+.printable-area .advice-markdown li,
+.printable-area .advice-markdown td {
+  color: #2A1A05 !important;
+}
+.printable-area .advice-markdown h1,
+.printable-area .advice-markdown h2 {
+  color: #2A1A05 !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+}
+.printable-area .advice-markdown h3,
+.printable-area .advice-markdown h4 {
+  color: #5C3A09 !important;
+  font-weight: 600 !important;
+}
+.printable-area .advice-markdown strong {
+  color: #5C3A09 !important;
+  font-weight: 700 !important;
+}
+.printable-area .advice-markdown em {
+  color: #8B5E1A !important;
+}
+.printable-area .advice-markdown blockquote {
+  color: #6B3410 !important;
+}
+.advice-markdown :first-child { margin-top: 0 !important; }
+.advice-markdown :last-child  { margin-bottom: 0 !important; }
+
 
 /* When capturing for PDF export, hide all scrollbars inside the printable
  * area so they don't appear in the rendered image. Combined with the JS

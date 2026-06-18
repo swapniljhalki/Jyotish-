@@ -12,6 +12,7 @@ import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
+import AdviceMarkdown from "../components/AdviceMarkdown";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -167,9 +168,7 @@ export default function BasicTier() {
               <div className="ornate-divider mb-4">
                 <span className="font-accent text-xs text-[#D4AF37]">{t("result.your_reading")}</span>
               </div>
-              <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap">
-                {result.advice}
-              </div>
+              <AdviceMarkdown testId="basic-advice">{result.advice}</AdviceMarkdown>
             </section>
 
             <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">

@@ -239,3 +239,18 @@ See `/app/memory/test_credentials.md`.
 - deployment_agent scan: PASS, no code-level deploy blockers.
 - Hardening: razorpay_service.py now reads keys via _key() (strips whitespace + stray quotes from env injection); Razorpay values in backend/.env unquoted. Preview re-verified: live order created post-change.
 - USER ACTION: redeploy; if still failing, contact Emergent Support to verify RAZORPAY_* env vars on the deployment.
+
+
+## Feb 18, 2026 — Markdown rendering for AI advice (P1 fix)
+- ROOT CAUSE: AI-generated readings (Claude Sonnet 4.5) include Markdown syntax (`##` headings, `**bold**`, lists). The original UI rendered `result.advice` as raw text inside a `whitespace-pre-wrap` div, so users saw literal `##` and `**` symbols in both the reading pages and exported PDFs.
+- FIX: Installed `react-markdown` + `remark-gfm`. New shared component `/app/frontend/src/components/AdviceMarkdown.jsx` renders the advice with cohesive Cormorant-Garamond headings, dark-brown body text and gold-accented blockquotes/strong/em that match the Starbucks-style light theme.
+- Component declarations are top-level (not nested in render) for stable React identity.
+- Wired into 6 surfaces: `BasicTier.jsx`, `PremiumTier.jsx`, `ReadingDetail.jsx` (basic + premium paths), `Admin.jsx`, `PublicReading.jsx` (basic + premium paths), `Numerology.jsx`.
+- `ReadingsList.jsx` preview line strips `#`/`*`/`` ` `` so the 2-line italic preview stays clean without full markdown rendering.
+- Added `.printable-area .advice-markdown ...` CSS rules in `index.css` so the dark-brown heading/strong/em colors survive the global `text-zinc-*` override when captured by html-to-image for PDF export.
+- Verified live in `/admin → All Readings → View` modal: section headings ("Relationships & Marriage", "Health & Vitality", "Spiritual Path") now render as styled headings; body paragraphs flow cleanly.
+
+## Pending / Backlog
+- P2 — Rotating testimonial strip on landing page.
+- P2 — Start/poll background pattern for Basic Tier AI reading (mirror Premium implementation) to prevent gateway timeouts on slow generation days.
+- Refactor — split `/app/backend/server.py` (~1900 lines) into `/routes` + `/models`; remove legacy `/api/scheduler/*` routes (Calendly fully replaces them).

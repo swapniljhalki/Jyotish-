@@ -10,10 +10,12 @@ import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
+import NumDashaCurrentTable from "../components/NumDashaCurrentTable";
 import NumberCard from "../components/NumberCard";
 import UpgradeButton from "../components/UpgradeButton";
 import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
+import AdviceMarkdown from "../components/AdviceMarkdown";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -299,12 +301,7 @@ export default function PremiumTier() {
                 <div className="ornate-divider mb-6">
                   <span className="font-accent text-xs text-[#D4AF37]">{t("result.detailed_reading")}</span>
                 </div>
-                <div
-                  className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap prose"
-                  style={{ lineHeight: 1.8 }}
-                >
-                  {result.advice}
-                </div>
+                <AdviceMarkdown testId="premium-advice">{result.advice}</AdviceMarkdown>
                 <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
                   <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
                     Open in archive & share →
@@ -323,6 +320,7 @@ export default function PremiumTier() {
                 filename="Numerology-Dasha-Timeline.pdf"
                 testIdPrefix="premium-dasha"
               />
+              {/* Printable: clean combined-table view of current MD/AD/PD/DD */}
               <div
                 ref={dashaRef}
                 className="mt-4 printable-area"
@@ -332,15 +330,25 @@ export default function PremiumTier() {
                 <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
                   <div className="ornate-divider mb-4">
                     <span className="font-accent text-xs text-[#D4AF37]">
-                      Numerology Dasha · 81-year ank cycle (Mulank {result.chart.mulank})
+                      Numerology Dasha · Current State (Mulank {result.chart.mulank})
                     </span>
                   </div>
-                  <p className="font-body text-zinc-400 text-sm mb-4 max-w-3xl">
-                    Driven by your Mulank ({result.chart.mulank}), this 81-year cycle of nine
-                    ank-mahadashas tracks the numerological vibration of your unfolding life.
+                  <p className="font-body text-zinc-400 text-sm mb-5 max-w-3xl">
+                    Driven by your Mulank ({result.chart.mulank}), this is your live position
+                    across all four nested levels of the 81-year ank-mahadasha cycle.
                   </p>
-                  <NumDashaTimeline dasha={result.chart.numerology_dasha} />
+                  <NumDashaCurrentTable dasha={result.chart.numerology_dasha} />
                 </section>
+              </div>
+
+              {/* Full interactive timeline (screen-only, NOT in PDF) */}
+              <div className="no-print mt-8 premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#D4AF37]">
+                    Full 81-year Timeline · Drill into any period
+                  </span>
+                </div>
+                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
               </div>
             </div>
           )}

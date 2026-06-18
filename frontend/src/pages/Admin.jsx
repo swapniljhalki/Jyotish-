@@ -11,6 +11,7 @@ import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays, Download, Loa
 import SchedulerAdmin from "../components/SchedulerAdmin";
 import { downloadNodeAsPdf } from "../lib/exportPdf";
 import KundaliChart from "../components/KundaliChart";
+import AdviceMarkdown from "../components/AdviceMarkdown";
 import snwLogo from "../assets/snw-logo.jpg";
 
 export default function Admin() {
@@ -390,8 +391,10 @@ export default function Admin() {
                   </div>
                 )}
 
-                <div className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap" data-testid="admin-reading-advice">
-                  {readingDetail.advice || <span className="text-zinc-500 italic">No advice text recorded.</span>}
+                <div data-testid="admin-reading-advice">
+                  {readingDetail.advice
+                    ? <AdviceMarkdown>{readingDetail.advice}</AdviceMarkdown>
+                    : <span className="text-zinc-500 italic">No advice text recorded.</span>}
                 </div>
 
                 {readingDetail.is_shared && readingDetail.share_token && (

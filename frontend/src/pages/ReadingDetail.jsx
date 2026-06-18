@@ -5,11 +5,13 @@ import KundaliChart from "../components/KundaliChart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
+import NumDashaCurrentTable from "../components/NumDashaCurrentTable";
 import { Switch } from "../components/ui/switch";
 import { Share2, Copy, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
+import AdviceMarkdown from "../components/AdviceMarkdown";
 import snwLogo from "../assets/snw-logo.jpg";
 
 export default function ReadingDetail() {
@@ -226,9 +228,7 @@ export default function ReadingDetail() {
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Reading</span>
                 </div>
-                <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
-                  {r.advice}
-                </div>
+                <AdviceMarkdown testId="reading-premium-advice">{r.advice}</AdviceMarkdown>
               </section>
             </div>
           ) : (
@@ -249,9 +249,7 @@ export default function ReadingDetail() {
                 </section>
               )}
               <section data-pdf-page="advice" className="premium-card p-8 md:p-12">
-                <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
-                  {r.advice}
-                </div>
+                <AdviceMarkdown testId="reading-basic-advice">{r.advice}</AdviceMarkdown>
               </section>
             </div>
           )}
@@ -265,16 +263,27 @@ export default function ReadingDetail() {
               filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}.pdf`}
               testIdPrefix="reading-dasha"
             />
+            {/* Printable: clean combined-table view */}
             <div ref={dashaRef} className="mt-4 printable-area" data-testid="reading-dasha-printable">
               <img src={snwLogo} alt="" className="print-watermark" />
               <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
-                    Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
+                    Numerology Dasha · Current State (Mulank {r.chart.mulank})
                   </span>
                 </div>
-                <NumDashaTimeline dasha={r.chart.numerology_dasha} />
+                <NumDashaCurrentTable dasha={r.chart.numerology_dasha} />
               </section>
+            </div>
+
+            {/* Full interactive timeline (screen-only, NOT in PDF) */}
+            <div className="no-print mt-8 premium-card p-6 md:p-8">
+              <div className="ornate-divider mb-4">
+                <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
+                  Full 81-year Timeline · Drill into any period
+                </span>
+              </div>
+              <NumDashaTimeline dasha={r.chart.numerology_dasha} />
             </div>
           </div>
         )}

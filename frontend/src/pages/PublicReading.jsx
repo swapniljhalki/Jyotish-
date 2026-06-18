@@ -4,6 +4,7 @@ import axios from "axios";
 import KundaliChart from "../components/KundaliChart";
 import PlanetStates from "../components/PlanetStates";
 import NumDashaTimeline from "../components/NumDashaTimeline";
+import AdviceMarkdown from "../components/AdviceMarkdown";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ArrowRight } from "lucide-react";
 
@@ -126,9 +127,7 @@ export default function PublicReading() {
               <div className="ornate-divider mb-4">
                 <span className="font-accent text-xs text-[#D4AF37]">Reading</span>
               </div>
-              <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
-                {r.advice}
-              </div>
+              <AdviceMarkdown testId="public-premium-advice">{r.advice}</AdviceMarkdown>
             </div>
 
             {/* Planetary positions with classical states */}
@@ -193,9 +192,7 @@ export default function PublicReading() {
                 </div>
               </div>
             )}
-            <div className="font-body text-zinc-200 whitespace-pre-wrap" style={{ lineHeight: 1.8 }}>
-              {r.advice}
-            </div>
+            <AdviceMarkdown testId="public-basic-advice">{r.advice}</AdviceMarkdown>
           </div>
         )}
 

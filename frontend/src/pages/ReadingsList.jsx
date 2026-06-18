@@ -101,7 +101,7 @@ export default function ReadingsList() {
                     </div>
                   )}
                   <p className="text-sm text-zinc-400 font-body italic line-clamp-2">
-                    {r.advice_preview}
+                    {(r.advice_preview || "").replace(/^#{1,6}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").replace(/`(.+?)`/g, "$1")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

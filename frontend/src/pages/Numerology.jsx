@@ -5,6 +5,7 @@ import { Sparkles, Lock } from "lucide-react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import NumberCard from "../components/NumberCard";
+import AdviceMarkdown from "../components/AdviceMarkdown";
 
 export default function Numerology() {
   const { user } = useAuth();
@@ -188,12 +189,7 @@ export default function Numerology() {
                   </button>
                 </div>
               ) : (
-                <div
-                  className="font-body text-zinc-200 leading-relaxed whitespace-pre-wrap"
-                  data-testid="numerology-advice"
-                >
-                  {advice}
-                </div>
+                <AdviceMarkdown testId="numerology-advice">{advice}</AdviceMarkdown>
               )}
             </div>
           </div>
