@@ -1893,5 +1893,64 @@ async def shutdown_event():
     mongo.close()
 
 
+# --- Scheduled meetings (Calendly bookings captured client-side) ---
+class ScheduledMeetingIn(BaseModel):
+    event_uri: str
+    invitee_uri: Optional[str] = None
+    event_type_name: Optional[str] = None
+    scheduled_at: Optional[str] = None  # client-supplied; ISO8601 when meeting starts (if known)
+    raw_payload: Optional[dict] = None
+
+
+@api.post("/scheduled-meetings")
+async def create_scheduled_meeting(
+    body: ScheduledMeetingIn,
+    user: dict = Depends(get_current_user),
+):
+    """Persist a Calendly booking captured by the BookConsultation page.
+    Future iteration: enrich via Calendly API (using CALENDLY_API_TOKEN) to
+    fetch the actual meeting start time, location, and cancellation URL."""
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["id"],
+        "user_email": user["email"],
+        "user_name": user.get("name"),
+        "event_uri": body.event_uri,
+        "invitee_uri": body.invitee_uri,
+        "event_type_name": body.event_type_name,
+        "scheduled_at": body.scheduled_at,
+        "status": "active",
+        "source": "calendly_embed",
+        "raw_payload": body.raw_payload,
+        "booked_at": datetime.now(timezone.utc).isoformat(),
+    }
+    # Idempotency: don't double-insert the same event_uri for this user
+    existing = await db.scheduled_meetings.find_one({
+        "user_id": user["id"],
+        "event_uri": body.event_uri,
+    })
+    if existing:
+        return {"id": existing["id"], "deduped": True}
+    await db.scheduled_meetings.insert_one(doc)
+    return {"id": doc["id"], "deduped": False}
+
+
+@api.get("/scheduled-meetings/me")
+async def my_scheduled_meetings(user: dict = Depends(get_current_user)):
+    cursor = db.scheduled_meetings.find({"user_id": user["id"]}).sort("booked_at", -1)
+    items = []
+    async for d in cursor:
+        items.append({
+            "id": d["id"],
+            "event_uri": d.get("event_uri"),
+            "invitee_uri": d.get("invitee_uri"),
+            "event_type_name": d.get("event_type_name"),
+            "scheduled_at": d.get("scheduled_at"),
+            "status": d.get("status", "active"),
+            "booked_at": d.get("booked_at"),
+        })
+    return {"items": items, "count": len(items)}
+
+
 app.include_router(api)
 app.include_router(admin_api)

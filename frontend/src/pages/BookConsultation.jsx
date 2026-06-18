@@ -4,6 +4,7 @@ import { InlineWidget, useCalendlyEventListener } from "react-calendly";
 import { useAuth } from "../context/AuthContext";
 import { ArrowRight, Loader2, ExternalLink, Lock } from "lucide-react";
 import UpgradeButton from "../components/UpgradeButton";
+import api from "../lib/api";
 
 const CALENDLY_URL = "https://calendly.com/satishnumeroworld7";
 
@@ -34,7 +35,20 @@ export default function BookConsultation() {
     onProfilePageViewed: () => setIsLoading(false),
     onEventTypeViewed:   () => setIsLoading(false),
     onPageHeightResize:  () => setIsLoading(false),
-    onEventScheduled:    () => setScheduled(true),
+    onEventScheduled:    async (e) => {
+      setScheduled(true);
+      // Persist booking server-side so it appears on the Profile page.
+      // Failure is non-fatal — the user has already booked via Calendly.
+      try {
+        const payload = e?.data?.payload || {};
+        await api.post("/scheduled-meetings", {
+          event_uri: payload?.event?.uri || "",
+          invitee_uri: payload?.invitee?.uri || null,
+          event_type_name: payload?.event_type?.name || null,
+          raw_payload: payload,
+        });
+      } catch (err) { void err; }
+    },
   });
 
   // Fallback timeout in case Calendly events don't fire (ad-blocker / network issues)

@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../lib/api";
 import {
   Mail,
   ShieldCheck,
@@ -11,6 +13,9 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
+  Video,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import UpgradeButton from "../components/UpgradeButton";
 
@@ -33,9 +38,44 @@ function formatDate(iso) {
   }
 }
 
+function formatDateTime(iso) {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
 export default function Profile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [meetings, setMeetings] = useState(null); // null = loading, [] = empty
+  const [meetingsErr, setMeetingsErr] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    (async () => {
+      try {
+        const { data } = await api.get("/scheduled-meetings/me");
+        if (active) setMeetings(data.items || []);
+      } catch (e) {
+        if (active) {
+          setMeetingsErr(e?.response?.data?.detail || "Could not load your meetings.");
+          setMeetings([]);
+        }
+      }
+    })();
+    return () => { active = false; };
+  }, [user]);
 
   if (!user) return null; // ProtectedRoute already guards this; safety net
 
@@ -226,6 +266,104 @@ export default function Profile() {
               </div>
             </dl>
           </div>
+        </div>
+
+        {/* SCHEDULED MEETINGS */}
+        <div className="mt-8 max-w-4xl fade-up" data-testid="profile-meetings-section">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <span className="sb-eyebrow">Scheduled meetings</span>
+            <Link
+              to="/book"
+              className="text-[12px] font-semibold tracking-widest uppercase text-[#8B5E1A] hover:text-[#FF8C00] transition-colors"
+              data-testid="profile-book-link"
+            >
+              Book new →
+            </Link>
+          </div>
+
+          {meetings === null ? (
+            <div className="sb-card flex items-center gap-3" data-testid="profile-meetings-loading">
+              <Loader2 className="h-4 w-4 animate-spin text-[#FF8C00]" strokeWidth={2} />
+              <span className="text-[14px]" style={{ color: "#6B3410" }}>
+                Loading your scheduled meetings…
+              </span>
+            </div>
+          ) : meetingsErr ? (
+            <div className="sb-card" data-testid="profile-meetings-error">
+              <p className="text-[14px]" style={{ color: "#B85C00" }}>{meetingsErr}</p>
+            </div>
+          ) : meetings.length === 0 ? (
+            <div className="sb-card text-center py-10" data-testid="profile-meetings-empty">
+              <Video className="h-10 w-10 text-[#FF8C00] mx-auto mb-3" strokeWidth={1.5} />
+              <p className="font-heading text-xl" style={{ color: "#2A1A05" }}>
+                No 1:1 meetings booked yet.
+              </p>
+              <p className="text-[14px] mt-2 max-w-sm mx-auto" style={{ color: "#6B3410" }}>
+                When you book a consultation, it&apos;ll show up here with a quick link to reschedule or cancel.
+              </p>
+              <Link to="/book" className="inline-block mt-5" data-testid="profile-meetings-empty-cta">
+                <button className="sb-btn-primary">
+                  Book a 1:1 consultation <ArrowRight className="h-4 w-4" />
+                </button>
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-3" data-testid="profile-meetings-list">
+              {meetings.map((m) => {
+                const startsAt = formatDateTime(m.scheduled_at);
+                const bookedAt = formatDate(m.booked_at);
+                return (
+                  <li
+                    key={m.id}
+                    className="sb-card sb-card-hover flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    data-testid={`profile-meeting-${m.id}`}
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Video className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.75} />
+                        <span className="font-heading text-lg" style={{ color: "#2A1A05" }}>
+                          {m.event_type_name || "1:1 Consultation with Satissh"}
+                        </span>
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase"
+                          style={{
+                            background: m.status === "canceled"
+                              ? "rgba(184,92,0,0.10)"
+                              : "rgba(30,123,71,0.10)",
+                            color: m.status === "canceled" ? "#B85C00" : "#1E7B47",
+                          }}
+                        >
+                          {m.status || "active"}
+                        </span>
+                      </div>
+                      <div className="text-[13px] mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1" style={{ color: "#6B3410" }}>
+                        {startsAt && (
+                          <span className="inline-flex items-center gap-1.5">
+                            <CalendarDays className="h-3.5 w-3.5" strokeWidth={1.75} />
+                            {startsAt}
+                          </span>
+                        )}
+                        <span className="text-[12px]" style={{ color: "#8B5E1A" }}>
+                          Booked on {bookedAt}
+                        </span>
+                      </div>
+                    </div>
+                    {m.invitee_uri && (
+                      <a
+                        href={m.invitee_uri.startsWith("http") ? m.invitee_uri : "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[12px] font-semibold tracking-widest uppercase text-[#FF8C00] hover:text-[#E67A00] shrink-0"
+                        data-testid={`profile-meeting-view-${m.id}`}
+                      >
+                        Manage on Calendly <ExternalLink className="h-3.5 w-3.5" strokeWidth={2} />
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
 
         {/* QUICK ACTIONS */}

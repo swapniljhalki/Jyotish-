@@ -16,10 +16,10 @@ const navItems = [
   { to: "/numerology",   k: "nav.numerology" },
   { to: "/basic",        k: "nav.basic_reading" },
   { to: "/premium",      k: "nav.premium_numerology" },
-  { to: "/profile",      k: "nav.profile", fallback: "Profile", authOnly: true },
   { to: "/readings",     k: "nav.my_readings", authOnly: true },
   { to: "/pricing",      k: "nav.pricing" },
   { to: "/testimonials", k: "nav.testimonials" },
+  { to: "/profile",      k: "nav.profile", fallback: "Profile", authOnly: true },
 ];
 
 function KnowBasicsDropdown({ linkClass }) {
