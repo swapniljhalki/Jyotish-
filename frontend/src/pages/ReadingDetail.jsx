@@ -20,6 +20,7 @@ export default function ReadingDetail() {
   const [toggling, setToggling] = useState(false);
   const [copied, setCopied] = useState(false);
   const resultRef = useRef(null);
+  const dashaRef  = useRef(null);
 
   useEffect(() => {
     (async () => {
@@ -229,18 +230,6 @@ export default function ReadingDetail() {
                   {r.advice}
                 </div>
               </section>
-
-              {/* PAGE 7 — Numerology Dasha */}
-              {r.chart.numerology_dasha && (
-                <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
-                  <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
-                      Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
-                    </span>
-                  </div>
-                  <NumDashaTimeline dasha={r.chart.numerology_dasha} />
-                </section>
-              )}
             </div>
           ) : (
             // BASIC tier — single cover page + advice page
@@ -267,6 +256,28 @@ export default function ReadingDetail() {
             </div>
           )}
         </div>
+
+        {/* Numerology Dasha — separate downloadable section, OUTSIDE the main printable area */}
+        {r.tier === "premium" && r.chart?.numerology_dasha && (
+          <div className="mt-10" data-testid="reading-dasha-block">
+            <ResultActions
+              targetRef={dashaRef}
+              filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}.pdf`}
+              testIdPrefix="reading-dasha"
+            />
+            <div ref={dashaRef} className="mt-4 printable-area" data-testid="reading-dasha-printable">
+              <img src={snwLogo} alt="" className="print-watermark" />
+              <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
+                    Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
+                  </span>
+                </div>
+                <NumDashaTimeline dasha={r.chart.numerology_dasha} />
+              </section>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

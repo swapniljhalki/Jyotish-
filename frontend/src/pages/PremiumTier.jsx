@@ -40,6 +40,7 @@ export default function PremiumTier() {
   // Expanded Kundali Modal
   const [expanded, setExpanded] = useState(null); // { title, ascendantLabel, ascendantName, chart, accentColor }
   const resultRef = useRef(null);
+  const dashaRef  = useRef(null);
   const lang = i18n.resolvedLanguage;
 
   const submit = async (values) => {
@@ -312,21 +313,37 @@ export default function PremiumTier() {
               </div>
             </section>
 
-            {result.chart.numerology_dasha && (
-              <section data-pdf-page="dasha"><div className="premium-card p-6 md:p-8">
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">
-                    Numerology Dasha · 81-year ank cycle (Mulank {result.chart.mulank})
-                  </span>
-                </div>
-                <p className="font-body text-zinc-400 text-sm mb-4 max-w-3xl">
-                  Driven by your Mulank ({result.chart.mulank}), this 81-year cycle of nine
-                  ank-mahadashas tracks the numerological vibration of your unfolding life.
-                </p>
-                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
-              </div></section>
-            )}
           </div>
+
+          {/* Numerology Dasha — separate downloadable section (NOT part of the main reading PDF) */}
+          {result.chart.numerology_dasha && (
+            <div className="mt-12 fade-up" data-testid="premium-dasha-block">
+              <ResultActions
+                targetRef={dashaRef}
+                filename="Numerology-Dasha-Timeline.pdf"
+                testIdPrefix="premium-dasha"
+              />
+              <div
+                ref={dashaRef}
+                className="mt-4 printable-area"
+                data-testid="premium-dasha-result"
+              >
+                <img src={snwLogo} alt="" className="print-watermark" />
+                <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">
+                      Numerology Dasha · 81-year ank cycle (Mulank {result.chart.mulank})
+                    </span>
+                  </div>
+                  <p className="font-body text-zinc-400 text-sm mb-4 max-w-3xl">
+                    Driven by your Mulank ({result.chart.mulank}), this 81-year cycle of nine
+                    ank-mahadashas tracks the numerological vibration of your unfolding life.
+                  </p>
+                  <NumDashaTimeline dasha={result.chart.numerology_dasha} />
+                </section>
+              </div>
+            </div>
+          )}
           </div>
         )}
 
