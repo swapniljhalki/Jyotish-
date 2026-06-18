@@ -31,13 +31,15 @@ export default function Login() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] cosmic-bg grid md:grid-cols-2">
-      {/* Left decorative panel */}
+      {/* Left decorative panel — Lord Narasimha & Devi Lakshmi */}
       <div className="hidden md:flex relative overflow-hidden border-r border-[rgba(212,175,55,0.15)]">
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1760715756584-9a88f2b272c6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHw0fHxhc3Ryb2xvZ3klMjBtYW5kYWxhJTIwZ29sZHxlbnwwfHx8fDE3NzYzNjk3MTh8MA&ixlib=rb-4.1.0&q=85')" }}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('https://customer-assets.emergentagent.com/job_kundali-chart-1/artifacts/kckqjwat_download.jfif')" }}
+          data-testid="login-deity-image"
+          aria-label="Lord Narasimha with Goddess Lakshmi"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0D14] via-transparent to-[#0A0D14]/80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D14] via-[#0A0D14]/40 to-transparent" />
         <div className="relative z-10 flex flex-col justify-end p-12">
           <div className="ornate-divider mb-4">
             <span className="font-accent text-xs text-[#D4AF37]">स्वागतम्</span>
@@ -45,7 +47,7 @@ export default function Login() {
           <h2 className="font-heading text-4xl text-zinc-50 leading-tight">
             Return to the <span className="text-gold-gradient italic">celestial court.</span>
           </h2>
-          <p className="mt-4 font-body text-zinc-400 max-w-sm">
+          <p className="mt-4 font-body text-zinc-200 max-w-sm">
             Sign in to access your saved readings and deepen your practice.
           </p>
         </div>
