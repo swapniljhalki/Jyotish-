@@ -8,6 +8,18 @@ import api from "../lib/api";
 
 const CALENDLY_URL = "https://calendly.com/satishnumeroworld7";
 
+// Stable references prevent the Calendly iframe from re-mounting on every
+// AuthProvider/user-context re-render (a known react-calendly pitfall).
+const CALENDLY_WIDGET_STYLES = { height: "780px", width: "100%", minWidth: "320px" };
+const CALENDLY_PAGE_SETTINGS = {
+  backgroundColor: "ffffff",
+  primaryColor:    "ff8c00",
+  textColor:       "2A1A05",
+  hideEventTypeDetails: false,
+  hideLandingPageDetails: false,
+  hideGdprBanner: true,
+};
+
 export default function BookConsultation() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
@@ -105,15 +117,8 @@ export default function BookConsultation() {
                 <InlineWidget
                   url={CALENDLY_URL}
                   prefill={prefill}
-                  styles={{ height: "780px", width: "100%", minWidth: "320px" }}
-                  pageSettings={{
-                    backgroundColor: "ffffff",
-                    primaryColor:    "ff8c00",
-                    textColor:       "2A1A05",
-                    hideEventTypeDetails: false,
-                    hideLandingPageDetails: false,
-                    hideGdprBanner: true,
-                  }}
+                  styles={CALENDLY_WIDGET_STYLES}
+                  pageSettings={CALENDLY_PAGE_SETTINGS}
                 />
               </div>
 

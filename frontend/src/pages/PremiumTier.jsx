@@ -412,10 +412,10 @@ export default function PremiumTier() {
                 <div className="flex flex-wrap gap-2 mb-4">
                   {chaldeanResult.letters.map((l, i) => (
                     l.space ? (
-                      <div key={i} className="w-3" />
+                      <div key={`sp-${i}`} className="w-3" />
                     ) : (
                       <div
-                        key={i}
+                        key={`${l.letter}-${i}`}
                         className={`flex flex-col items-center justify-center w-10 h-12 rounded border ${
                           l.value != null
                             ? "border-[rgba(212,175,55,0.3)] bg-[rgba(255,153,51,0.05)]"

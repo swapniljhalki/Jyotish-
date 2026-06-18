@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import api from "../lib/api";
 
 const AuthContext = createContext(null);
@@ -57,10 +57,15 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  // Memoised so consumers of `useAuth()` only re-render when something they
+  // actually depend on changes (not on every <AuthProvider/> re-render).
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout, subscribe, refresh, setUser }),
+    [user, loading, refresh]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{ user, loading, login, register, logout, subscribe, refresh, setUser }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
