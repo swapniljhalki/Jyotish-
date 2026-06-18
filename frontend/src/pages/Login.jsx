@@ -39,17 +39,33 @@ export default function Login() {
           data-testid="login-deity-image"
           aria-label="Lord Narasimha with Goddess Lakshmi"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D14] via-[#0A0D14]/40 to-transparent" />
-        <div className="relative z-10 flex flex-col justify-end p-12">
-          <div className="ornate-divider mb-4">
-            <span className="font-accent text-xs text-[#D4AF37]">स्वागतम्</span>
+        {/* Stronger dark gradient anchored to the bottom so the overlay text
+            stays legible against the bright deity portrait. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0D14] via-[#0A0D14]/70 to-transparent" />
+        <div className="relative z-10 flex flex-col justify-end p-12 w-full">
+          <div
+            className="max-w-md rounded-2xl p-6 backdrop-blur-md"
+            style={{ background: "rgba(10,13,20,0.55)", border: "1px solid rgba(212,175,55,0.25)" }}
+          >
+            <div className="ornate-divider mb-4">
+              <span className="font-accent text-xs" style={{ color: "#FFD700" }}>स्वागतम्</span>
+            </div>
+            <h2
+              className="font-heading text-4xl leading-tight"
+              style={{ color: "#FFFFFF", textShadow: "0 2px 12px rgba(0,0,0,0.65)" }}
+            >
+              Return to the{" "}
+              <span className="italic" style={{ color: "#FFD700", textShadow: "0 2px 12px rgba(0,0,0,0.65)" }}>
+                celestial court.
+              </span>
+            </h2>
+            <p
+              className="mt-4 font-body"
+              style={{ color: "#F5F5F5", textShadow: "0 1px 6px rgba(0,0,0,0.55)" }}
+            >
+              Sign in to access your saved readings and deepen your practice.
+            </p>
           </div>
-          <h2 className="font-heading text-4xl text-zinc-50 leading-tight">
-            Return to the <span className="text-gold-gradient italic">celestial court.</span>
-          </h2>
-          <p className="mt-4 font-body text-zinc-200 max-w-sm">
-            Sign in to access your saved readings and deepen your practice.
-          </p>
         </div>
       </div>
 
