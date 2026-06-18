@@ -5,6 +5,7 @@ import { Sparkles, Check, ArrowRight, Sun, Moon, Star } from "lucide-react";
 import PanchangSection from "../components/PanchangSection";
 import RashifalTile from "../components/RashifalTile";
 import VisitorStats from "../components/VisitorStats";
+import TestimonialStrip from "../components/TestimonialStrip";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -168,6 +169,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* TESTIMONIAL STRIP — auto-rotating */}
+      <TestimonialStrip />
 
       {/* FULL-WIDTH INVOCATION BAND */}
       <section className="sb-band-dark">

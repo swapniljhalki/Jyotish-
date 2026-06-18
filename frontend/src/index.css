@@ -177,6 +177,14 @@
 .delay-300 { animation-delay: 0.3s; }
 .delay-400 { animation-delay: 0.4s; }
 
+/* --- Testimonial strip cross-fade --- */
+@keyframes testimonial-fade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.testimonial-fade { animation: testimonial-fade 0.55s ease-out both; }
+
+
 /* --- Kundali chart animation --- */
 @keyframes draw-line {
   from { stroke-dashoffset: 500; }
