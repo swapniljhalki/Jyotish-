@@ -421,6 +421,49 @@ td, th { color: #1A1C29; }
   display: none;
 }
 
+/* Hero "Ascendant / Sun / Moon" trio used at the top of every reading.
+ * Built as bold inline-styled cards so the values render large and crisp in
+ * the PDF (html-to-image inlines computed styles — inline style wins). */
+.snw-tri {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.snw-tri-card {
+  background: #FBF6EC;
+  border: 1.5px solid rgba(184, 134, 11, 0.30);
+  border-radius: 12px;
+  padding: 18px 12px;
+  text-align: center;
+}
+.snw-tri-label {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: #8B5E1A;
+  margin-bottom: 8px;
+}
+.snw-tri-value {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+.snw-tri-value.asc { color: #5C3A09; }
+.snw-tri-value.sun { color: #8B2500; }
+.snw-tri-value.moon { color: #6B3410; }
+.snw-tri-sub {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  color: #8B5E1A;
+  margin-top: 4px;
+  font-style: italic;
+}
+
 /* PDF-safe eyebrow labels (Ascendant / Sun / Moon / "Your Reading" etc.)
  * — guaranteed dark, slightly larger and bolder so they read clearly when
  * the reading is rendered to PDF on the cream background. Inline-style

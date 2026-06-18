@@ -140,18 +140,18 @@ export default function ReadingDetail() {
                   <div className="ornate-divider mb-6">
                     <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Your reading</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="pdf-eyebrow">Ascendant</div>
-                      <div className="font-heading text-2xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.summary.ascendant}</div>
+                  <div className="snw-tri">
+                    <div className="snw-tri-card">
+                      <div className="snw-tri-label">Ascendant</div>
+                      <div className="snw-tri-value asc">{r.summary.ascendant}</div>
                     </div>
-                    <div>
-                      <div className="pdf-eyebrow">Sun</div>
-                      <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.summary.sun_sign}</div>
+                    <div className="snw-tri-card">
+                      <div className="snw-tri-label">Sun Sign</div>
+                      <div className="snw-tri-value sun">{r.summary.sun_sign}</div>
                     </div>
-                    <div>
-                      <div className="pdf-eyebrow">Moon</div>
-                      <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.summary.moon_sign}</div>
+                    <div className="snw-tri-card">
+                      <div className="snw-tri-label">Moon Sign</div>
+                      <div className="snw-tri-value moon">{r.summary.moon_sign}</div>
                     </div>
                   </div>
                 </section>
@@ -256,18 +256,18 @@ export default function ReadingDetail() {
                   <div className="ornate-divider mb-6">
                     <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Basic Reading</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="pdf-eyebrow">Ascendant</div>
-                      <div className="font-heading text-xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{r.summary.ascendant}</div>
+                  <div className="snw-tri">
+                    <div className="snw-tri-card">
+                      <div className="snw-tri-label">Ascendant</div>
+                      <div className="snw-tri-value asc">{r.summary.ascendant}</div>
                     </div>
-                    <div>
-                      <div className="pdf-eyebrow">Sun</div>
-                      <div className="font-heading text-xl" style={{ color: "#8B2500", fontWeight: 600 }}>{r.summary.sun_sign}</div>
+                    <div className="snw-tri-card">
+                      <div className="snw-tri-label">Sun Sign</div>
+                      <div className="snw-tri-value sun">{r.summary.sun_sign}</div>
                     </div>
-                    <div>
-                      <div className="pdf-eyebrow">Moon</div>
-                      <div className="font-heading text-xl" style={{ color: "#6B3410", fontWeight: 600 }}>{r.summary.moon_sign}</div>
+                    <div className="snw-tri-card">
+                      <div className="snw-tri-label">Moon Sign</div>
+                      <div className="snw-tri-value moon">{r.summary.moon_sign}</div>
                     </div>
                   </div>
                 </section>

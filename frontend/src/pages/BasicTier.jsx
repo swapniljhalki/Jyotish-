@@ -98,19 +98,19 @@ export default function BasicTier() {
               <div className="mb-8">
                 <BirthDetailsSummary inputs={inputs} testIdPrefix="basic" />
               </div>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="pdf-eyebrow">{t("result.ascendant")}</div>
-                  <div className="font-heading text-xl" style={{ color: "#5C3A09", fontWeight: 600 }}>{localizeRashi(result.ascendant, lang)}</div>
-                  <div className="font-body text-xs text-zinc-500">{result.ascendant_sanskrit}</div>
+              <div className="snw-tri">
+                <div className="snw-tri-card">
+                  <div className="snw-tri-label">Ascendant</div>
+                  <div className="snw-tri-value asc">{localizeRashi(result.ascendant, lang)}</div>
+                  {result.ascendant_sanskrit && <div className="snw-tri-sub">{result.ascendant_sanskrit}</div>}
                 </div>
-                <div>
-                  <div className="pdf-eyebrow">{t("result.sun_sign")}</div>
-                  <div className="font-heading text-xl" style={{ color: "#8B2500", fontWeight: 600 }}>{localizeRashi(result.sun_sign, lang)}</div>
+                <div className="snw-tri-card">
+                  <div className="snw-tri-label">Sun Sign</div>
+                  <div className="snw-tri-value sun">{localizeRashi(result.sun_sign, lang)}</div>
                 </div>
-                <div>
-                  <div className="pdf-eyebrow">{t("result.moon_sign")}</div>
-                  <div className="font-heading text-xl" style={{ color: "#6B3410", fontWeight: 600 }}>{localizeRashi(result.moon_sign, lang)}</div>
+                <div className="snw-tri-card">
+                  <div className="snw-tri-label">Moon Sign</div>
+                  <div className="snw-tri-value moon">{localizeRashi(result.moon_sign, lang)}</div>
                 </div>
               </div>
             </section>
