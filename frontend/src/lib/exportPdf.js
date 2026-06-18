@@ -64,6 +64,13 @@ export async function downloadNodeAsPdf(node, filename) {
   try {
     // Higher resolution capture → crisp text & SVG charts in the PDF.
     const captureWidth = Math.max(node.offsetWidth, 1100);
+
+    // Capture the printable node's on-screen rect BEFORE rendering so we can
+    // translate each [data-pdf-page] section's DOM y-offset into canvas-pixel
+    // y-offset. (toCanvas will scale by pixelRatio and the width override.)
+    const nodeRect = node.getBoundingClientRect();
+    const scale = captureWidth / nodeRect.width;   // CSS px → capture px
+
     const canvas = await toCanvas(node, {
       pixelRatio: 3,
       backgroundColor: "#FDFBF7",
@@ -72,6 +79,23 @@ export async function downloadNodeAsPdf(node, filename) {
       style: { width: `${captureWidth}px`, maxWidth: "none", overflow: "visible" },
       filter: (n) => !(n.classList && n.classList.contains("no-print")),
     });
+
+    // Final canvas coords are pixelRatio × capture px. Compute factor used to
+    // map a CSS-px offset (from getBoundingClientRect) into canvas-px.
+    const canvasYPerCssPx = canvas.height / (nodeRect.height || canvas.height);
+
+    // Section break points (y-positions in CANVAS pixels) — start-of-section.
+    // We'll use these to avoid splitting a section across two pages.
+    const sectionStarts = Array.from(node.querySelectorAll("[data-pdf-page]"))
+      .map((el) => {
+        const top = el.getBoundingClientRect().top - nodeRect.top;
+        return Math.round(top * canvasYPerCssPx);
+      })
+      .filter((y, i, arr) => y > 0 && (i === 0 || y !== arr[i - 1])) // dedupe, skip 0
+      .sort((a, b) => a - b);
+    // Intentionally suppress lint: scale is computed for clarity but not
+    // strictly needed once we use the canvas/css ratio directly.
+    void scale;
 
     const pdf = new jsPDF({ unit: "pt", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
@@ -141,13 +165,42 @@ export async function downloadNodeAsPdf(node, filename) {
 
     // ---------- page rendering ---------- //
     // First pass: render content slices only (so we know total page count).
+    // Slice cut points respect [data-pdf-page] boundaries:
+    //  - If a section would only PARTIALLY fit in the remaining space of the
+    //    current page (i.e. its top is inside this page but its content extends
+    //    beyond the page bottom AND the section as a whole could fit in a
+    //    fresh page), we cut the current slice just before that section so it
+    //    starts cleanly on the next page.
     const slices = [];
     let renderedPx = 0;
     while (renderedPx < canvas.height) {
-      const sliceH = Math.min(chunkPx, canvas.height - renderedPx);
+      const defaultEnd = renderedPx + chunkPx;
+      let cutAt = Math.min(defaultEnd, canvas.height);
+
+      // Look for the first section start that falls strictly inside this slice
+      // (not at the very top — that's where the slice begins anyway).
+      const breakStart = sectionStarts.find(
+        (y) => y > renderedPx + 8 && y < defaultEnd,
+      );
+      if (breakStart !== undefined) {
+        // Find the bottom of that section: either the next section start, or
+        // the end of the canvas if it's the last section.
+        const next = sectionStarts.find((y) => y > breakStart);
+        const sectionBottom = next ?? canvas.height;
+        const sectionHeight = sectionBottom - breakStart;
+
+        // Only force a break if the section fits comfortably on a fresh page.
+        // If it's bigger than a page anyway, splitting is unavoidable — let it
+        // flow with the default chunking.
+        if (sectionHeight <= chunkPx) {
+          cutAt = breakStart;
+        }
+      }
+
+      const sliceH = Math.max(1, cutAt - renderedPx);
       const slice = document.createElement("canvas");
       slice.width = canvas.width;
-      slice.height = chunkPx;
+      slice.height = chunkPx;                       // always full page height for consistent watermark
       const ctx = slice.getContext("2d");
       ctx.fillStyle = "#FDFBF7";
       ctx.fillRect(0, 0, slice.width, slice.height);
@@ -162,7 +215,7 @@ export async function downloadNodeAsPdf(node, filename) {
         ctx.globalAlpha = 1;
       }
       slices.push(slice.toDataURL("image/png"));
-      renderedPx += sliceH;
+      renderedPx = cutAt;
     }
 
     const totalPages = slices.length;
