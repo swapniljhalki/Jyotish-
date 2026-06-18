@@ -169,30 +169,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* 1:1 CONSULTATION CTA */}
-      <section className="sb-section">
-        <div className="sb-container">
-          <div className="sb-card sb-card-hover max-w-5xl mx-auto fade-up grid md:grid-cols-[1fr_auto] gap-8 md:gap-12 items-center" data-testid="landing-book-cta-card">
-            <div>
-              <span className="sb-eyebrow">Prefer to speak in person?</span>
-              <h2 className="sb-h2 mb-4" style={{ fontSize: "clamp(1.75rem, 3vw, 2.5rem)" }}>
-                Book a 1:1 consultation with{" "}
-                <span className="italic font-medium" style={{ color: "#8B5E1A" }}>Satissh.</span>
-              </h2>
-              <p className="text-[16px] text-[#6B3410] leading-relaxed max-w-lg">
-                A private one-on-one video session for the questions that deserve a real conversation —
-                career, marriage, name corrections, or anything weighing on your mind.
-              </p>
-            </div>
-            <Link to="/book" data-testid="landing-book-cta">
-              <button className="sb-btn-primary whitespace-nowrap">
-                Book a Session <ArrowRight className="h-4 w-4" />
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* FULL-WIDTH INVOCATION BAND */}
       <section className="sb-band-dark">
         <div className="sb-container relative z-10 text-center">

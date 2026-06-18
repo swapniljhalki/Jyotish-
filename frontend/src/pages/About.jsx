@@ -37,9 +37,6 @@ export default function About() {
                     Begin a Reading <ArrowRight className="h-4 w-4" />
                   </button>
                 </Link>
-                <Link to="/book" data-testid="about-cta-book">
-                  <button className="sb-btn-outline">Book a 1:1 Consultation</button>
-                </Link>
               </div>
             </div>
 
@@ -131,9 +128,6 @@ export default function About() {
                 <button className="sb-btn-primary">
                   View Readings & Pricing <ArrowRight className="h-4 w-4" />
                 </button>
-              </Link>
-              <Link to="/book" data-testid="about-cta-book-bottom">
-                <button className="sb-btn-outline">Book a Consultation</button>
               </Link>
             </div>
           </div>

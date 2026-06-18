@@ -16,7 +16,6 @@ const navItems = [
   { to: "/numerology",   k: "nav.numerology" },
   { to: "/basic",        k: "nav.basic_reading" },
   { to: "/premium",      k: "nav.premium_numerology" },
-  { to: "/book",         k: "nav.book_1on1",  authOnly: true, accent: true },
   { to: "/readings",     k: "nav.my_readings", authOnly: true },
   { to: "/pricing",      k: "nav.pricing" },
   { to: "/testimonials", k: "nav.testimonials" },

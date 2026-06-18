@@ -40,8 +40,7 @@ export default function MyBookings() {
         ) : bookings.length === 0 ? (
           <div className="glass-card p-10 text-center" data-testid="my-bookings-empty">
             <Calendar className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-            <p className="font-body text-zinc-400 mb-6">{t("scheduler.my_bookings_empty")}</p>
-            <Link to="/book" className="btn-saffron inline-block">{t("scheduler.my_bookings_cta")}</Link>
+            <p className="font-body text-zinc-400">{t("scheduler.my_bookings_empty")}</p>
           </div>
         ) : (
           <div className="space-y-4" data-testid="my-bookings-list">
