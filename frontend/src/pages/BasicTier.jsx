@@ -11,7 +11,7 @@ import ExpandedKundaliModal from "../components/ExpandedKundaliModal";
 import { Maximize2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import ResultActions from "../components/ResultActions";
-import BirthDetailsSummary from "../components/BirthDetailsSummary";
+import ReadingCover from "../components/ReadingCover";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -90,29 +90,19 @@ export default function BasicTier() {
           <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
             <img src={snwLogo} alt="" className="print-watermark" />
 
-            {/* PAGE 1 — Cover: birth details + Ascendant/Sun/Moon trio */}
+            {/* PAGE 1 — Cover: name + birth details + Ascendant/Sun/Moon */}
             <section data-pdf-page="cover" className="mb-8">
-              <div className="ornate-divider mb-6">
-                <span className="font-accent text-xs text-[#D4AF37]">{t("result.your_reading")}</span>
-              </div>
-              <div className="mb-8">
-                <BirthDetailsSummary inputs={inputs} testIdPrefix="basic" />
-              </div>
-              <div className="snw-tri">
-                <div className="snw-tri-card">
-                  <div className="snw-tri-label">Ascendant</div>
-                  <div className="snw-tri-value asc">{localizeRashi(result.ascendant, lang)}</div>
-                  {result.ascendant_sanskrit && <div className="snw-tri-sub">{result.ascendant_sanskrit}</div>}
-                </div>
-                <div className="snw-tri-card">
-                  <div className="snw-tri-label">Sun Sign</div>
-                  <div className="snw-tri-value sun">{localizeRashi(result.sun_sign, lang)}</div>
-                </div>
-                <div className="snw-tri-card">
-                  <div className="snw-tri-label">Moon Sign</div>
-                  <div className="snw-tri-value moon">{localizeRashi(result.moon_sign, lang)}</div>
-                </div>
-              </div>
+              <ReadingCover
+                name={inputs?.full_name}
+                dob={inputs?.date_of_birth}
+                tob={inputs?.time_of_birth}
+                pob={inputs?.place_of_birth}
+                ascendant={localizeRashi(result.ascendant, lang)}
+                ascendantSanskrit={result.ascendant_sanskrit}
+                sunSign={localizeRashi(result.sun_sign, lang)}
+                moonSign={localizeRashi(result.moon_sign, lang)}
+                testIdPrefix="basic"
+              />
             </section>
 
             {result.chart && (

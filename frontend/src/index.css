@@ -464,6 +464,72 @@ td, th { color: #1A1C29; }
   font-style: italic;
 }
 
+/* Reading cover — combines the user's name + birth details + the
+ * Ascendant / Sun Sign / Moon Sign trio into a single cohesive section
+ * that lands on page 1 of every PDF and reading archive view. */
+.snw-cover {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(184, 134, 11, 0.30);
+  border-radius: 16px;
+  padding: 32px 28px;
+}
+.snw-cover-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: #2A1A05;
+  text-align: center;
+  margin-bottom: 14px;
+}
+.snw-cover-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 14px 0 22px;
+}
+.snw-cover-meta > div {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.snw-cover-meta-label {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8B5E1A;
+  margin-bottom: 4px;
+}
+.snw-cover-meta-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2A1A05;
+  word-break: break-word;
+  line-height: 1.35;
+}
+.snw-cover-divider {
+  height: 1px;
+  width: 60%;
+  margin: 0 auto 22px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(184, 134, 11, 0.45) 50%,
+    transparent 100%
+  );
+}
+@media (max-width: 640px) {
+  .snw-cover { padding: 22px 16px; }
+  .snw-cover-name { font-size: 28px; }
+  .snw-cover-meta { grid-template-columns: 1fr; gap: 10px; }
+}
+
+
 /* PDF-safe eyebrow labels (Ascendant / Sun / Moon / "Your Reading" etc.)
  * — guaranteed dark, slightly larger and bolder so they read clearly when
  * the reading is rendered to PDF on the cream background. Inline-style

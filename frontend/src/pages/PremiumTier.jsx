@@ -13,7 +13,7 @@ import NumDashaTimeline from "../components/NumDashaTimeline";
 import NumberCard from "../components/NumberCard";
 import UpgradeButton from "../components/UpgradeButton";
 import ResultActions from "../components/ResultActions";
-import BirthDetailsSummary from "../components/BirthDetailsSummary";
+import ReadingCover from "../components/ReadingCover";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -158,24 +158,19 @@ export default function PremiumTier() {
           <div ref={resultRef} className="mt-4 space-y-8 printable-area" data-testid="premium-result">
             <img src={snwLogo} alt="" className="print-watermark" />
 
-            {/* PAGE 1 — Cover: birth details + Ascendant/Sun/Moon trio */}
+            {/* PAGE 1 — Cover: name + birth details + Ascendant/Sun/Moon */}
             <section data-pdf-page="cover">
-              <BirthDetailsSummary inputs={inputs} testIdPrefix="premium" />
-              <div className="snw-tri mt-8">
-                <div className="snw-tri-card">
-                  <div className="snw-tri-label">Ascendant</div>
-                  <div className="snw-tri-value asc">{localizeRashi(result.ascendant, lang)}</div>
-                  {result.ascendant_sanskrit && <div className="snw-tri-sub">{result.ascendant_sanskrit}</div>}
-                </div>
-                <div className="snw-tri-card">
-                  <div className="snw-tri-label">Sun Sign</div>
-                  <div className="snw-tri-value sun">{localizeRashi(result.sun_sign, lang)}</div>
-                </div>
-                <div className="snw-tri-card">
-                  <div className="snw-tri-label">Moon Sign</div>
-                  <div className="snw-tri-value moon">{localizeRashi(result.moon_sign, lang)}</div>
-                </div>
-              </div>
+              <ReadingCover
+                name={inputs?.full_name}
+                dob={inputs?.date_of_birth}
+                tob={inputs?.time_of_birth}
+                pob={inputs?.place_of_birth}
+                ascendant={localizeRashi(result.ascendant, lang)}
+                ascendantSanskrit={result.ascendant_sanskrit}
+                sunSign={localizeRashi(result.sun_sign, lang)}
+                moonSign={localizeRashi(result.moon_sign, lang)}
+                testIdPrefix="premium"
+              />
             </section>
 
             {/* PAGE 2 — D1 Lagna chart */}

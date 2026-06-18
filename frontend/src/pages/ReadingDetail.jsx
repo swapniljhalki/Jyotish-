@@ -9,6 +9,7 @@ import { Switch } from "../components/ui/switch";
 import { Share2, Copy, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import ResultActions from "../components/ResultActions";
+import ReadingCover from "../components/ReadingCover";
 import snwLogo from "../assets/snw-logo.jpg";
 
 export default function ReadingDetail() {
@@ -134,26 +135,19 @@ export default function ReadingDetail() {
 
           {r.tier === "premium" && r.chart ? (
             <div className="space-y-8" data-testid="reading-premium-content">
-              {/* PAGE 1 — Cover: Ascendant / Sun / Moon */}
+              {/* PAGE 1 — Cover: name + birth details + Ascendant / Sun / Moon */}
               {r.summary && (
-                <section data-pdf-page="cover" className="premium-card p-6 md:p-10">
-                  <div className="ornate-divider mb-6">
-                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Your reading</span>
-                  </div>
-                  <div className="snw-tri">
-                    <div className="snw-tri-card">
-                      <div className="snw-tri-label">Ascendant</div>
-                      <div className="snw-tri-value asc">{r.summary.ascendant}</div>
-                    </div>
-                    <div className="snw-tri-card">
-                      <div className="snw-tri-label">Sun Sign</div>
-                      <div className="snw-tri-value sun">{r.summary.sun_sign}</div>
-                    </div>
-                    <div className="snw-tri-card">
-                      <div className="snw-tri-label">Moon Sign</div>
-                      <div className="snw-tri-value moon">{r.summary.moon_sign}</div>
-                    </div>
-                  </div>
+                <section data-pdf-page="cover">
+                  <ReadingCover
+                    name={r.inputs?.full_name}
+                    dob={r.inputs?.date_of_birth}
+                    tob={r.inputs?.time_of_birth}
+                    pob={r.inputs?.place_of_birth}
+                    ascendant={r.summary.ascendant}
+                    sunSign={r.summary.sun_sign}
+                    moonSign={r.summary.moon_sign}
+                    testIdPrefix="reading-premium"
+                  />
                 </section>
               )}
 
@@ -252,24 +246,17 @@ export default function ReadingDetail() {
             // BASIC tier — single cover page + advice page
             <div className="space-y-8" data-testid="reading-basic-content">
               {r.summary && (
-                <section data-pdf-page="cover" className="premium-card p-8 md:p-12">
-                  <div className="ornate-divider mb-6">
-                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Basic Reading</span>
-                  </div>
-                  <div className="snw-tri">
-                    <div className="snw-tri-card">
-                      <div className="snw-tri-label">Ascendant</div>
-                      <div className="snw-tri-value asc">{r.summary.ascendant}</div>
-                    </div>
-                    <div className="snw-tri-card">
-                      <div className="snw-tri-label">Sun Sign</div>
-                      <div className="snw-tri-value sun">{r.summary.sun_sign}</div>
-                    </div>
-                    <div className="snw-tri-card">
-                      <div className="snw-tri-label">Moon Sign</div>
-                      <div className="snw-tri-value moon">{r.summary.moon_sign}</div>
-                    </div>
-                  </div>
+                <section data-pdf-page="cover">
+                  <ReadingCover
+                    name={r.inputs?.full_name}
+                    dob={r.inputs?.date_of_birth}
+                    tob={r.inputs?.time_of_birth}
+                    pob={r.inputs?.place_of_birth}
+                    ascendant={r.summary.ascendant}
+                    sunSign={r.summary.sun_sign}
+                    moonSign={r.summary.moon_sign}
+                    testIdPrefix="reading-basic"
+                  />
                 </section>
               )}
               <section data-pdf-page="advice" className="premium-card p-8 md:p-12">
