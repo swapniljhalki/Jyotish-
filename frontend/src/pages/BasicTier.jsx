@@ -342,11 +342,8 @@ export default function BasicTier() {
               </>
             )}
 
-            {/* PAGE 4 — AI advice text */}
+            {/* PAGE 4 — AI advice text (no leading divider label per request) */}
             <section data-pdf-page="advice">
-              <div className="ornate-divider mb-4">
-                <span className="font-accent text-xs text-[#D4AF37]">{t("result.your_reading")}</span>
-              </div>
               {result.advice ? (
                 <AdviceMarkdown testId="basic-advice">{result.advice}</AdviceMarkdown>
               ) : (
