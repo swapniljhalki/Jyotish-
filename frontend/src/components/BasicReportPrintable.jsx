@@ -137,7 +137,7 @@ function splitAdviceSections(text) {
 
 function CoverPage({ name, dobLong, tob, pob, generatedOn }) {
   return (
-    <section data-pdf-page="cover" style={pageBaseStyle({ minHeight: "1050px", textAlign: "center", padding: "80px 56px" })}>
+    <section data-pdf-page="cover" style={pageBaseStyle({ minHeight: "1140px", textAlign: "center", padding: "80px 56px" })}>
       <div style={{ display: "flex", justifyContent: "center", marginBottom: "32px" }}>
         <img src={snwLogo} alt="SNW" style={{ width: "110px", height: "110px", borderRadius: "50%" }} />
       </div>
@@ -263,7 +263,7 @@ function TableOfContents() {
     ["8.", "Detailed Personalized Reading", "10+"],
   ];
   return (
-    <section data-pdf-page="toc" style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section data-pdf-page="toc" style={pageBaseStyle()}>
       <H2>Table of Contents</H2>
       <ol style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {items.map(([num, label, page]) => (
@@ -290,8 +290,9 @@ function TableOfContents() {
 }
 
 function IntroductionPage() {
+  // No `data-pdf-page` — flows after the TOC to fill the page.
   return (
-    <section data-pdf-page="intro" style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section style={pageBaseStyle({ paddingTop: "24px" })}>
       <H2>Introduction</H2>
       <H3>About Vedic Astrology</H3>
       <P>
@@ -344,7 +345,7 @@ function BirthDetailsPage({ birth }) {
     ["Moon Sign",     birth.moon],
   ];
   return (
-    <section data-pdf-page="birth-details" style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section data-pdf-page="birth-details" style={pageBaseStyle()}>
       <H2>Birth Details</H2>
       <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FAMILY.body, fontSize: "11pt" }}>
         <tbody>
@@ -387,7 +388,7 @@ function BirthDetailsPage({ birth }) {
 function ChartPage({ id, title, chart, ascendantLabel, ascendantName }) {
   if (!chart) return null;
   return (
-    <section data-pdf-page={id} style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section data-pdf-page={id} style={pageBaseStyle()}>
       <H2>{title}</H2>
       <div style={{ display: "flex", justifyContent: "center", margin: "20px 0" }}>
         <div style={{ width: "440px" }}>
@@ -417,7 +418,7 @@ function ChartPage({ id, title, chart, ascendantLabel, ascendantName }) {
 
 function PlanetTablePage({ planets }) {
   return (
-    <section data-pdf-page="planets" style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section data-pdf-page="planets" style={pageBaseStyle()}>
       <H2>Planetary Positions</H2>
       <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: FAMILY.body, fontSize: "11pt", color: "#000" }}>
         <thead>
@@ -463,8 +464,9 @@ function PlanetTablePage({ planets }) {
 
 function NakshatraReportPage({ nr }) {
   if (!nr) return null;
+  // No `data-pdf-page` — packs after the Planetary Positions table.
   return (
-    <section data-pdf-page="nakshatra-report" style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section style={pageBaseStyle({ paddingTop: "24px" })}>
       <H2>Nakshatra Report — Moon&apos;s Star</H2>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "14px" }}>
         <div>
@@ -518,10 +520,10 @@ function ReadingPage({ advice }) {
   const sections = splitAdviceSections(advice);
   if (sections.length === 0) return null;
   return (
-    <section data-pdf-page="reading" style={pageBaseStyle({ minHeight: "1050px" })}>
+    <section data-pdf-page="reading" style={pageBaseStyle()}>
       <H2>Detailed Personalized Reading</H2>
       {sections.map((s) => (
-        <div key={s.heading} data-pdf-page={`reading-${s.heading}`} style={{ marginBottom: "10px" }}>
+        <div key={s.heading} style={{ marginBottom: "10px" }}>
           <H3>{s.heading}</H3>
           {s.body.split(/\n{2,}/).map((para, i) => (
             <P key={i}>{para.replace(/\n/g, " ")}</P>
