@@ -92,13 +92,18 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
 
     // Section break points (y-positions in CANVAS pixels) — start-of-section.
     // We'll use these to avoid splitting a section across two pages.
+    // NOTE: the first section's top is the natural start of content (typically
+    // just the printable-area's top padding worth from y=0). We deliberately
+    // drop it from the break-candidate list — breaking *before* the very first
+    // section would create an empty page containing only the top padding.
     const sectionStarts = Array.from(node.querySelectorAll("[data-pdf-page]"))
       .map((el) => {
         const top = el.getBoundingClientRect().top - nodeRect.top;
         return Math.round(top * canvasYPerCssPx);
       })
       .filter((y, i, arr) => y > 0 && (i === 0 || y !== arr[i - 1])) // dedupe, skip 0
-      .sort((a, b) => a - b);
+      .sort((a, b) => a - b)
+      .slice(1);                                                      // drop first marker
     // Intentionally suppress lint: scale is computed for clarity but not
     // strictly needed once we use the canvas/css ratio directly.
     void scale;
@@ -189,21 +194,19 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
         (y) => y > renderedPx + 8 && y < defaultEnd,
       );
       if (breakStart !== undefined) {
-        // Find the bottom of that section: either the next section start, or
-        // the end of the canvas if it's the last section.
-        const next = sectionStarts.find((y) => y > breakStart);
-        const sectionBottom = next ?? canvas.height;
-        const sectionHeight = sectionBottom - breakStart;
-
-        // Only force a fresh page if the section ACTUALLY overflows this page's
-        // remaining space (sectionBottom > defaultEnd) AND would fit on a fresh
-        // page. Otherwise the section is short enough to fit in what's left of
-        // the current page — keep it where it is, no break.  Without this check
-        // every short data-pdf-page section was being pushed to its own page,
-        // leaving lots of whitespace.
-        const overflowsCurrentPage = sectionBottom > defaultEnd;
-        if (overflowsCurrentPage && sectionHeight <= chunkPx) {
-          cutAt = breakStart;
+        // Always honor `data-pdf-page` markers as hard page breaks. Even when
+        // the marked section itself is taller than one page, the first chunk
+        // of it will start cleanly on a fresh page — which is exactly what the
+        // marker is asking for.
+        cutAt = breakStart;
+      } else {
+        // No marker inside this chunk — but check if there's a marker just
+        // beyond `defaultEnd`. If it's close (within 25% of chunkPx), absorb
+        // it into the current page so we don't end up emitting a tiny
+        // near-empty "leftover" page between two real ones.
+        const nextMarker = sectionStarts.find((y) => y >= defaultEnd);
+        if (nextMarker !== undefined && nextMarker - defaultEnd < chunkPx * 0.25) {
+          cutAt = nextMarker;
         }
       }
 
