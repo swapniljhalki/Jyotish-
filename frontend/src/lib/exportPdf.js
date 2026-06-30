@@ -78,7 +78,7 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
     const scale = captureWidth / nodeRect.width;   // CSS px → capture px
 
     const canvas = await toCanvas(node, {
-      pixelRatio: theme === "report" ? 2 : 3,
+      pixelRatio: 2,
       backgroundColor: COLORS.bg,
       cacheBust: true,
       width: captureWidth,
@@ -195,10 +195,14 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
         const sectionBottom = next ?? canvas.height;
         const sectionHeight = sectionBottom - breakStart;
 
-        // Only force a break if the section fits comfortably on a fresh page.
-        // If it's bigger than a page anyway, splitting is unavoidable — let it
-        // flow with the default chunking.
-        if (sectionHeight <= chunkPx) {
+        // Only force a fresh page if the section ACTUALLY overflows this page's
+        // remaining space (sectionBottom > defaultEnd) AND would fit on a fresh
+        // page. Otherwise the section is short enough to fit in what's left of
+        // the current page — keep it where it is, no break.  Without this check
+        // every short data-pdf-page section was being pushed to its own page,
+        // leaving lots of whitespace.
+        const overflowsCurrentPage = sectionBottom > defaultEnd;
+        if (overflowsCurrentPage && sectionHeight <= chunkPx) {
           cutAt = breakStart;
         }
       }
@@ -220,9 +224,7 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
         ctx.drawImage(logo, (slice.width - w) / 2, (chunkPx - h) / 2, w, h);
         ctx.globalAlpha = 1;
       }
-      slices.push(theme === "report"
-        ? slice.toDataURL("image/jpeg", 0.85)
-        : slice.toDataURL("image/png"));
+      slices.push(slice.toDataURL("image/jpeg", 0.88));
       renderedPx = cutAt;
     }
 
@@ -234,8 +236,7 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
       if (pageIndex > 1) pdf.addPage();
       pdf.setFillColor(COLORS.bg);
       pdf.rect(0, 0, pageW, pageH, "F");
-      const fmt = theme === "report" ? "JPEG" : "PNG";
-      pdf.addImage(dataUrl, fmt, innerLeft, innerTop, imgW, imgH);
+      pdf.addImage(dataUrl, "JPEG", innerLeft, innerTop, imgW, imgH);
       drawChrome(pageIndex, totalPages);
     });
 
