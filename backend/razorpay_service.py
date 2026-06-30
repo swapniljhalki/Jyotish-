@@ -19,7 +19,7 @@ from typing import Optional
 
 # Pricing (in paise — Razorpay's smallest INR unit)
 PRICING = {
-    "basic":   {"label": "Sadhaka",  "amount_paise":  9900},  # ₹99
+    "basic":   {"label": "Sadhaka",  "amount_paise": 19900},  # ₹199
     "premium": {"label": "Jyotishi", "amount_paise": 99900},  # ₹999
 }
 
