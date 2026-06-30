@@ -1480,38 +1480,9 @@ def _lang_instruction(lang: Optional[str]) -> str:
 async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "basic")
     chart = await _build_chart(body)
-
-    system = (
-        "You are an experienced Vedic astrologer (Jyotishi) writing for a modern audience. "
-        "Use warm, encouraging but honest language. Reference traditional terms (rashi, graha, bhava, "
-        "nakshatra) where natural and briefly translate them. Keep output to ~250 words, formatted "
-        "in short paragraphs with tasteful section headings."
-        + _lang_instruction(body.lang)
-    )
-    user_msg = (
-        f"Provide a BASIC Vedic astrological reading for:\n"
-        f"- Name: {body.full_name or 'Seeker'}\n"
-        f"- Date of birth: {body.date_of_birth}\n"
-        f"- Time of birth: {body.time_of_birth}\n"
-        f"- Place of birth: {body.place_of_birth}\n\n"
-        f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']}).\n"
-        f"Sun in {next(p['rashi_english'] for p in chart['planets'] if p['code']=='Su')}, "
-        f"Moon in {next(p['rashi_english'] for p in chart['planets'] if p['code']=='Mo')}.\n\n"
-        f"Cover: (1) core personality, (2) strengths, (3) areas for growth, "
-        f"(4) one practical remedy (mantra / daily practice). Finish with a short blessing."
-    )
+    system, user_msg, nakshatra_report, basic_chart, summary = _basic_prompts(body, chart)
     advice = await _ask_claude(system, user_msg, f"basic-{user['id']}")
     reading_id = str(uuid.uuid4())
-    summary = {
-        "ascendant": chart["ascendant_english"],
-        "sun_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su"),
-        "moon_sign": next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo"),
-    }
-    # Basic tier: D1 (Lagna) chart only — strip premium-only divisions
-    basic_chart = {
-        k: v for k, v in chart.items()
-        if k not in ("chandra", "navamsha", "dasha", "numerology_dasha", "mulank")
-    }
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "basic",
         "inputs": body.model_dump(), "advice": advice,
@@ -1525,9 +1496,153 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
         "ascendant": chart["ascendant_english"],
         "ascendant_sanskrit": chart["ascendant"],
         "moon_sign": summary["moon_sign"],
-        "sun_sign": summary["sun_sign"],
+        "sun_sign":  summary["sun_sign"],
+        "nakshatra_report": nakshatra_report,
         "advice": advice,
         "chart": basic_chart,
+    }
+
+
+def _basic_prompts(body: "AstroIn", chart: dict):
+    """Build the system/user prompt for a Basic-tier reading plus the
+    chart/summary/nakshatra payload that gets persisted and returned."""
+    moon = next((p for p in chart["planets"] if p["code"] == "Mo"), None)
+    nak_meta = get_nakshatra(moon["nakshatra_index"]) if moon else None
+    nakshatra_report = None
+    if moon and nak_meta:
+        nakshatra_report = {
+            "name":        nak_meta["name"],
+            "sanskrit":    nak_meta["sanskrit"],
+            "pada":        moon["nakshatra_pada"],
+            "deity":       nak_meta["deity"],
+            "symbol":      nak_meta["symbol"],
+            "ruler":       nak_meta["ruler"],
+            "range":       nak_meta["range"],
+            "gana":        nak_meta["gana"],
+            "quality":     nak_meta["quality"],
+            "description": nak_meta["description"],
+        }
+
+    sun_rashi  = next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su")
+    moon_rashi = next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo")
+    nak_context = (
+        f"Moon's Nakshatra: {nakshatra_report['name']} ({nakshatra_report['sanskrit']}), "
+        f"pada {nakshatra_report['pada']}, ruled by {nakshatra_report['ruler']}, "
+        f"deity {nakshatra_report['deity']}, symbol {nakshatra_report['symbol']}, "
+        f"quality {nakshatra_report['quality']}."
+        if nakshatra_report else ""
+    )
+
+    system = (
+        "You are a senior Vedic astrologer (Jyotishi) writing a thoughtful, detailed reading "
+        "for a modern audience. Reference the given placements — including the Moon's nakshatra "
+        "and its deity / symbol — where they meaningfully shape the personality, life path or "
+        "remedies. Use warm, encouraging but honest language. Use traditional Vedic terminology "
+        "(rashi, graha, bhava, nakshatra) with brief plain-English translations. Be specific to "
+        "the placements provided, never generic. Aim for ~500–600 words. Structure with the "
+        "exact Markdown ## section headings asked below; keep each section to 2–4 short "
+        "paragraphs."
+        + _lang_instruction(body.lang)
+    )
+    user_msg = (
+        f"Provide a DETAILED Vedic astrological reading for:\n"
+        f"- Name: {body.full_name or 'Seeker'}\n"
+        f"- Date of birth: {body.date_of_birth}\n"
+        f"- Time of birth: {body.time_of_birth}\n"
+        f"- Place of birth: {body.place_of_birth}\n\n"
+        f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']}).\n"
+        f"Sun in {sun_rashi}, Moon in {moon_rashi}.\n"
+        f"{nak_context}\n\n"
+        f"Write the reading with these exact sections, in this order:\n"
+        f"## Overall Personality\n"
+        f"## Strengths\n"
+        f"## Areas of Growth\n"
+        f"## Career & Dharma\n"
+        f"## Wealth & Finances\n"
+        f"## Relationships & Marriage\n"
+        f"## Health & Vitality\n"
+        f"## Spiritual Path\n"
+        f"## Current Focus & Remedies\n\n"
+        f"End with a short closing blessing in Sanskrit with English translation."
+    )
+
+    summary = {
+        "ascendant": chart["ascendant_english"],
+        "sun_sign":  sun_rashi,
+        "moon_sign": moon_rashi,
+    }
+    # Basic tier: include Lagna + Chandra Rashi + Navamsha charts and the
+    # Moon's nakshatra report. Vimshottari dasha and numerology dasha remain
+    # Premium-exclusive.
+    basic_chart = {
+        k: v for k, v in chart.items()
+        if k not in ("dasha", "numerology_dasha", "mulank")
+    }
+    if nakshatra_report:
+        basic_chart["nakshatra_report"] = nakshatra_report
+
+    return system, user_msg, nakshatra_report, basic_chart, summary
+
+
+# Async variant — Claude can exceed the edge gateway's 60–100 s timeout for the
+# ~600-word reading, so the frontend starts the job and polls until it's done.
+@api.post("/astrology/basic/start")
+async def astrology_basic_start(body: AstroIn, user: dict = Depends(get_current_user)):
+    require_tier(user, "basic")
+    chart = await _build_chart(body)
+    system, user_msg, nakshatra_report, basic_chart, summary = _basic_prompts(body, chart)
+    reading_id = str(uuid.uuid4())
+    await db.readings.insert_one({
+        "id": reading_id, "user_id": user["id"], "tier": "basic",
+        "inputs": body.model_dump(), "chart": basic_chart, "advice": "",
+        "status": "processing",
+        "summary": summary,
+        "is_shared": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    async def _generate():
+        try:
+            advice = await _ask_claude(system, user_msg, f"basic-{user['id']}")
+            await db.readings.update_one(
+                {"id": reading_id}, {"$set": {"advice": advice, "status": "done"}}
+            )
+        except Exception as e:
+            logging.exception("Basic reading generation failed")
+            await db.readings.update_one(
+                {"id": reading_id}, {"$set": {"status": "failed", "error": str(e)}}
+            )
+
+    asyncio.create_task(_generate())
+    return {
+        "id": reading_id,
+        "status": "processing",
+        "chart": basic_chart,
+        "ascendant": chart["ascendant_english"],
+        "ascendant_sanskrit": chart["ascendant"],
+        "sun_sign":  summary["sun_sign"],
+        "moon_sign": summary["moon_sign"],
+        "nakshatra_report": nakshatra_report,
+    }
+
+
+@api.get("/astrology/basic/status/{reading_id}")
+async def astrology_basic_status(reading_id: str, user: dict = Depends(get_current_user)):
+    r = await db.readings.find_one({"id": reading_id, "user_id": user["id"]}, {"_id": 0})
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    chart = r.get("chart") or {}
+    summary = r.get("summary") or {}
+    return {
+        "id": r["id"],
+        "status": r.get("status", "done"),
+        "chart": chart,
+        "advice": r.get("advice"),
+        "ascendant": chart.get("ascendant_english") or summary.get("ascendant"),
+        "ascendant_sanskrit": chart.get("ascendant"),
+        "sun_sign":  summary.get("sun_sign"),
+        "moon_sign": summary.get("moon_sign"),
+        "nakshatra_report": chart.get("nakshatra_report"),
     }
 
 
