@@ -268,6 +268,7 @@ def compute_chart_from_local(
     asc_nak = _nakshatra(asc_lon)
     return {
         "engine": "swiss-ephemeris-lahiri-whole-sign",
+        "ayanamsa": "Lahiri",
         "ascendant_index": asc_idx,
         "ascendant": RASHIS[asc_idx],
         "ascendant_english": RASHIS_EN[asc_idx],

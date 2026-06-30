@@ -14,6 +14,7 @@ import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
 import AdviceMarkdown from "../components/AdviceMarkdown";
 import NumberCard from "../components/NumberCard";
+import BasicReportPrintable from "../components/BasicReportPrintable";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -26,6 +27,7 @@ export default function BasicTier() {
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const resultRef = useRef(null);
+  const pdfRef = useRef(null);
 
   // Chaldean Name Numerology (also accessible to Basic tier)
   const [chaldeanName, setChaldeanName] = useState("");
@@ -147,7 +149,44 @@ export default function BasicTier() {
 
         {result && (
           <div className="mt-10 fade-up">
-          <ResultActions targetRef={resultRef} filename="Kundali-Basic-Reading.pdf" testIdPrefix="basic" />
+          <ResultActions targetRef={pdfRef} filename="Kundali-Basic-Reading.pdf" testIdPrefix="basic" pdfTheme="report" />
+
+          {/* Off-screen printable: the dedicated structured PDF report. This is what
+              gets captured for the PDF download — the on-screen result UI below is
+              the user-facing view and stays unchanged. */}
+          <div
+            aria-hidden="true"
+            style={{ position: "fixed", left: "-99999px", top: 0, zIndex: -1, background: "#FFFFFF" }}
+          >
+            <div ref={pdfRef}>
+              <BasicReportPrintable
+                birth={{
+                  name: inputs?.full_name || "Seeker",
+                  dobLong: inputs?.date_of_birth
+                    ? new Date(`${inputs.date_of_birth}T00:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+                    : "—",
+                  tob: inputs?.time_of_birth || "—",
+                  pob: result.chart?.place_of_birth || inputs?.place_of_birth || "—",
+                  lat: result.chart?.latitude != null ? `${result.chart.latitude}° N` : "—",
+                  lon: result.chart?.longitude != null ? `${result.chart.longitude}° E` : "—",
+                  tz:  result.chart?.timezone || "—",
+                  ayanamsa: result.chart?.ayanamsa || "Lahiri",
+                  nakshatra: result.chart?.nakshatra_report
+                    ? `${result.chart.nakshatra_report.name} · Pada ${result.chart.nakshatra_report.pada}`
+                    : "—",
+                  ascendant: result.ascendant,
+                  sun: result.sun_sign,
+                  moon: result.moon_sign,
+                }}
+                chart={result.chart}
+                advice={result.advice}
+                nakshatraReport={result.nakshatra_report || result.chart?.nakshatra_report}
+                generatedOn={new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
+          </div>
+
+          {/* On-screen result (unchanged Starbucks-light view) */}
           <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
             <img src={snwLogo} alt="" className="print-watermark" />
 

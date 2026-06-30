@@ -59,7 +59,13 @@ function neutralizeOverflow(root) {
  *   │  └─────────────────────────────┘  │
  *   └───────────────────────────────────┘
  */
-export async function downloadNodeAsPdf(node, filename) {
+export async function downloadNodeAsPdf(node, filename, options = {}) {
+  const theme = options.theme === "report" ? "report" : "default";
+  const COLORS = theme === "report"
+    ? { bg: "#FFFFFF", outerBorder: [201, 162, 39], innerBorder: [201, 162, 39], footerText: [11, 31, 58], footerInk: [11, 31, 58] }
+    : { bg: "#FDFBF7", outerBorder: [184, 134, 11], innerBorder: [212, 175, 55], footerText: [139, 94, 26], footerInk: [139, 94, 26] };
+  const watermarkAlpha = theme === "report" ? 0.035 : 0.06;
+
   const restore = neutralizeOverflow(node);
   try {
     // Higher resolution capture → crisp text & SVG charts in the PDF.
@@ -72,8 +78,8 @@ export async function downloadNodeAsPdf(node, filename) {
     const scale = captureWidth / nodeRect.width;   // CSS px → capture px
 
     const canvas = await toCanvas(node, {
-      pixelRatio: 3,
-      backgroundColor: "#FDFBF7",
+      pixelRatio: theme === "report" ? 2 : 3,
+      backgroundColor: COLORS.bg,
       cacheBust: true,
       width: captureWidth,
       style: { width: `${captureWidth}px`, maxWidth: "none", overflow: "visible" },
@@ -202,7 +208,7 @@ export async function downloadNodeAsPdf(node, filename) {
       slice.width = canvas.width;
       slice.height = chunkPx;                       // always full page height for consistent watermark
       const ctx = slice.getContext("2d");
-      ctx.fillStyle = "#FDFBF7";
+      ctx.fillStyle = COLORS.bg;
       ctx.fillRect(0, 0, slice.width, slice.height);
       ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
 
@@ -210,11 +216,13 @@ export async function downloadNodeAsPdf(node, filename) {
       if (logo) {
         const w = slice.width * 0.55;
         const h = (logo.height / logo.width) * w;
-        ctx.globalAlpha = 0.06;
+        ctx.globalAlpha = watermarkAlpha;
         ctx.drawImage(logo, (slice.width - w) / 2, (chunkPx - h) / 2, w, h);
         ctx.globalAlpha = 1;
       }
-      slices.push(slice.toDataURL("image/png"));
+      slices.push(theme === "report"
+        ? slice.toDataURL("image/jpeg", 0.85)
+        : slice.toDataURL("image/png"));
       renderedPx = cutAt;
     }
 
@@ -224,9 +232,10 @@ export async function downloadNodeAsPdf(node, filename) {
     slices.forEach((dataUrl, i) => {
       const pageIndex = i + 1;
       if (pageIndex > 1) pdf.addPage();
-      pdf.setFillColor("#FDFBF7");
+      pdf.setFillColor(COLORS.bg);
       pdf.rect(0, 0, pageW, pageH, "F");
-      pdf.addImage(dataUrl, "PNG", innerLeft, innerTop, imgW, imgH);
+      const fmt = theme === "report" ? "JPEG" : "PNG";
+      pdf.addImage(dataUrl, fmt, innerLeft, innerTop, imgW, imgH);
       drawChrome(pageIndex, totalPages);
     });
 

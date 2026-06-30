@@ -8,7 +8,7 @@ import { downloadNodeAsPdf } from "../lib/exportPdf";
  * Print & Download-as-PDF action buttons for a reading result.
  * `targetRef` must point to the printable result container.
  */
-export default function ResultActions({ targetRef, filename, testIdPrefix }) {
+export default function ResultActions({ targetRef, filename, testIdPrefix, pdfTheme }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
 
@@ -16,7 +16,7 @@ export default function ResultActions({ targetRef, filename, testIdPrefix }) {
     if (!targetRef.current || busy) return;
     setBusy(true);
     try {
-      await downloadNodeAsPdf(targetRef.current, filename);
+      await downloadNodeAsPdf(targetRef.current, filename, { theme: pdfTheme });
       toast.success(t("result.pdf_done"));
     } catch (e) {
       console.error("PDF export failed", e);
