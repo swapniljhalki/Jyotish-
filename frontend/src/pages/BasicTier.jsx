@@ -107,6 +107,31 @@ export default function BasicTier() {
 
   return (
     <div className="bg-[#FDFBF7] min-h-[calc(100vh-64px)]">
+      {/* Scrolling banner (screen-only) — hint that Numerology tools are below the form */}
+      <div
+        className="no-print relative overflow-hidden border-y"
+        style={{
+          background: "linear-gradient(90deg,#FFF2D9 0%,#FFE0B2 50%,#FFF2D9 100%)",
+          borderColor: "rgba(201,162,39,0.35)",
+        }}
+        data-testid="basic-marquee-banner"
+        role="status"
+        aria-label="For Numerology Readings please scroll below"
+      >
+        <div className="marquee-track py-2.5 whitespace-nowrap">
+          {/* Duplicated content so the loop is seamless */}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span
+              key={i}
+              className="mx-8 font-heading text-[15px] md:text-base"
+              style={{ color: "#7A1F1F", letterSpacing: "0.04em", fontWeight: 500 }}
+            >
+              ✦ For Numerology Readings please scroll below ✦
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div className="sb-container sb-section">
         <div className="max-w-3xl mb-12 fade-up">
           <span className="sb-eyebrow">{t("basic.eyebrow")}</span>

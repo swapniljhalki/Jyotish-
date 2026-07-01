@@ -184,6 +184,24 @@
 }
 .testimonial-fade { animation: testimonial-fade 0.55s ease-out both; }
 
+/* --- Marquee (Basic Tier top banner) --- */
+@keyframes marquee-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: inline-block;
+  animation: marquee-slide 26s linear infinite;
+  will-change: transform;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
+
+
 
 /* --- Kundali chart animation --- */
 @keyframes draw-line {
