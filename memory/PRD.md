@@ -264,5 +264,12 @@ See `/app/memory/test_credentials.md`.
   - Updated `[data-pdf-page]` anchors for paired-page pagination — P1: Cover + Nakshatra · P2: Lagna + Planets · P3: Chandra + Navamsha · P4: Vimshottari · P5-6: Advice.
   - Converted per-section wrappers from `premium-card` to `glass-card` (consistent inner styling since outer is now the single premium-card).
   - Removed the "Detailed Reading" divider label above the advice section (Basic doesn't have one).
-- PDF verified: 6 pages, 2.58 MB, layout matches Basic exactly (Page 1: Ganesha + Cover + Nakshatra; Page 2: Lagna + Planets; Page 3: Chandra + Navamsha; Page 4: Vimshottari; Pages 5-6: AI reading).
+- PDF verified: 6 pages, 2.58 MB.
+
+## Feb 20, 2026 — Premium PDF forced to exact 5-page layout (P0 follow-up)
+- User request: PDF must be exactly — P1 Ganesha+details+nakshatra, P2 lagna+planets, P3 chandra+navamsha, P4 vimshottari, P5 full reading; full page utilized; no section split across pages.
+- Root cause: ~700-word AI advice at default line-height 1.8 / body 0.98rem overflowed Page 5 → Page 6.
+- Fix: Added `compact` variant to `AdviceMarkdown.jsx` (body 0.78rem, line-height 1.4, tighter heading/paragraph margins, table & list padding shrunk). Wired `<AdviceMarkdown compact>` only in `PremiumTier.jsx` — Basic keeps the spacious default styling.
+- Verified: Premium PDF now = exactly 5 pages (2.2 MB). All 9 advice subsections (Overall Personality, Career & Dharma, Wealth & Finances, Relationships & Marriage, Health & Vitality, Spiritual Path, Current Focus, Remedies, Closing Blessing) fit on the single reading page. No section is split.
+
 
