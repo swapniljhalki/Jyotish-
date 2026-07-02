@@ -272,10 +272,14 @@ See `/app/memory/test_credentials.md`.
 - Fix: Added `compact` variant to `AdviceMarkdown.jsx` (body 0.78rem, line-height 1.4, tighter heading/paragraph margins, table & list padding shrunk). Wired `<AdviceMarkdown compact>` only in `PremiumTier.jsx` — Basic keeps the spacious default styling.
 - Verified: Premium PDF now = exactly 5 pages (2.2 MB). All 9 advice subsections (Overall Personality, Career & Dharma, Wealth & Finances, Relationships & Marriage, Health & Vitality, Spiritual Path, Current Focus, Remedies, Closing Blessing) fit on the single reading page. No section is split.
 
-## Feb 20, 2026 — Premium PDF reading legibility reverted (P0 follow-up)
-- User request: "In premium tier, in pdf report please do not make detailed reading compact, please make it more legible."
-- Removed the `compact` prop from `<AdviceMarkdown>` in `PremiumTier.jsx`; the reading now uses the default spacious styling (body 0.98rem, line-height 1.8).
-- Net effect: Premium PDF is now 6 pages. First 4 pages are unchanged (P1 cover+nakshatra, P2 lagna+planets, P3 chandra+navamsha, P4 vimshottari). The reading flows naturally across P5–P6 at legible size; no section, chart, table, or heading is cut mid-way. Verified via AI structural analysis.
+## Feb 20, 2026 — Premium PDF Page 4 utilization fix (P0)
+- User request: "from page 1 to 4 please utilize full page for content, do not split on 2 pages."
+- Root cause: Page 4 (Vimshottari) had only a 9-row table filling ~50% of the page, leaving significant blank space in the lower half.
+- Fix in `/app/frontend/src/pages/PremiumTier.jsx`:
+  - Added an introductory paragraph explaining the Vimshottari system (calculated from Moon Nakshatra, 9 planetary periods = 120 years) above the "Currently running" line.
+  - Added a **Planetary Themes** 3×3 grid below the table: 9 compact cards, each showing lord (Sun/Moon/Mars/Rahu/Jupiter/Saturn/Mercury/Ketu/Venus), Sanskrit name, duration in years, and a one-line theme (e.g. Sun · Surya · 6 yrs — "Authority, self-realization, leadership, health of father & spine").
+- Verified: PDF regenerated (2.68 MB, 6 pages). Page 4 confirmed via image analysis: intro + table + themes grid all fit on a single page with no overflow; page is now well-filled. P1–P3 unchanged (already complete/legible). P5–6 = spacious detailed reading.
+
 
 
 
