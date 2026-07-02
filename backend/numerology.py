@@ -173,8 +173,135 @@ def compute_naamank(full_name: str) -> tuple[int, int]:
     return total, (_reduce(total) if total > 0 else 0)
 
 
+# --- Lo Shu Grid (Vedic Numerology Chart / Jeevan Ank Yantra) --------------- #
+# The Lo Shu grid arranges numbers 1-9 in a 3×3 magic square where every row,
+# column and diagonal sums to 15. In Vedic numerology it's used to visualise a
+# person's strengths (present numbers) and growth areas (missing numbers).
+#
+#   4 | 9 | 2
+#   3 | 5 | 7
+#   8 | 1 | 6
+
+LO_SHU_POSITIONS: dict[int, tuple[int, int]] = {
+    4: (0, 0), 9: (0, 1), 2: (0, 2),
+    3: (1, 0), 5: (1, 1), 7: (1, 2),
+    8: (2, 0), 1: (2, 1), 6: (2, 2),
+}
+
+# Short trait phrase used inside each grid cell.
+LO_SHU_NUMBER_MEANINGS: dict[int, str] = {
+    1: "Self-expression, communication, career.",
+    2: "Sensitivity, intuition, relationships.",
+    3: "Imagination, memory, creativity.",
+    4: "Discipline, order, practical wisdom.",
+    5: "Balance, freedom, purpose.",
+    6: "Family, love, artistry, home.",
+    7: "Sacrifice, spirituality, learning.",
+    8: "Structure, persistence, karma.",
+    9: "Ambition, energy, intellect.",
+}
+
+# "Arrows" — sets of three positions that form meaningful lines through the
+# grid. A COMPLETED arrow (all three numbers present in the DOB) marks a
+# strength; a MISSING arrow (all three absent) marks an area for growth.
+LO_SHU_ARROWS: list[dict] = [
+    # Rows (planes of expression)
+    {"nums": (4, 9, 2), "kind": "row",    "label": "Plane of Thought",         "strength": "Mental agility, planner's mind, sharp intellect.", "weakness": "Poor memory, difficulty analysing situations."},
+    {"nums": (3, 5, 7), "kind": "row",    "label": "Plane of Emotion",         "strength": "Emotional balance, empathy, artistic sensitivity.", "weakness": "Emotional highs & lows, difficulty expressing feelings."},
+    {"nums": (8, 1, 6), "kind": "row",    "label": "Plane of Action",          "strength": "Practicality, willpower, ability to execute.",       "weakness": "Procrastination, lack of grounding."},
+    # Columns (planes of will / action / thought)
+    {"nums": (4, 3, 8), "kind": "col",    "label": "Plane of Determination",   "strength": "Persistence, hard work, karmic discipline.",         "weakness": "Lack of direction, frequent quitting."},
+    {"nums": (9, 5, 1), "kind": "col",    "label": "Plane of Will",            "strength": "Strong will, purpose, self-mastery.",                 "weakness": "Weak willpower, easily swayed."},
+    {"nums": (2, 7, 6), "kind": "col",    "label": "Plane of Activity",        "strength": "Practical activity, love of movement & travel.",     "weakness": "Restlessness, difficulty completing tasks."},
+    # Diagonals (spiritual & material fortune)
+    {"nums": (4, 5, 6), "kind": "diag",   "label": "Plane of Prosperity",      "strength": "Attracts wealth, comfort and abundance.",           "weakness": "Financial ups & downs; must cultivate saving habits."},
+    {"nums": (2, 5, 8), "kind": "diag",   "label": "Plane of Spirituality",    "strength": "Wisdom, spiritual insight, karmic clarity.",         "weakness": "Material attachment; disconnection from inner self."},
+]
+
+
+def _lo_shu_digits(dob: date) -> list[int]:
+    """Return the multiset of DOB digits to count in the Lo Shu grid.
+
+    Convention used here (standard modern Vedic numerology):
+      • Include day, month, year digits (zeros excluded — 0 is not a Lo Shu cell).
+      • Also include the Mulank (day-reduced) and Bhagyank (full-DOB-reduced)
+        so the driver + conductor numbers reinforce the grid.
+    """
+    raw = list(f"{dob.year}{dob.month:02d}{dob.day:02d}")
+    digits = [int(c) for c in raw if c != "0"]
+    digits.append(compute_mulank(dob))
+    digits.append(compute_bhagyank(dob))
+    return digits
+
+
+def compute_lo_shu_grid(dob: date) -> dict:
+    """Build the Lo Shu (Vedic Numerology) grid for a date of birth.
+
+    Returns:
+        {
+          "grid": [[{"digit", "count", "meaning"}, …3 cells…], …3 rows…],
+          "counts": {1..9: occurrence_count},
+          "present": [ints…],  # numbers with count >= 1
+          "missing": [ints…],  # numbers with count == 0
+          "arrows_present": [ arrows fully completed by DOB ],
+          "arrows_missing":  [ arrows fully absent from DOB ],
+          "derivation":     "how counts were computed",
+        }
+    """
+    digits = _lo_shu_digits(dob)
+    counts = {str(n): digits.count(n) for n in range(1, 10)}
+
+    # 3×3 grid in visual order (row 0 = top)
+    grid_layout = [
+        [4, 9, 2],
+        [3, 5, 7],
+        [8, 1, 6],
+    ]
+    grid = [
+        [
+            {
+                "digit": num,
+                "count": counts[str(num)],
+                "meaning": LO_SHU_NUMBER_MEANINGS[num],
+            }
+            for num in row
+        ]
+        for row in grid_layout
+    ]
+
+    present = [n for n in range(1, 10) if counts[str(n)] > 0]
+    missing = [n for n in range(1, 10) if counts[str(n)] == 0]
+
+    def _all_present(arrow_nums: tuple) -> bool:
+        return all(counts[str(n)] > 0 for n in arrow_nums)
+
+    def _all_missing(arrow_nums: tuple) -> bool:
+        return all(counts[str(n)] == 0 for n in arrow_nums)
+
+    arrows_present = [
+        {**a, "state": "present"} for a in LO_SHU_ARROWS if _all_present(a["nums"])
+    ]
+    arrows_missing = [
+        {**a, "state": "missing"} for a in LO_SHU_ARROWS if _all_missing(a["nums"])
+    ]
+
+    return {
+        "label": "Vedic Numerology Chart (Lo Shu Grid)",
+        "grid": grid,
+        "counts": counts,
+        "present": present,
+        "missing": missing,
+        "arrows_present": arrows_present,
+        "arrows_missing": arrows_missing,
+        "derivation": (
+            f"Digits from {dob.isoformat()} (zeros ignored) + Mulank + Bhagyank "
+            f"→ {sorted(digits)}"
+        ),
+    }
+
+
 def compute_numerology(dob: date, full_name: str) -> dict:
-    """Full Vedic numerology profile."""
+    """Full Vedic numerology profile — three core numbers + Lo Shu grid."""
     mulank = compute_mulank(dob)
     bhagyank = compute_bhagyank(dob)
     naamank_raw, naamank = compute_naamank(full_name)
@@ -211,4 +338,5 @@ def compute_numerology(dob: date, full_name: str) -> dict:
             ),
             **(NUMBER_PROFILE[naamank] if naamank else {}),
         },
+        "lo_shu": compute_lo_shu_grid(dob),
     }

@@ -281,10 +281,24 @@ See `/app/memory/test_credentials.md`.
 - Verified: P4 now well-filled on a single page, no overflow.
 
 ## Feb 20, 2026 — Numerology Overview section added to Premium (P0)
-- User request: "In premium tier, below kundali reading, please insert a section to provide basic numerology advice such as Mulank, Bhagyank, Namank. Please keep this before numerology dasha section."
-- Backend (`/app/backend/server.py::_build_chart`): enriched the chart response with a full `numerology` block via existing `compute_numerology(dob, full_name)` — returns Mulank, Bhagyank, Naamank each with ruling planet (Sanskrit + English), derivation, traits, gemstone, lucky colors/days, mantra, career.
-- Frontend (`/app/frontend/src/pages/PremiumTier.jsx`): added a new `data-pdf-page="numerology-overview"` section between the AI advice and the Numerology Dasha. Renders a 3-column grid — Root Number (Mulank), Destiny Number (Bhagyank), Name Number (Naamank) — each card showing planet, derivation, traits, gemstone, colors, days, mantra, and career.
-- Verified end-to-end: Ravi Kumar (DOB 1990-05-15) → Mulank 6 (Shukra), Bhagyank 3 (Guru), Naamank 7 (Ketu). PDF regenerated (3.09 MB, 7 pages). Page 7 confirmed via image analysis: all three cards fully visible with complete derivations and profiles, page well-utilized.
+- User request: "In premium tier, below kundali reading, please insert a section to provide basic numerology advice such as Mulank, Bhagyank, Namank."
+- Backend (`/app/backend/server.py::_build_chart`): enriched chart response with `numerology` block via existing `compute_numerology(dob, full_name)`.
+- Frontend (`/app/frontend/src/pages/PremiumTier.jsx`): new section between AI advice and Numerology Dasha — 3-card grid (Root, Destiny, Name) each showing planet, derivation, traits, gemstone, colors, days, mantra, career.
+
+## Feb 20, 2026 — Vedic Numerology Chart (Lo Shu Grid) added (P0)
+- User request: "In premium tier please add vedic numerology chart by taking input of date of birth provided from user details section on top of page."
+- Backend (`/app/backend/numerology.py`): added `compute_lo_shu_grid(dob)`.
+  - Returns 3×3 grid in classic layout: `4-9-2 / 3-5-7 / 8-1-6`.
+  - Counts DOB digits (zeros excluded per Vedic convention) + reinforces with Mulank + Bhagyank.
+  - Exposes `present` / `missing` numbers + `arrows_present` / `arrows_missing` — checking all 8 classical arrows (3 rows / 3 columns / 2 diagonals) with each labelled (e.g. "Plane of Will", "Plane of Prosperity") and strength/weakness interpretation.
+  - Bug fix: `counts` dict uses string keys so BSON-serialization for MongoDB storage succeeds.
+- Backend (`_build_chart`): `numerology` payload now includes `lo_shu`.
+- Frontend (`PremiumTier.jsx`): rendered below the Mulank/Bhagyank/Naamank cards inside the Numerology Overview section:
+  - Visual 3×3 grid: filled cells show the digit repeated per count (e.g. "99" for two 9s) in bold gold; empty cells faded. `×count` badge for repeats.
+  - Right column lists "Present Numbers · Strengths" and "Missing Numbers · Growth Areas" with the meaning of each cell.
+  - Below: two coloured boxes — "Completed Arrows · Karmic Gifts" and "Missing Arrows · Karmic Lessons".
+- Verified end-to-end: Ravi Kumar 1990-05-15 → grid `[0,2,0][1,2,0][0,2,1]`, present 1/3/5/6/9, missing 2/4/7/8, arrow 9-5-1 (Plane of Will) complete. PDF (6 pages, 2.85 MB) — Lo Shu grid, arrows, and interpretations all render on Page 6 with no cutoff.
+
 
 
 

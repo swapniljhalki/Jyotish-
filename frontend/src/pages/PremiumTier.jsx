@@ -534,6 +534,169 @@ export default function PremiumTier() {
                     Naamank is calculated from your full name — enter one in the birth form to see it here.
                   </p>
                 )}
+
+                {/* Vedic Numerology Chart — Lo Shu Grid derived from DOB */}
+                {result.chart.numerology.lo_shu && (
+                  <div className="mt-10" data-testid="premium-lo-shu-grid">
+                    <div className="ornate-divider mb-4">
+                      <span className="font-accent text-xs text-[#D4AF37]">
+                        Vedic Numerology Chart · Lo Shu Grid (Jeevan Ank Yantra)
+                      </span>
+                    </div>
+                    <p className="font-body text-sm mb-5 leading-relaxed" style={{ color: "#2A1A05" }}>
+                      Your date of birth digits, arranged in the ancient <em>Lo Shu magic square</em>. Numbers you carry are strengths;
+                      empty cells are growth areas. Complete lines (&ldquo;arrows&rdquo;) reveal specific karmic gifts and lessons.
+                    </p>
+
+                    <div className="grid md:grid-cols-[auto,1fr] gap-8 items-start">
+                      {/* The 3×3 grid */}
+                      <div>
+                        <div
+                          className="grid grid-cols-3 rounded-md overflow-hidden"
+                          style={{
+                            width: 320,
+                            border: "2px solid #8B5E1A",
+                            background: "#FDFBF7",
+                          }}
+                        >
+                          {result.chart.numerology.lo_shu.grid.flat().map((cell, idx) => {
+                            const filled = cell.count > 0;
+                            return (
+                              <div
+                                key={cell.digit}
+                                data-testid={`lo-shu-cell-${cell.digit}`}
+                                className="relative flex flex-col items-center justify-center"
+                                style={{
+                                  aspectRatio: "1 / 1",
+                                  borderRight: idx % 3 !== 2 ? "1px solid rgba(139,94,26,0.4)" : "none",
+                                  borderBottom: idx < 6 ? "1px solid rgba(139,94,26,0.4)" : "none",
+                                  background: filled ? "rgba(212,175,55,0.15)" : "rgba(139,94,26,0.03)",
+                                }}
+                              >
+                                <div
+                                  className="font-heading"
+                                  style={{
+                                    fontSize: filled ? "2.4rem" : "1.6rem",
+                                    lineHeight: 1,
+                                    color: filled ? "#B85C00" : "rgba(139,94,26,0.35)",
+                                    fontWeight: filled ? 700 : 400,
+                                  }}
+                                >
+                                  {filled
+                                    ? String(cell.digit).repeat(cell.count)
+                                    : cell.digit}
+                                </div>
+                                {filled && cell.count > 1 && (
+                                  <div
+                                    className="absolute top-1 right-2 font-accent text-[9px]"
+                                    style={{ color: "#B85C00" }}
+                                  >
+                                    ×{cell.count}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-3 text-[10.5px] font-body italic" style={{ color: "#8B5E1A" }}>
+                          {result.chart.numerology.lo_shu.derivation}
+                        </div>
+                      </div>
+
+                      {/* Interpretation column */}
+                      <div className="space-y-4">
+                        {/* Present numbers → strengths */}
+                        <div>
+                          <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#B85C00" }}>
+                            Present Numbers · Your Strengths
+                          </div>
+                          <div className="grid grid-cols-1 gap-1.5">
+                            {result.chart.numerology.lo_shu.present.map((n) => (
+                              <div key={n} className="flex items-baseline gap-2 text-[12px] font-body" style={{ color: "#2A1A05" }}>
+                                <span
+                                  className="inline-flex items-center justify-center rounded-full font-heading text-[10px]"
+                                  style={{ width: 22, height: 22, background: "rgba(212,175,55,0.25)", color: "#B85C00", fontWeight: 700 }}
+                                >
+                                  {n}
+                                </span>
+                                <span>
+                                  <strong style={{ color: "#5C3A09" }}>×{result.chart.numerology.lo_shu.counts[String(n)]} · </strong>
+                                  {result.chart.numerology.lo_shu.grid.flat().find((c) => c.digit === n)?.meaning}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Missing numbers → growth areas */}
+                        {result.chart.numerology.lo_shu.missing.length > 0 && (
+                          <div>
+                            <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#8B5E1A" }}>
+                              Missing Numbers · Growth Areas
+                            </div>
+                            <div className="grid grid-cols-1 gap-1.5">
+                              {result.chart.numerology.lo_shu.missing.map((n) => (
+                                <div key={n} className="flex items-baseline gap-2 text-[12px] font-body" style={{ color: "#2A1A05" }}>
+                                  <span
+                                    className="inline-flex items-center justify-center rounded-full font-heading text-[10px]"
+                                    style={{ width: 22, height: 22, background: "rgba(139,94,26,0.08)", color: "#8B5E1A", border: "1px dashed rgba(139,94,26,0.4)", fontWeight: 500 }}
+                                  >
+                                    {n}
+                                  </span>
+                                  <span>
+                                    <strong style={{ color: "#8B5E1A" }}>Cultivate: </strong>
+                                    {result.chart.numerology.lo_shu.grid.flat().find((c) => c.digit === n)?.meaning}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Arrows / Planes analysis */}
+                    {(result.chart.numerology.lo_shu.arrows_present.length > 0 ||
+                      result.chart.numerology.lo_shu.arrows_missing.length > 0) && (
+                      <div className="mt-6 grid md:grid-cols-2 gap-4">
+                        {result.chart.numerology.lo_shu.arrows_present.length > 0 && (
+                          <div className="rounded-md p-4" style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.35)" }}>
+                            <div className="font-accent text-[10px] uppercase tracking-widest mb-3" style={{ color: "#B85C00" }}>
+                              Completed Arrows · Karmic Gifts
+                            </div>
+                            <ul className="space-y-2.5">
+                              {result.chart.numerology.lo_shu.arrows_present.map((a) => (
+                                <li key={a.label} className="text-[12px] font-body" style={{ color: "#2A1A05" }}>
+                                  <div className="font-heading text-[13px]" style={{ color: "#5C3A09", fontWeight: 600 }}>
+                                    {a.label} <span className="font-accent text-[10px]" style={{ color: "#8B5E1A" }}>({a.nums.join("-")})</span>
+                                  </div>
+                                  <div className="mt-0.5 leading-snug">{a.strength}</div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {result.chart.numerology.lo_shu.arrows_missing.length > 0 && (
+                          <div className="rounded-md p-4" style={{ background: "rgba(139,94,26,0.05)", border: "1px dashed rgba(139,94,26,0.35)" }}>
+                            <div className="font-accent text-[10px] uppercase tracking-widest mb-3" style={{ color: "#8B5E1A" }}>
+                              Missing Arrows · Karmic Lessons
+                            </div>
+                            <ul className="space-y-2.5">
+                              {result.chart.numerology.lo_shu.arrows_missing.map((a) => (
+                                <li key={a.label} className="text-[12px] font-body" style={{ color: "#2A1A05" }}>
+                                  <div className="font-heading text-[13px]" style={{ color: "#5C3A09", fontWeight: 600 }}>
+                                    {a.label} <span className="font-accent text-[10px]" style={{ color: "#8B5E1A" }}>({a.nums.join("-")})</span>
+                                  </div>
+                                  <div className="mt-0.5 leading-snug">{a.weakness}</div>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
             )}
 
