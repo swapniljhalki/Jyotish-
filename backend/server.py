@@ -1503,25 +1503,30 @@ async def astrology_basic(body: AstroIn, user: dict = Depends(get_current_user))
     }
 
 
+def _compute_nakshatra_report(chart: dict):
+    """Return a nakshatra-report dict driven by the Moon's placement, or None."""
+    moon = next((p for p in chart["planets"] if p["code"] == "Mo"), None)
+    nak_meta = get_nakshatra(moon["nakshatra_index"]) if moon else None
+    if not (moon and nak_meta):
+        return None
+    return {
+        "name":        nak_meta["name"],
+        "sanskrit":    nak_meta["sanskrit"],
+        "pada":        moon["nakshatra_pada"],
+        "deity":       nak_meta["deity"],
+        "symbol":      nak_meta["symbol"],
+        "ruler":       nak_meta["ruler"],
+        "range":       nak_meta["range"],
+        "gana":        nak_meta["gana"],
+        "quality":     nak_meta["quality"],
+        "description": nak_meta["description"],
+    }
+
+
 def _basic_prompts(body: "AstroIn", chart: dict):
     """Build the system/user prompt for a Basic-tier reading plus the
     chart/summary/nakshatra payload that gets persisted and returned."""
-    moon = next((p for p in chart["planets"] if p["code"] == "Mo"), None)
-    nak_meta = get_nakshatra(moon["nakshatra_index"]) if moon else None
-    nakshatra_report = None
-    if moon and nak_meta:
-        nakshatra_report = {
-            "name":        nak_meta["name"],
-            "sanskrit":    nak_meta["sanskrit"],
-            "pada":        moon["nakshatra_pada"],
-            "deity":       nak_meta["deity"],
-            "symbol":      nak_meta["symbol"],
-            "ruler":       nak_meta["ruler"],
-            "range":       nak_meta["range"],
-            "gana":        nak_meta["gana"],
-            "quality":     nak_meta["quality"],
-            "description": nak_meta["description"],
-        }
+    nakshatra_report = _compute_nakshatra_report(chart)
 
     sun_rashi  = next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Su")
     moon_rashi = next(p["rashi_english"] for p in chart["planets"] if p["code"] == "Mo")
@@ -1706,6 +1711,7 @@ def _premium_summary(chart: dict) -> dict:
 async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "premium")
     chart = await _build_chart(body)
+    chart["nakshatra_report"] = _compute_nakshatra_report(chart)
     system, user_msg = _premium_prompts(body, chart)
     advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
     reading_id = str(uuid.uuid4())
@@ -1734,6 +1740,7 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
 async def astrology_premium_start(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "premium")
     chart = await _build_chart(body)
+    chart["nakshatra_report"] = _compute_nakshatra_report(chart)
     reading_id = str(uuid.uuid4())
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "premium",

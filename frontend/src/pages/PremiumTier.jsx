@@ -16,6 +16,7 @@ import UpgradeButton from "../components/UpgradeButton";
 import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
 import AdviceMarkdown from "../components/AdviceMarkdown";
+import GaneshaBanner from "../components/GaneshaBanner";
 import snwLogo from "../assets/snw-logo.jpg";
 import { localizePlanet, localizeRashi, localizeNakshatra } from "../lib/vedicNames";
 
@@ -168,11 +169,18 @@ export default function PremiumTier() {
         {result && (
           <div className="mt-10 fade-up">
           <ResultActions targetRef={resultRef} filename="Kundali-Premium-Reading.pdf" testIdPrefix="premium" />
-          <div ref={resultRef} className="mt-4 space-y-8 printable-area" data-testid="premium-result">
+
+          {/* On-screen result — also the PDF capture target. Matches the Basic
+              tier layout: single outer premium-card, Ganesha invocation banner,
+              paired-page pagination via [data-pdf-page] anchors. */}
+          <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="premium-result">
             <img src={snwLogo} alt="" className="print-watermark" />
 
+            {/* Decorative invocation banner — opens the report on page 1 */}
+            <GaneshaBanner />
+
             {/* PAGE 1 — Cover: name + birth details + Ascendant/Sun/Moon */}
-            <section data-pdf-page="cover">
+            <section data-pdf-page="cover" className="mb-8">
               <ReadingCover
                 name={inputs?.full_name}
                 dob={inputs?.date_of_birth}
@@ -186,8 +194,49 @@ export default function PremiumTier() {
               />
             </section>
 
-            {/* PAGE 2 — D1 Lagna chart */}
-            <section data-pdf-page="lagna-chart">
+            {/* PAGE 1 (cont.) — Nakshatra Report packs with cover */}
+            {result.chart?.nakshatra_report && (
+              <section className="mb-8" data-testid="premium-nakshatra-report">
+                <div className="glass-card p-6 md:p-8">
+                  <div className="ornate-divider mb-5">
+                    <span className="font-accent text-xs text-[#D4AF37]">Nakshatra Report · Moon&apos;s Star</span>
+                  </div>
+                  <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+                    <div>
+                      <div className="font-heading text-3xl md:text-4xl" style={{ color: "#2A1A05", fontWeight: 600 }}>
+                        {result.chart.nakshatra_report.name}
+                        <span className="ml-3 font-accent text-base" style={{ color: "#8B5E1A" }}>
+                          {result.chart.nakshatra_report.sanskrit}
+                        </span>
+                      </div>
+                      <div className="text-[12px] mt-1 font-accent tracking-widest uppercase" style={{ color: "#8B5E1A" }}>
+                        Pada {result.chart.nakshatra_report.pada} · {result.chart.nakshatra_report.range}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="font-body mb-5 leading-relaxed" style={{ color: "#2A1A05" }}>
+                    {result.chart.nakshatra_report.description}
+                  </p>
+                  <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-3 text-[13px] font-body">
+                    {[
+                      ["Deity",   result.chart.nakshatra_report.deity],
+                      ["Symbol",  result.chart.nakshatra_report.symbol],
+                      ["Ruler",   result.chart.nakshatra_report.ruler],
+                      ["Gana",    result.chart.nakshatra_report.gana],
+                      ["Quality", result.chart.nakshatra_report.quality],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex flex-col">
+                        <span className="font-accent text-[9px] uppercase tracking-widest" style={{ color: "#8B5E1A" }}>{k}</span>
+                        <span style={{ color: "#2A1A05" }}>{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* PAGE 2 — Lagna D1 chart starts a fresh page */}
+            <section data-pdf-page="lagna-chart" className="mb-8">
               <button
                 type="button"
                 onClick={() => setExpanded({
@@ -197,7 +246,7 @@ export default function PremiumTier() {
                   chart: result.chart,
                   accentColor: "#D4AF37",
                 })}
-                className="premium-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
+                className="glass-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
                 data-testid="expand-kundali-d1"
                 aria-label="Expand Kundali Lagna Chart"
               >
@@ -215,64 +264,9 @@ export default function PremiumTier() {
                 </div>
               </button>
             </section>
-            {result.chart.chandra && (
-              <section data-pdf-page="chandra-chart"><button
-                type="button"
-                onClick={() => setExpanded({
-                  title: t("result.chandra_title"),
-                  ascendantLabel: t("result.chandra_lagna"),
-                  ascendantName: localizeRashi(result.chart.chandra.ascendant_english, lang),
-                  chart: result.chart.chandra,
-                  accentColor: "#FF9933",
-                })}
-                className="premium-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#FF9933]/60 rounded-md"
-                data-testid="expand-kundali-chandra"
-                aria-label="Expand Chandra Rashi Chart"
-              >
-                <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#FF9933] opacity-60 group-hover:opacity-100" aria-hidden="true" />
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">{t("result.chandra_title")}</span>
-                </div>
-                <KundaliChart chart={result.chart.chandra} large />
-                <div className="mt-4 text-center">
-                  <div className="pdf-eyebrow">{t("result.chandra_lagna")}</div>
-                  <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>
-                    {localizeRashi(result.chart.chandra.ascendant_english, lang)}
-                  </div>
-                  <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
-                </div>
-              </button></section>
-            )}
-            {result.chart.navamsha && (
-              <section data-pdf-page="navamsha-chart"><button
-                type="button"
-                onClick={() => setExpanded({
-                  title: t("result.navamsha_title"),
-                  ascendantLabel: t("result.navamsha_asc"),
-                  ascendantName: localizeRashi(result.chart.navamsha.ascendant_english, lang),
-                  chart: result.chart.navamsha,
-                  accentColor: "#D4AF37",
-                })}
-                className="premium-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
-                data-testid="expand-kundali-navamsha"
-                aria-label="Expand Navamsha Chart D9"
-              >
-                <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
-                </div>
-                <KundaliChart chart={result.chart.navamsha} large />
-                <div className="mt-4 text-center">
-                  <div className="pdf-eyebrow">{t("result.navamsha_asc")}</div>
-                  <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>
-                    {localizeRashi(result.chart.navamsha.ascendant_english, lang)}
-                  </div>
-                  <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
-                </div>
-              </button></section>
-            )}
 
-            <section data-pdf-page="planets">
+            {/* PAGE 2 (cont.) — Planetary positions pack with Lagna */}
+            <section className="mb-8">
               <div className="glass-card p-6">
                 <div className="font-accent text-xs text-[#D4AF37] mb-4">{t("result.planetary_positions")}</div>
                 <Table>
@@ -294,8 +288,8 @@ export default function PremiumTier() {
                         </TableCell>
                         <TableCell className="font-body text-zinc-300">{localizeRashi(p.rashi_english, lang)}</TableCell>
                         <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
-                        <TableCell className="font-body text-[#FFD700]">{p.house}</TableCell>
-                        <TableCell className="font-body text-[#D4AF37]">{p.navamsha_sign_english ? localizeRashi(p.navamsha_sign_english, lang) : "—"}</TableCell>
+                        <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
+                        <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.navamsha_sign_english ? localizeRashi(p.navamsha_sign_english, lang) : "—"}</TableCell>
                         <TableCell>
                           <PlanetStates states={p.states} />
                         </TableCell>
@@ -306,17 +300,138 @@ export default function PremiumTier() {
               </div>
             </section>
 
+            {/* PAGE 3 — Chandra Rashi Chart starts a fresh page */}
+            {result.chart.chandra && (
+              <section data-pdf-page="chandra-chart" className="mb-8">
+                <button
+                  type="button"
+                  onClick={() => setExpanded({
+                    title: t("result.chandra_title"),
+                    ascendantLabel: t("result.chandra_lagna"),
+                    ascendantName: localizeRashi(result.chart.chandra.ascendant_english, lang),
+                    chart: result.chart.chandra,
+                    accentColor: "#FF9933",
+                  })}
+                  className="glass-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#FF9933]/60 rounded-md"
+                  data-testid="expand-kundali-chandra"
+                  aria-label="Expand Chandra Rashi Chart"
+                >
+                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#FF9933] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">{t("result.chandra_title")}</span>
+                  </div>
+                  <KundaliChart chart={result.chart.chandra} large />
+                  <div className="mt-4 text-center">
+                    <div className="pdf-eyebrow">{t("result.chandra_lagna")}</div>
+                    <div className="font-heading text-2xl" style={{ color: "#8B2500", fontWeight: 600 }}>
+                      {localizeRashi(result.chart.chandra.ascendant_english, lang)}
+                    </div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
+                  </div>
+                </button>
+              </section>
+            )}
+
+            {/* PAGE 3 (cont.) — Navamsha packs with Chandra */}
+            {result.chart.navamsha && (
+              <section className="mb-8">
+                <button
+                  type="button"
+                  onClick={() => setExpanded({
+                    title: t("result.navamsha_title"),
+                    ascendantLabel: t("result.navamsha_asc"),
+                    ascendantName: localizeRashi(result.chart.navamsha.ascendant_english, lang),
+                    chart: result.chart.navamsha,
+                    accentColor: "#D4AF37",
+                  })}
+                  className="glass-card p-6 text-left w-full group relative transition-transform hover:-translate-y-0.5 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/60 rounded-md"
+                  data-testid="expand-kundali-navamsha"
+                  aria-label="Expand Navamsha Chart D9"
+                >
+                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                  <div className="ornate-divider mb-4">
+                    <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                  </div>
+                  <KundaliChart chart={result.chart.navamsha} large />
+                  <div className="mt-4 text-center">
+                    <div className="pdf-eyebrow">{t("result.navamsha_asc")}</div>
+                    <div className="font-heading text-2xl" style={{ color: "#6B3410", fontWeight: 600 }}>
+                      {localizeRashi(result.chart.navamsha.ascendant_english, lang)}
+                    </div>
+                    <div className="no-print mt-1 font-accent text-[10px] text-[#C0392B] opacity-80 group-hover:opacity-100">{t("result.click_expand")}</div>
+                  </div>
+                </button>
+              </section>
+            )}
+
+            {/* PAGE 4 — Vimshottari Mahadasha timeline (120-year cycle) */}
+            {result.chart?.dasha?.mahadashas && (
+              <section data-pdf-page="vimshottari-dasha" className="mb-8" data-testid="premium-vimshottari">
+                <div className="glass-card p-6 md:p-8">
+                  <div className="ornate-divider mb-5">
+                    <span className="font-accent text-xs text-[#D4AF37]">Vimshottari Mahadasha · 120-Year Cycle</span>
+                  </div>
+                  {result.chart.dasha.current && (
+                    <p className="font-body mb-5 text-sm" style={{ color: "#5C3A09" }}>
+                      Currently running:{" "}
+                      <strong style={{ color: "#2A1A05" }}>
+                        {result.chart.dasha.current.mahadasha} Mahadasha
+                      </strong>
+                      {result.chart.dasha.current.antardasha && (
+                        <>{" · "}<strong style={{ color: "#2A1A05" }}>{result.chart.dasha.current.antardasha} Antardasha</strong></>
+                      )}
+                      {result.chart.dasha.current.pratyantardasha && (
+                        <>{" · "}<strong style={{ color: "#2A1A05" }}>{result.chart.dasha.current.pratyantardasha} Pratyantardasha</strong></>
+                      )}
+                    </p>
+                  )}
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-[rgba(212,175,55,0.2)]">
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Mahadasha Lord</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Starts</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Ends</TableHead>
+                        <TableHead className="text-zinc-400 font-accent text-[10px]">Years</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {result.chart.dasha.mahadashas.map((md) => {
+                        const isCurrent = md.lord === result.chart.dasha.current?.mahadasha;
+                        return (
+                          <TableRow
+                            key={md.lord + md.start}
+                            className="border-[rgba(212,175,55,0.1)]"
+                            data-testid={`premium-dasha-${md.lord.toLowerCase()}`}
+                            style={isCurrent ? { background: "rgba(255,140,0,0.06)" } : undefined}
+                          >
+                            <TableCell className="font-body" style={{ color: "#2A1A05", fontWeight: isCurrent ? 700 : 500 }}>
+                              {md.lord}{isCurrent && <span className="ml-2 text-[10px] font-accent" style={{ color: "#B85C00" }}>· NOW</span>}
+                            </TableCell>
+                            <TableCell className="font-body" style={{ color: "#5C3A09" }}>
+                              {new Date(md.start).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                            </TableCell>
+                            <TableCell className="font-body" style={{ color: "#5C3A09" }}>
+                              {new Date(md.end).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                            </TableCell>
+                            <TableCell className="font-body" style={{ color: "#6B3410" }}>
+                              {md.years}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </section>
+            )}
+
+            {/* PAGE 5 — AI advice text (no leading divider label per Basic layout) */}
             <section data-pdf-page="advice">
-              <div className="premium-card p-6 md:p-8">
-                <div className="ornate-divider mb-6">
-                  <span className="font-accent text-xs text-[#D4AF37]">{t("result.detailed_reading")}</span>
-                </div>
-                <AdviceMarkdown testId="premium-advice">{result.advice}</AdviceMarkdown>
-                <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
-                  <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
-                    Open in archive & share →
-                  </Link>
-                </div>
+              <AdviceMarkdown testId="premium-advice">{result.advice}</AdviceMarkdown>
+              <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
+                <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
+                  Open in archive & share →
+                </Link>
               </div>
             </section>
 

@@ -254,3 +254,15 @@ See `/app/memory/test_credentials.md`.
 - P2 — Rotating testimonial strip on landing page.
 - P2 — Start/poll background pattern for Basic Tier AI reading (mirror Premium implementation) to prevent gateway timeouts on slow generation days.
 - Refactor — split `/app/backend/server.py` (~1900 lines) into `/routes` + `/models`; remove legacy `/api/scheduler/*` routes (Calendly fully replaces them).
+
+## Feb 20, 2026 — Premium PDF layout aligned with Basic tier (P0)
+- User request: "Please use the same pdf format for premium tier as it is for basic tier."
+- Applied in `/app/frontend/src/pages/PremiumTier.jsx`:
+  - Wrapped the entire printable result in a single outer `premium-card p-8 md:p-12 printable-area` (was `space-y-8` with per-section `premium-card` islands).
+  - Added `<GaneshaBanner />` invocation at the top of the report — matches Basic's opening flourish.
+  - Reordered sections to mirror Basic: Cover → Nakshatra Report → Lagna chart → Planetary Positions → Chandra chart → Navamsha chart → Vimshottari Mahadasha → AI Advice.
+  - Updated `[data-pdf-page]` anchors for paired-page pagination — P1: Cover + Nakshatra · P2: Lagna + Planets · P3: Chandra + Navamsha · P4: Vimshottari · P5-6: Advice.
+  - Converted per-section wrappers from `premium-card` to `glass-card` (consistent inner styling since outer is now the single premium-card).
+  - Removed the "Detailed Reading" divider label above the advice section (Basic doesn't have one).
+- PDF verified: 6 pages, 2.58 MB, layout matches Basic exactly (Page 1: Ganesha + Cover + Nakshatra; Page 2: Lagna + Planets; Page 3: Chandra + Navamsha; Page 4: Vimshottari; Pages 5-6: AI reading).
+
