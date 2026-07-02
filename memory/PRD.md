@@ -307,6 +307,15 @@ See `/app/memory/test_credentials.md`.
   - AI interpretation rendered below via `<AdviceMarkdown>`, with the user's question echoed as an italic quote.
 - Verified end-to-end with curl + screenshot: cards drawn (The Empress upright / The World upright / Judgement reversed) → 12s Claude response → all three cards visible with correct orientations + full interpretation ("Honour the completion, then listen…").
 
+## Feb 20, 2026 — Two collapsible reports in Premium tier (P0)
+- User request: Group the Premium result into two collapsible sections — (1) Vedic Astrology Report and (2) Vedic Numerology Report.
+- Added `<CollapsibleSection>` helper (chevron-rotating gold-bordered header, `max-height:0` when closed but keeps children mounted so `exportPdf`'s `neutralizeOverflow` can still capture them if the user downloads with a section collapsed).
+- **Section 1 — Vedic Astrology Report** (`data-testid="vedic-astrology-report"`, default open) contains: user details cover · Nakshatra report · Lagna chart · Planetary positions · Chandra Rashi chart · Navamsha chart · Vimshottari Mahadasha table · Personalised AI reading. PDF button → `Vedic-Astrology-Report.pdf`.
+- **Section 2 — Vedic Numerology Report** (`data-testid="vedic-numerology-report"`, default open) contains: Mulank / Bhagyank / Naamank cards · Vedic Numerology Chart (Lo Shu Grid) with arrows · Current Numerology Dasha table (`NumDashaCurrentTable`) · full 81-year Vedic Numerology Mahadasha timeline (`NumDashaTimeline`). Own PDF button (uses new `numerologyRef`) → `Vedic-Numerology-Report.pdf`.
+- Chaldean Name Numerology, Mobile Number Numerology, and Tarot Reading remain as separate standalone sections below the two reports.
+- Verified end-to-end: both toggles work, all 10+ inner data-testids resolve, screenshots confirm the parchment layout renders cleanly.
+
+
 
 - User request: "In premium tier please add vedic numerology chart by taking input of date of birth provided from user details section on top of page."
 - Backend (`/app/backend/numerology.py`): added `compute_lo_shu_grid(dob)`.
