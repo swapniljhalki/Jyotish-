@@ -34,7 +34,7 @@ export default function VisitorStats() {
   const items = [
     { icon: Eye, label: "Total Visits", value: stats.total_views, accent: "text-[#FFD700]" },
     { icon: Users, label: "Unique Seekers", value: stats.unique_visitors, accent: "text-[#FF9933]" },
-    { icon: Sparkles, label: "Today", value: stats.today_views, accent: "text-[#D4AF37]" },
+    { icon: Sparkles, label: "Today", value: stats.today_views, accent: "text-[#B8860B]" },
   ];
 
   return (
@@ -52,7 +52,7 @@ export default function VisitorStats() {
                 <div className={`font-heading text-2xl md:text-3xl ${accent} leading-none`}>
                   {value.toLocaleString()}
                 </div>
-                <div className="font-accent text-[9px] md:text-[10px] text-zinc-500 tracking-widest mt-1 uppercase">
+                <div className="font-accent text-[9px] md:text-[10px] text-zinc-800 tracking-widest mt-1 uppercase">
                   {label}
                 </div>
               </div>

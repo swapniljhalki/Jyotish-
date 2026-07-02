@@ -31,7 +31,7 @@ function Period({ p, level, active, expanded, onToggle, children }) {
       >
         {onToggle && (
           <ChevronRight
-            className={`h-3 w-3 text-zinc-500 transition-transform shrink-0 ${expanded ? "rotate-90" : ""}`}
+            className={`h-3 w-3 text-zinc-800 transition-transform shrink-0 ${expanded ? "rotate-90" : ""}`}
           />
         )}
         <span
@@ -40,13 +40,13 @@ function Period({ p, level, active, expanded, onToggle, children }) {
         >
           {p.number}
         </span>
-        <span className="font-body text-xs text-zinc-300 w-32 shrink-0 hidden md:inline">
+        <span className="font-body text-xs text-zinc-800 w-32 shrink-0 hidden md:inline">
           {p.glyph} {p.planet}
         </span>
-        <span className="font-body text-xs text-zinc-400 flex-1 truncate">
+        <span className="font-body text-xs text-zinc-700 flex-1 truncate">
           {dateLabel(p.start)} → {dateLabel(p.end)}
         </span>
-        <span className="font-accent text-[10px] text-zinc-500 shrink-0 w-14 text-right">
+        <span className="font-accent text-[10px] text-zinc-800 shrink-0 w-14 text-right">
           {lengthLabel}
         </span>
         {isCurrent && (
@@ -113,7 +113,7 @@ export default function NumDashaTimeline({ dasha }) {
               className="glass-card p-3 text-center"
               data-testid={`num-dasha-current-${label.toLowerCase().replace(/ /g, "-")}`}
             >
-              <div className="font-accent text-[9px] text-zinc-500 tracking-widest uppercase">
+              <div className="font-accent text-[9px] text-zinc-800 tracking-widest uppercase">
                 {label}
               </div>
               <div className="mt-1 flex items-center justify-center gap-2">
@@ -121,12 +121,12 @@ export default function NumDashaTimeline({ dasha }) {
                 <span className="font-heading text-base" style={{ color: tint }}>
                   {n || "—"}
                   {meta && (
-                    <span className="text-xs text-zinc-400 ml-2 font-body">{meta.english}</span>
+                    <span className="text-xs text-zinc-700 ml-2 font-body">{meta.english}</span>
                   )}
                 </span>
               </div>
               {sub && (
-                <div className="font-accent text-[9px] text-zinc-500 mt-1">{sub}</div>
+                <div className="font-accent text-[9px] text-zinc-800 mt-1">{sub}</div>
               )}
             </div>
           );

@@ -69,7 +69,7 @@ export default function Landing() {
               <span className="sb-eyebrow" data-testid="hero-eyebrow">{t("landing.hero_eyebrow")}</span>
               <h1 className="sb-h1" data-testid="hero-title">
                 {t("landing.hero_title_a")}{" "}
-                <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("landing.hero_title_b")}</span>
+                <span className="italic font-medium" style={{ color: "#5C3A09" }}>{t("landing.hero_title_b")}</span>
               </h1>
               <p className="sb-lead mt-8">
                 {t("landing.hero_subtitle")}
@@ -95,7 +95,7 @@ export default function Landing() {
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2.5">
                     <Icon className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.5} />
-                    <span className="text-[11px] font-bold tracking-widest uppercase text-[#8B5E1A]">{label}</span>
+                    <span className="text-[11px] font-bold tracking-widest uppercase text-[#5C3A09]">{label}</span>
                   </div>
                 ))}
               </div>
@@ -143,18 +143,18 @@ export default function Landing() {
                     </div>
                   )}
                   <div className="flex items-center gap-2 mb-5">
-                    <Sparkles className={`h-4 w-4 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
-                    <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#D4AF37]" : "text-[#8B5E1A]"}`}>{tier.name}</span>
+                    <Sparkles className={`h-4 w-4 ${isDark ? "text-[#B8860B]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
+                    <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#B8860B]" : "text-[#5C3A09]"}`}>{tier.name}</span>
                   </div>
                   <div className="flex items-baseline gap-2 mb-3">
                     <span className={`font-heading font-bold text-5xl md:text-6xl tracking-tight ${isDark ? "text-white" : "text-[#2A1A05]"}`}>{tier.price}</span>
-                    {tier.period && <span className={`text-sm ${isDark ? "text-[#D4AF37]/70" : "text-[#8B5E1A]"}`}>{tier.period}</span>}
+                    {tier.period && <span className={`text-sm ${isDark ? "text-[#B8860B]/70" : "text-[#5C3A09]"}`}>{tier.period}</span>}
                   </div>
                   <p className={`text-[15px] italic mb-8 ${isDark ? "text-[#FDFBF7]/80" : "text-[#6B3410]"}`}>{tier.tagline}</p>
                   <ul className="space-y-3 mb-10 flex-1">
                     {tier.features.map((f) => (
                       <li key={f} className={`flex items-start gap-3 text-[14px] leading-relaxed ${isDark ? "text-[#FDFBF7]/90" : "text-[#5C3A09]"}`}>
-                        <Check className={`h-4 w-4 mt-1 flex-shrink-0 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={2} /> {f}
+                        <Check className={`h-4 w-4 mt-1 flex-shrink-0 ${isDark ? "text-[#B8860B]" : "text-[#FF8C00]"}`} strokeWidth={2} /> {f}
                       </li>
                     ))}
                   </ul>

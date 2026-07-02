@@ -67,7 +67,7 @@ export default function ReadingDetail() {
   );
   if (!r) return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)] flex items-center justify-center">
-      <div className="font-accent text-xs text-[#D4AF37] animate-pulse">loading...</div>
+      <div className="font-accent text-xs text-[#B8860B] animate-pulse">loading...</div>
     </div>
   );
 
@@ -78,7 +78,7 @@ export default function ReadingDetail() {
       <div className="max-w-5xl mx-auto px-6 md:px-12 py-12">
         <button
           onClick={() => nav("/readings")}
-          className="flex items-center gap-1 text-sm text-zinc-400 hover:text-[#FF9933] mb-6 no-print"
+          className="flex items-center gap-1 text-sm text-zinc-700 hover:text-[#FF9933] mb-6 no-print"
           data-testid="reading-back-btn"
         >
           <ArrowLeft className="h-4 w-4" /> Archive
@@ -89,15 +89,15 @@ export default function ReadingDetail() {
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Share2 className="h-4 w-4 text-[#D4AF37]" />
-                <span className="font-accent text-xs text-[#D4AF37]">Share Publicly</span>
+                <Share2 className="h-4 w-4 text-[#B8860B]" />
+                <span className="font-accent text-xs text-[#B8860B]">Share Publicly</span>
               </div>
-              <p className="text-sm text-zinc-400 font-body">
+              <p className="text-sm text-zinc-700 font-body">
                 Anyone with the link can view this reading. No login required.
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-zinc-500 font-body">
+              <span className="text-xs text-zinc-800 font-body">
                 {r.is_shared ? "Live" : "Private"}
               </span>
               <Switch
@@ -119,7 +119,7 @@ export default function ReadingDetail() {
               />
               <button
                 onClick={copy}
-                className="px-3 py-2 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] flex items-center gap-1 text-sm"
+                className="px-3 py-2 border border-[rgba(212,175,55,0.4)] text-[#B8860B] hover:bg-[rgba(212,175,55,0.08)] flex items-center gap-1 text-sm"
                 data-testid="reading-share-copy"
               >
                 {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
@@ -157,7 +157,7 @@ export default function ReadingDetail() {
               {/* PAGE 2 — D1 Lagna chart */}
               <section data-pdf-page="lagna-chart" className="premium-card p-6">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Kundali Lagna Chart</span>
+                  <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>Kundali Lagna Chart</span>
                 </div>
                 <KundaliChart chart={r.chart} large />
                 <div className="mt-4 text-center">
@@ -170,7 +170,7 @@ export default function ReadingDetail() {
               {r.chart.chandra && (
                 <section data-pdf-page="chandra-chart" className="premium-card p-6">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Chandra Rashi Chart</span>
+                    <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>Chandra Rashi Chart</span>
                   </div>
                   <KundaliChart chart={r.chart.chandra} large />
                   <div className="mt-4 text-center">
@@ -184,7 +184,7 @@ export default function ReadingDetail() {
               {r.chart.navamsha && (
                 <section data-pdf-page="navamsha-chart" className="premium-card p-6">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Navamsha Chart · D9</span>
+                    <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>Navamsha Chart · D9</span>
                   </div>
                   <KundaliChart chart={r.chart.navamsha} large />
                   <div className="mt-4 text-center">
@@ -196,24 +196,24 @@ export default function ReadingDetail() {
 
               {/* PAGE 5 — Planetary positions */}
               <section data-pdf-page="planets" className="glass-card p-6">
-                <div className="font-accent text-xs mb-4" style={{ color: "#8B5E1A", fontWeight: 600 }}>Planetary Positions</div>
+                <div className="font-accent text-xs mb-4" style={{ color: "#5C3A09", fontWeight: 600 }}>Planetary Positions</div>
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(212,175,55,0.2)]">
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">States</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Graha</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Rashi</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">°</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">House</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Navamsha</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">States</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {r.chart.planets.map((p) => (
                       <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                         <TableCell className="text-zinc-100 font-body">{p.name}</TableCell>
-                        <TableCell className="text-zinc-300 font-body">{p.rashi_english}</TableCell>
-                        <TableCell className="text-zinc-400 font-body">{p.degree}°</TableCell>
+                        <TableCell className="text-zinc-800 font-body">{p.rashi_english}</TableCell>
+                        <TableCell className="text-zinc-700 font-body">{p.degree}°</TableCell>
                         <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
                         <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.navamsha_sign_english || "—"}</TableCell>
                         <TableCell><PlanetStates states={p.states} /></TableCell>
@@ -226,7 +226,7 @@ export default function ReadingDetail() {
               {/* PAGE 6 — Detailed reading (scrollbar removed — full text flows naturally) */}
               <section data-pdf-page="advice" className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>Reading</span>
+                  <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>Reading</span>
                 </div>
                 <AdviceMarkdown testId="reading-premium-advice">{r.advice}</AdviceMarkdown>
               </section>
@@ -268,7 +268,7 @@ export default function ReadingDetail() {
               <img src={snwLogo} alt="" className="print-watermark" />
               <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
+                  <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>
                     Numerology Dasha · Current State (Mulank {r.chart.mulank})
                   </span>
                 </div>
@@ -279,7 +279,7 @@ export default function ReadingDetail() {
             {/* Full interactive timeline (screen-only, NOT in PDF) */}
             <div className="no-print mt-8 premium-card p-6 md:p-8">
               <div className="ornate-divider mb-4">
-                <span className="font-accent text-xs" style={{ color: "#8B5E1A", fontWeight: 600 }}>
+                <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>
                   Full 81-year Timeline · Drill into any period
                 </span>
               </div>

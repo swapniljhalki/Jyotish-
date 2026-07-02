@@ -6,7 +6,7 @@
 
 const NUMBER_TINT = {
   1: "#B8870B", // Sun
-  2: "#8B5E1A", // Moon
+  2: "#5C3A09", // Moon
   3: "#9C6F00", // Jupiter
   4: "#6E3FA8", // Rahu
   5: "#377D3B", // Mercury
@@ -84,7 +84,7 @@ export default function NumDashaCurrentTable({ dasha }) {
       </thead>
       <tbody>
         {rows.map(({ label, desc, p, n }) => {
-          const tint = n ? NUMBER_TINT[n] || "#8B5E1A" : "#8B5E1A";
+          const tint = n ? NUMBER_TINT[n] || "#5C3A09" : "#5C3A09";
           return (
             <tr key={label}>
               <td>

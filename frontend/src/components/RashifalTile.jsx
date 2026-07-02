@@ -35,7 +35,7 @@ export default function RashifalTile({ compact = false }) {
         className={compact ? "glass-card p-6 fade-up" : "lg:col-span-5 glass-card p-8 fade-up delay-200"}
         data-testid="rashifal-tile-loading"
       >
-        <div className="font-accent text-xs text-[#D4AF37] animate-pulse text-center py-8">
+        <div className="font-accent text-xs text-[#B8860B] animate-pulse text-center py-8">
           drawing the rashifal...
         </div>
       </div>
@@ -46,13 +46,13 @@ export default function RashifalTile({ compact = false }) {
     <div className={wrapperClass} data-testid="rashifal-tile">
       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <Stars className="h-4 w-4 text-[#D4AF37]" />
-          <span className="font-accent text-xs text-[#D4AF37]">
+          <Stars className="h-4 w-4 text-[#B8860B]" />
+          <span className="font-accent text-xs text-[#B8860B]">
             {compact ? "Daily Rashifal" : "Daily Rashifal · for all twelve signs"}
           </span>
         </div>
-        <div className="text-[10px] font-accent text-zinc-500" data-testid="rashifal-meta">
-          Moon in <span className="text-[#D4AF37]">{data.moon_sign}</span>
+        <div className="text-[10px] font-accent text-zinc-800" data-testid="rashifal-meta">
+          Moon in <span className="text-[#B8860B]">{data.moon_sign}</span>
           {!compact && (
             <> · {data.source === "ai" ? "AI-authored" : "offline reading"}</>
           )}
@@ -74,13 +74,13 @@ export default function RashifalTile({ compact = false }) {
             } rounded-full border transition-all ${
               selected === idx
                 ? "border-[#FF9933] bg-[rgba(255,153,51,0.12)] text-[#FFD700]"
-                : "border-[rgba(212,175,55,0.25)] text-zinc-300 hover:border-[#D4AF37] hover:text-[#FFD700]"
+                : "border-[rgba(212,175,55,0.25)] text-zinc-800 hover:border-[#D4AF37] hover:text-[#FFD700]"
             }`}
           >
             <span className={`font-heading ${compact ? "text-xs" : "text-sm"}`}>{r.glyph}</span>
             <span className={`font-body ${compact ? "text-[10px]" : "text-xs"}`}>{r.name}</span>
             {!compact && (
-              <span className="font-accent text-[9px] text-zinc-500 hidden md:inline">
+              <span className="font-accent text-[9px] text-zinc-800 hidden md:inline">
                 {r.sanskrit}
               </span>
             )}
@@ -103,7 +103,7 @@ export default function RashifalTile({ compact = false }) {
                 <div className={`font-heading ${compact ? "text-lg" : "text-2xl"} text-zinc-50`}>
                   {current.name}
                 </div>
-                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest">
+                <div className="font-accent text-[10px] text-[#B8860B] tracking-widest">
                   {current.sanskrit} · ruled by {current.lord}
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default function RashifalTile({ compact = false }) {
             <div className={`mt-4 grid grid-cols-2 gap-3 text-xs font-body`}>
               {current.lucky_color && (
                 <div>
-                  <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">
+                  <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">
                     Lucky Colour
                   </div>
                   <div className="text-zinc-200 mt-0.5">{current.lucky_color}</div>
@@ -127,7 +127,7 @@ export default function RashifalTile({ compact = false }) {
               )}
               {current.lucky_number > 0 && (
                 <div>
-                  <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">
+                  <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">
                     Lucky Number
                   </div>
                   <div className="text-zinc-200 mt-0.5">{current.lucky_number}</div>

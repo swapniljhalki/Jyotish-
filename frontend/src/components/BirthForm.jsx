@@ -22,7 +22,7 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
   return (
     <form onSubmit={submit} data-testid={`${testIdPrefix}-form`} className="space-y-5">
       <div>
-        <Label htmlFor="fn" className="font-accent text-[10px] text-zinc-400">Full Name (optional)</Label>
+        <Label htmlFor="fn" className="font-accent text-[10px] text-zinc-700">Full Name (optional)</Label>
         <Input id="fn" value={full_name} onChange={(e) => setFullName(e.target.value)}
           className="mt-2 bg-[#121824] border-[rgba(212,175,55,0.2)] text-zinc-100 focus:border-[#FF9933]"
           data-testid={`${testIdPrefix}-name-input`}
@@ -30,7 +30,7 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
       </div>
       <div className="grid md:grid-cols-2 gap-5">
         <div>
-          <Label htmlFor="dob" className="font-accent text-[10px] text-zinc-400">Date of Birth</Label>
+          <Label htmlFor="dob" className="font-accent text-[10px] text-zinc-700">Date of Birth</Label>
           <Input id="dob" type="date" required
             value={date_of_birth} onChange={(e) => setDob(e.target.value)}
             className="mt-2 bg-[#121824] border-[rgba(212,175,55,0.2)] text-zinc-100 focus:border-[#FF9933]"
@@ -38,7 +38,7 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
           />
         </div>
         <div>
-          <Label htmlFor="tob" className="font-accent text-[10px] text-zinc-400">Time of Birth</Label>
+          <Label htmlFor="tob" className="font-accent text-[10px] text-zinc-700">Time of Birth</Label>
           <Input id="tob" type="time" required
             value={time_of_birth} onChange={(e) => setTob(e.target.value)}
             className="mt-2 bg-[#121824] border-[rgba(212,175,55,0.2)] text-zinc-100 focus:border-[#FF9933]"
@@ -47,7 +47,7 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
         </div>
       </div>
       <div>
-        <Label htmlFor="pob" className="font-accent text-[10px] text-zinc-400">Place of Birth</Label>
+        <Label htmlFor="pob" className="font-accent text-[10px] text-zinc-700">Place of Birth</Label>
         <div className="mt-2">
           <PlaceOfBirthInput
             value={place_of_birth}

@@ -39,7 +39,7 @@ export default function AuthCallback() {
 
   return (
     <div className="min-h-screen cosmic-bg flex items-center justify-center">
-      <div className="font-accent text-xs text-[#D4AF37] tracking-widest animate-pulse">
+      <div className="font-accent text-xs text-[#B8860B] tracking-widest animate-pulse">
         aligning your stars...
       </div>
     </div>

@@ -118,12 +118,12 @@ export default function PlaceOfBirthInput({
           className={`w-full pl-10 pr-9 py-2.5 rounded-md bg-white border border-[rgba(212,175,55,0.4)] text-zinc-900 font-body focus:outline-none focus:border-[#FF9933] focus:ring-2 focus:ring-[#FF9933]/20 transition ${className}`}
         />
         {loading ? (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 animate-spin" />
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-700 animate-spin" />
         ) : query ? (
           <button
             type="button"
             onClick={clear}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-700 rounded"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-zinc-700 hover:text-zinc-700 rounded"
             data-testid={`${testId}-clear`}
             aria-label="Clear"
           >
@@ -138,7 +138,7 @@ export default function PlaceOfBirthInput({
           data-testid={`${testId}-dropdown`}
         >
           {results.length === 0 ? (
-            <li className="px-3 py-2.5 text-sm text-zinc-500 font-body italic" data-testid={`${testId}-no-results`}>
+            <li className="px-3 py-2.5 text-sm text-zinc-800 font-body italic" data-testid={`${testId}-no-results`}>
               No matches — keep typing or try a nearby city.
             </li>
           ) : (
@@ -156,7 +156,7 @@ export default function PlaceOfBirthInput({
                 <div className="min-w-0">
                   <div className="text-zinc-900 truncate">{r.label}</div>
                   {r.lat && r.lon && (
-                    <div className="text-[10px] text-zinc-400 font-accent uppercase tracking-wider">
+                    <div className="text-[10px] text-zinc-700 font-accent uppercase tracking-wider">
                       {r.lat.toFixed(3)}°, {r.lon.toFixed(3)}°
                     </div>
                   )}

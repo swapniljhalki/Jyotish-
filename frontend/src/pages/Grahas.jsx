@@ -18,11 +18,11 @@ export default function Grahas() {
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16 md:py-24">
         <div className="mb-12 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("grahas_page.eyebrow")}</p>
+          <p className="font-accent text-xs text-[#B8860B] mb-3">{t("grahas_page.eyebrow")}</p>
           <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
             {t("grahas_page.title_a")} <span className="text-gold-gradient italic">{t("grahas_page.title_b")}</span>
           </h1>
-          <p className="mt-4 font-body text-zinc-400 max-w-2xl leading-relaxed">
+          <p className="mt-4 font-body text-zinc-700 max-w-2xl leading-relaxed">
             {t("grahas_page.intro")}
           </p>
         </div>
@@ -38,9 +38,9 @@ export default function Grahas() {
               <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 border border-[rgba(212,175,55,0.3)] bg-[rgba(212,175,55,0.06)]">
                 <span className="font-heading text-3xl text-[#FFD700]">{g.symbol}</span>
               </div>
-              <div className="font-accent text-[10px] text-[#D4AF37] mb-1">{g.sanskrit}</div>
+              <div className="font-accent text-[10px] text-[#B8860B] mb-1">{g.sanskrit}</div>
               <div className="font-heading text-xl text-zinc-50">{g.name}</div>
-              <div className="mt-1 text-xs font-body text-zinc-500">{g.english}</div>
+              <div className="mt-1 text-xs font-body text-zinc-800">{g.english}</div>
             </button>
           ))}
         </div>
@@ -56,13 +56,13 @@ export default function Grahas() {
                     <span className="font-heading text-2xl text-[#FFD700]">{selected.symbol}</span>
                   </div>
                   <div>
-                    <div className="font-accent text-[10px] text-[#D4AF37]">{selected.sanskrit}</div>
+                    <div className="font-accent text-[10px] text-[#B8860B]">{selected.sanskrit}</div>
                     <DialogTitle className="font-heading text-3xl text-zinc-50">
-                      {selected.name} <span className="text-zinc-500 italic text-xl">({selected.english})</span>
+                      {selected.name} <span className="text-zinc-800 italic text-xl">({selected.english})</span>
                     </DialogTitle>
                   </div>
                 </div>
-                <DialogDescription className="font-body text-zinc-300 text-base leading-relaxed pt-2">
+                <DialogDescription className="font-body text-zinc-800 text-base leading-relaxed pt-2">
                   {selected.description}
                 </DialogDescription>
               </DialogHeader>
@@ -79,17 +79,17 @@ export default function Grahas() {
                   ["Color", selected.color],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between border-b border-[rgba(212,175,55,0.1)] pb-2">
-                    <span className="text-zinc-500 font-accent text-[10px] uppercase tracking-widest">{k}</span>
+                    <span className="text-zinc-800 font-accent text-[10px] uppercase tracking-widest">{k}</span>
                     <span className="text-zinc-200">{v}</span>
                   </div>
                 ))}
               </div>
 
               <div className="mt-4">
-                <div className="font-accent text-[10px] text-[#D4AF37] mb-2">Qualities</div>
+                <div className="font-accent text-[10px] text-[#B8860B] mb-2">Qualities</div>
                 <div className="flex flex-wrap gap-2">
                   {selected.qualities.map((q) => (
-                    <span key={q} className="text-xs px-3 py-1 rounded-full border border-[rgba(212,175,55,0.25)] bg-[rgba(212,175,55,0.05)] text-zinc-300">
+                    <span key={q} className="text-xs px-3 py-1 rounded-full border border-[rgba(212,175,55,0.25)] bg-[rgba(212,175,55,0.05)] text-zinc-800">
                       <Sparkles className="inline h-3 w-3 text-[#FFD700] mr-1" />{q}
                     </span>
                   ))}

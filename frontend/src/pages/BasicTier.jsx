@@ -146,7 +146,7 @@ export default function BasicTier() {
           <span className="sb-eyebrow">{t("basic.eyebrow")}</span>
           <h1 className="sb-h1">
             {t("basic.title_a")}{" "}
-            <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("basic.title_b")}</span>
+            <span className="italic font-medium" style={{ color: "#5C3A09" }}>{t("basic.title_b")}</span>
           </h1>
           <p className="sb-lead mt-6">
             {t("basic.intro")}
@@ -163,7 +163,7 @@ export default function BasicTier() {
             {user ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <UpgradeButton tier="basic" data-testid="basic-upgrade-btn" />
-                <Link to="/pricing?need=basic" className="text-[12px] font-medium tracking-wider uppercase text-[#8B5E1A] hover:text-[#FF8C00] transition-colors">
+                <Link to="/pricing?need=basic" className="text-[12px] font-medium tracking-wider uppercase text-[#5C3A09] hover:text-[#FF8C00] transition-colors">
                   {t("common.compare_all_tiers")}
                 </Link>
               </div>
@@ -213,17 +213,17 @@ export default function BasicTier() {
                   <section className="mb-8" data-testid="basic-nakshatra-report">
                     <div className="glass-card p-6 md:p-8">
                       <div className="ornate-divider mb-5">
-                        <span className="font-accent text-xs text-[#D4AF37]">Nakshatra Report · Moon&apos;s Star</span>
+                        <span className="font-accent text-xs text-[#B8860B]">Nakshatra Report · Moon&apos;s Star</span>
                       </div>
                       <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
                         <div>
                           <div className="font-heading text-3xl md:text-4xl" style={{ color: "#2A1A05", fontWeight: 600 }}>
                             {result.chart.nakshatra_report.name}
-                            <span className="ml-3 font-accent text-base" style={{ color: "#8B5E1A" }}>
+                            <span className="ml-3 font-accent text-base" style={{ color: "#5C3A09" }}>
                               {result.chart.nakshatra_report.sanskrit}
                             </span>
                           </div>
-                          <div className="text-[12px] mt-1 font-accent tracking-widest uppercase" style={{ color: "#8B5E1A" }}>
+                          <div className="text-[12px] mt-1 font-accent tracking-widest uppercase" style={{ color: "#5C3A09" }}>
                             Pada {result.chart.nakshatra_report.pada} · {result.chart.nakshatra_report.range}
                           </div>
                         </div>
@@ -242,7 +242,7 @@ export default function BasicTier() {
                           ["Quality", result.chart.nakshatra_report.quality],
                         ].map(([k, v]) => (
                           <div key={k} className="flex flex-col">
-                            <span className="font-accent text-[9px] uppercase tracking-widest" style={{ color: "#8B5E1A" }}>{k}</span>
+                            <span className="font-accent text-[9px] uppercase tracking-widest" style={{ color: "#5C3A09" }}>{k}</span>
                             <span style={{ color: "#2A1A05" }}>{v}</span>
                           </div>
                         ))}
@@ -266,9 +266,9 @@ export default function BasicTier() {
                     data-testid="basic-expand-kundali-d1"
                     aria-label="Expand Kundali Lagna Chart"
                   >
-                    <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                    <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#B8860B] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                     <div className="ornate-divider mb-4">
-                      <span className="font-accent text-xs text-[#D4AF37]">{t("result.d1_title")}</span>
+                      <span className="font-accent text-xs text-[#B8860B]">{t("result.d1_title")}</span>
                     </div>
                     <KundaliChart chart={result.chart} large />
                     <div className="mt-4 text-center">
@@ -284,23 +284,23 @@ export default function BasicTier() {
                 {/* PAGE 2 (cont.) — Planetary positions pack with Lagna */}
                 <section className="mb-8">
                   <div className="glass-card p-6" data-testid="basic-planet-table">
-                    <div className="font-accent text-xs text-[#D4AF37] mb-4">{t("result.planetary_positions")}</div>
+                    <div className="font-accent text-xs text-[#B8860B] mb-4">{t("result.planetary_positions")}</div>
                     <Table>
                       <TableHeader>
                         <TableRow className="border-[rgba(212,175,55,0.2)]">
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_graha")}</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_rashi")}</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_house")}</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_nakshatra")}</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_graha")}</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_rashi")}</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">°</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_house")}</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_nakshatra")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {result.chart.planets.map((p) => (
                           <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                             <TableCell className="font-body text-zinc-100">{localizePlanet(p.name, lang)}</TableCell>
-                            <TableCell className="font-body text-zinc-300">{localizeRashi(p.rashi_english, lang)}</TableCell>
-                            <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
+                            <TableCell className="font-body text-zinc-800">{localizeRashi(p.rashi_english, lang)}</TableCell>
+                            <TableCell className="font-body text-zinc-700">{p.degree}°</TableCell>
                             <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
                             <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.nakshatra ? localizeNakshatra(p.nakshatra, lang) : "—"}</TableCell>
                           </TableRow>
@@ -328,7 +328,7 @@ export default function BasicTier() {
                     >
                       <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#FF9933] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                       <div className="ornate-divider mb-4">
-                        <span className="font-accent text-xs text-[#D4AF37]">{t("result.chandra_title")}</span>
+                        <span className="font-accent text-xs text-[#B8860B]">{t("result.chandra_title")}</span>
                       </div>
                       <KundaliChart chart={result.chart.chandra} large />
                       <div className="mt-4 text-center">
@@ -358,9 +358,9 @@ export default function BasicTier() {
                       data-testid="basic-expand-kundali-navamsha"
                       aria-label="Expand Navamsha D9 Chart"
                     >
-                      <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                      <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#B8860B] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                       <div className="ornate-divider mb-4">
-                        <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                        <span className="font-accent text-xs text-[#B8860B]">Navamsha Chart · D9</span>
                       </div>
                       <KundaliChart chart={result.chart.navamsha} large />
                       <div className="mt-4 text-center">
@@ -383,7 +383,7 @@ export default function BasicTier() {
               ) : (
                 <div
                   className="font-body text-sm py-6 text-center"
-                  style={{ color: "#8B5E1A" }}
+                  style={{ color: "#5C3A09" }}
                   data-testid="basic-advice-pending"
                 >
                   Your detailed reading is being generated by our Jyotishi AI…
@@ -405,11 +405,11 @@ export default function BasicTier() {
         {canRead && (
         <div className="mt-20 fade-up" data-testid="basic-chaldean-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.name_section")}</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-3">{t("premium_numerology.name_section")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
               {t("premium_numerology.name_title_a")} <span className="text-gold-gradient italic">{t("premium_numerology.name_title_b")}</span>
             </h2>
-            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+            <p className="mt-3 font-body text-zinc-700 max-w-2xl leading-relaxed text-sm">
               {t("premium_numerology.name_intro")}
             </p>
           </div>
@@ -420,7 +420,7 @@ export default function BasicTier() {
             data-testid="basic-chaldean-form"
           >
             <div className="md:col-span-2">
-              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+              <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
                 {t("premium_numerology.name_label")}
               </label>
               <input
@@ -452,7 +452,7 @@ export default function BasicTier() {
           {chaldeanResult && (
             <div className="mt-8 space-y-6" data-testid="basic-chaldean-result">
               <div className="glass-card p-6">
-                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-4">
+                <div className="font-accent text-[10px] text-[#B8860B] tracking-widest mb-4">
                   {t("premium_numerology.letters_title")}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -479,14 +479,14 @@ export default function BasicTier() {
                 </div>
                 <div className="flex items-baseline gap-4 mt-4 pt-4 border-t border-[rgba(212,175,55,0.15)]">
                   <div>
-                    <div className="font-accent text-[10px] text-zinc-500 uppercase tracking-widest">Compound Total</div>
-                    <div className="font-heading text-3xl text-[#D4AF37]">
+                    <div className="font-accent text-[10px] text-zinc-800 uppercase tracking-widest">Compound Total</div>
+                    <div className="font-heading text-3xl text-[#B8860B]">
                       {chaldeanResult.compound_total}
                     </div>
                   </div>
-                  <div className="text-zinc-500 font-heading text-2xl">→</div>
+                  <div className="text-zinc-800 font-heading text-2xl">→</div>
                   <div>
-                    <div className="font-accent text-[10px] text-zinc-500 uppercase tracking-widest">Reduced</div>
+                    <div className="font-accent text-[10px] text-zinc-800 uppercase tracking-widest">Reduced</div>
                     <div className="font-heading text-3xl text-[#FFD700]">
                       {chaldeanResult.name_number.number}
                     </div>
@@ -495,7 +495,7 @@ export default function BasicTier() {
               </div>
 
               <div className="premium-card p-6 md:p-8">
-                <div className="font-accent text-[10px] text-[#D4AF37] mb-3 tracking-widest">
+                <div className="font-accent text-[10px] text-[#B8860B] mb-3 tracking-widest">
                   {chaldeanResult.name_number.label}
                 </div>
                 <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
@@ -503,7 +503,7 @@ export default function BasicTier() {
                     <div className="font-heading text-7xl text-[#FFD700] leading-none">
                       {chaldeanResult.name_number.number}
                     </div>
-                    <div className="mt-1 font-body text-xs text-zinc-500">
+                    <div className="mt-1 font-body text-xs text-zinc-800">
                       {chaldeanResult.name_number.derivation}
                     </div>
                   </div>
@@ -511,7 +511,7 @@ export default function BasicTier() {
                     <div className="font-heading text-2xl text-zinc-100">
                       {chaldeanResult.name_number.planet}
                     </div>
-                    <div className="font-body text-xs text-zinc-500">
+                    <div className="font-body text-xs text-zinc-800">
                       {chaldeanResult.name_number.planet_english}
                     </div>
                   </div>
@@ -529,19 +529,19 @@ export default function BasicTier() {
                     [t("premium_numerology.lucky_numbers"), (chaldeanResult.name_number.lucky_numbers || []).join(", ")],
                   ].map(([label, val]) => (
                     <div key={label} className="flex justify-between gap-3">
-                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</span>
-                      <span className="text-zinc-300 text-right">{val}</span>
+                      <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{label}</span>
+                      <span className="text-zinc-800 text-right">{val}</span>
                     </div>
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-[rgba(212,175,55,0.12)] grid grid-cols-1 gap-2 text-xs font-body">
                   <div>
-                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.career")}</div>
-                    <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.career}</div>
+                    <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.career")}</div>
+                    <div className="text-zinc-800 mt-0.5">{chaldeanResult.name_number.career}</div>
                   </div>
                   <div>
-                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.challenges")}</div>
-                    <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.challenges}</div>
+                    <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.challenges")}</div>
+                    <div className="text-zinc-800 mt-0.5">{chaldeanResult.name_number.challenges}</div>
                   </div>
                 </div>
               </div>
@@ -554,11 +554,11 @@ export default function BasicTier() {
         {canRead && (
         <div className="mt-20 fade-up" data-testid="basic-mobile-numerology-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
               {t("premium_numerology.mobile_title_a2")} <span className="text-gold-gradient italic">{t("premium_numerology.mobile_title_b2")}</span>
             </h2>
-            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+            <p className="mt-3 font-body text-zinc-700 max-w-2xl leading-relaxed text-sm">
               {t("premium_numerology.mobile_intro2")}
             </p>
           </div>
@@ -569,7 +569,7 @@ export default function BasicTier() {
             data-testid="basic-mobile-form"
           >
             <div className="md:col-span-2">
-              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+              <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
                 {t("premium_numerology.mobile_label")}
               </label>
               <input
@@ -604,10 +604,10 @@ export default function BasicTier() {
                 <NumberCard block={mobileResult.mobile_number_ank} accent="text-[#FFD700]" />
               </div>
               <div className="glass-card p-6">
-                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-3">
+                <div className="font-accent text-[10px] text-[#B8860B] tracking-widest mb-3">
                   {t("premium_numerology.digit_comp")}
                 </div>
-                <div className="font-body text-sm text-zinc-300 mb-4">
+                <div className="font-body text-sm text-zinc-800 mb-4">
                   {t("premium_numerology.number_label")} <span className="text-zinc-100 font-mono">{mobileResult.digits_used}</span>
                 </div>
                 <div className="grid grid-cols-5 gap-2 mb-5">
@@ -622,7 +622,7 @@ export default function BasicTier() {
                       data-testid={`basic-mobile-digit-${d}`}
                     >
                       <div className="font-heading text-lg text-[#FFD700]">{d}</div>
-                      <div className="font-accent text-[9px] text-zinc-500 tracking-widest">
+                      <div className="font-accent text-[9px] text-zinc-800 tracking-widest">
                         ×{count}
                       </div>
                     </div>
@@ -630,16 +630,16 @@ export default function BasicTier() {
                 </div>
                 <div className="space-y-2 text-xs font-body">
                   <div className="flex justify-between gap-3">
-                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.digit_sum")}</span>
+                    <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.digit_sum")}</span>
                     <span className="text-zinc-200">{mobileResult.digit_sum}</span>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.dominant_digit")}</span>
+                    <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.dominant_digit")}</span>
                     <span className="text-zinc-200">{mobileResult.dominant_digit}</span>
                   </div>
                   {mobileResult.missing_digits.length > 0 && (
                     <div className="flex justify-between gap-3">
-                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.missing_digits")}</span>
+                      <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.missing_digits")}</span>
                       <span className="text-zinc-200">{mobileResult.missing_digits.join(", ")}</span>
                     </div>
                   )}

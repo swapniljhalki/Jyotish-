@@ -44,10 +44,10 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 pt-8 border-t border-[rgba(92,58,9,0.08)] flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[12px] text-[#8B5E1A] font-medium">
+          <p className="text-[12px] text-[#5C3A09] font-medium">
             © {new Date().getFullYear()} Satish Numero World. All sacred rights reserved.
           </p>
-          <p className="font-accent text-[11px] text-[#8B5E1A]">ॐ शान्ति · शान्ति · शान्ति</p>
+          <p className="font-accent text-[11px] text-[#5C3A09]">ॐ शान्ति · शान्ति · शान्ति</p>
         </div>
       </div>
 

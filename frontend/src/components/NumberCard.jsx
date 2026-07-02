@@ -18,15 +18,15 @@ function Field({ label, value, stack }) {
   if (stack) {
     return (
       <div>
-        <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</div>
-        <div className="text-zinc-300 mt-0.5">{value}</div>
+        <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{label}</div>
+        <div className="text-zinc-800 mt-0.5">{value}</div>
       </div>
     );
   }
   return (
     <div className="flex justify-between gap-3">
-      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</span>
-      <span className="text-zinc-300 text-right">{value}</span>
+      <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{label}</span>
+      <span className="text-zinc-800 text-right">{value}</span>
     </div>
   );
 }
@@ -36,8 +36,8 @@ export default function NumberCard({ block, accent }) {
   if (!block || !block.planet) {
     return (
       <div className="glass-card p-6">
-        <div className="font-accent text-[10px] text-[#D4AF37] mb-2">{block?.label}</div>
-        <div className="text-zinc-500 font-body text-sm">{block?.derivation}</div>
+        <div className="font-accent text-[10px] text-[#B8860B] mb-2">{block?.label}</div>
+        <div className="text-zinc-800 font-body text-sm">{block?.derivation}</div>
       </div>
     );
   }
@@ -48,24 +48,24 @@ export default function NumberCard({ block, accent }) {
     >
       <div className="flex items-start justify-between mb-4">
         <div>
-          <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest">
+          <div className="font-accent text-[10px] text-[#B8860B] tracking-widest">
             {block.label}
           </div>
           <div className="mt-1 flex items-baseline gap-3">
             <span className={`font-heading text-6xl ${accent}`}>{block.number}</span>
-            <span className="font-heading text-2xl text-zinc-400">
+            <span className="font-heading text-2xl text-zinc-700">
               {PLANET_GLYPH[block.planet] || "✦"}
             </span>
           </div>
-          <div className="mt-1 font-body text-xs text-zinc-500">{block.derivation}</div>
+          <div className="mt-1 font-body text-xs text-zinc-800">{block.derivation}</div>
         </div>
         <div className="text-right">
           <div className="font-heading text-lg text-zinc-100">{block.planet}</div>
-          <div className="font-body text-xs text-zinc-500">{block.planet_english}</div>
+          <div className="font-body text-xs text-zinc-800">{block.planet_english}</div>
         </div>
       </div>
 
-      <div className="font-body text-sm text-zinc-300 leading-relaxed">{block.traits}</div>
+      <div className="font-body text-sm text-zinc-800 leading-relaxed">{block.traits}</div>
 
       <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-xs font-body">
         <Field label={t("premium_numerology.gemstone")} value={block.gemstone} />

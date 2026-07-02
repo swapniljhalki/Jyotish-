@@ -27,7 +27,7 @@ export default function BirthDetailsSummary({ inputs, testIdPrefix }) {
         <div key={label} className="flex items-start gap-2.5">
           <Icon className="w-4 h-4 mt-0.5 text-[#B8741A] shrink-0" aria-hidden="true" />
           <div>
-            <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</div>
+            <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{label}</div>
             <div className="font-body text-sm text-zinc-100 mt-0.5 break-words">{value}</div>
           </div>
         </div>

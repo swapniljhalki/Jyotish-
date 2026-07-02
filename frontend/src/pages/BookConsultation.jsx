@@ -78,7 +78,7 @@ export default function BookConsultation() {
             <span className="sb-eyebrow" data-testid="book-eyebrow">1:1 Consultation</span>
             <h1 className="sb-h1">
               Sit with{" "}
-              <span className="italic font-medium" style={{ color: "#8B5E1A" }}>Satissh.</span>
+              <span className="italic font-medium" style={{ color: "#5C3A09" }}>Satissh.</span>
             </h1>
             <p className="sb-lead mt-6">
               A private one-on-one session — for the questions a written reading can't quite answer.
@@ -123,7 +123,7 @@ export default function BookConsultation() {
               </div>
 
               {/* Fallback link in case the widget is blocked (privacy tools / restrictive CSP) */}
-              <p className="text-center text-[13px] text-[#8B5E1A] mt-6">
+              <p className="text-center text-[13px] text-[#5C3A09] mt-6">
                 Trouble loading the scheduler?{" "}
                 <a
                   href={CALENDLY_URL}
@@ -139,7 +139,7 @@ export default function BookConsultation() {
           ) : (
             <div className="max-w-2xl mx-auto sb-card-dark text-center fade-up" data-testid="book-upgrade-gate">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(212,175,55,0.18)] mb-5">
-                <Lock className="h-5 w-5 text-[#D4AF37]" strokeWidth={1.75} />
+                <Lock className="h-5 w-5 text-[#B8860B]" strokeWidth={1.75} />
               </div>
               <div className="sb-eyebrow" style={{ color: "#D4AF37" }}>Premium members only</div>
               <h3 className="font-heading font-bold text-3xl md:text-4xl text-white mb-4 tracking-tight">
@@ -153,7 +153,7 @@ export default function BookConsultation() {
                 <UpgradeButton tier="premium" data-testid="book-upgrade-btn" />
                 <Link
                   to="/pricing?need=premium"
-                  className="text-[12px] font-medium tracking-wider uppercase text-[#D4AF37] hover:text-[#FF8C00] transition-colors"
+                  className="text-[12px] font-medium tracking-wider uppercase text-[#B8860B] hover:text-[#FF8C00] transition-colors"
                   data-testid="book-compare-tiers"
                 >
                   Compare all tiers
@@ -176,7 +176,7 @@ export default function BookConsultation() {
             <span className="sb-eyebrow">Prefer a written reading first?</span>
             <h2 className="sb-h2 mb-6">
               Get your full Kundali{" "}
-              <span className="italic font-medium" style={{ color: "#8B5E1A" }}>in minutes.</span>
+              <span className="italic font-medium" style={{ color: "#5C3A09" }}>in minutes.</span>
             </h2>
             <p className="sb-lead mx-auto mb-10">
               Detailed AI-crafted birth-chart interpretation — perfect to bring to your consultation.

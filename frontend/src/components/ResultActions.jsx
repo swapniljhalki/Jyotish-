@@ -28,7 +28,7 @@ export default function ResultActions({ targetRef, filename, testIdPrefix, pdfTh
 
   const btn =
     "inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[rgba(160,110,40,0.45)] " +
-    "text-[#8B5E1A] font-accent text-xs tracking-widest uppercase bg-white/60 " +
+    "text-[#5C3A09] font-accent text-xs tracking-widest uppercase bg-white/60 " +
     "hover:bg-[rgba(255,153,51,0.1)] hover:border-[#D96600] transition-colors disabled:opacity-50";
 
   return (

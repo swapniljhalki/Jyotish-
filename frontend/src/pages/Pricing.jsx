@@ -81,7 +81,7 @@ export default function Pricing() {
           <span className="sb-eyebrow">{t("pricing.eyebrow")}</span>
           <h1 className="sb-h1">
             {t("pricing.title_a")}{" "}
-            <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("pricing.title_b")}</span>
+            <span className="italic font-medium" style={{ color: "#5C3A09" }}>{t("pricing.title_b")}</span>
           </h1>
           <p className="sb-lead mt-6" data-testid="pricing-pay-mode">
             {t("pricing.pay_note")}
@@ -110,8 +110,8 @@ export default function Pricing() {
                   </div>
                 )}
                 <div className="flex items-center gap-2 mb-5">
-                  <Sparkles className={`h-4 w-4 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
-                  <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#D4AF37]" : "text-[#8B5E1A]"}`}>{tier.name}</span>
+                  <Sparkles className={`h-4 w-4 ${isDark ? "text-[#B8860B]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
+                  <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#B8860B]" : "text-[#5C3A09]"}`}>{tier.name}</span>
                 </div>
                 <div className={`font-heading font-bold text-5xl md:text-6xl tracking-tight mb-8 ${isDark ? "text-white" : "text-[#2A1A05]"}`}>
                   {tier.price}
@@ -119,7 +119,7 @@ export default function Pricing() {
                 <ul className="space-y-3 mb-10 flex-1">
                   {tier.features.map((f) => (
                     <li key={f} className={`flex items-start gap-3 text-[14px] leading-relaxed ${isDark ? "text-[#FDFBF7]/90" : "text-[#5C3A09]"}`}>
-                      <Check className={`h-4 w-4 mt-1 flex-shrink-0 ${isDark ? "text-[#D4AF37]" : "text-[#FF8C00]"}`} strokeWidth={2} /> {f}
+                      <Check className={`h-4 w-4 mt-1 flex-shrink-0 ${isDark ? "text-[#B8860B]" : "text-[#FF8C00]"}`} strokeWidth={2} /> {f}
                     </li>
                   ))}
                 </ul>

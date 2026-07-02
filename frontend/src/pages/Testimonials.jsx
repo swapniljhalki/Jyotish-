@@ -47,9 +47,9 @@ function TestimonialCard({ t9l, idx }) {
       </blockquote>
       <figcaption className="mt-6 pt-4 border-t border-[rgba(212,175,55,0.2)] flex items-center justify-between">
         <div>
-          <div className="font-heading text-lg text-[#8B5E1A]">— {t9l.author}</div>
+          <div className="font-heading text-lg text-[#5C3A09]">— {t9l.author}</div>
           {t9l.place && (
-            <div className="font-accent text-[10px] tracking-widest uppercase text-zinc-500 mt-0.5">
+            <div className="font-accent text-[10px] tracking-widest uppercase text-zinc-800 mt-0.5">
               {t9l.place}
             </div>
           )}
@@ -69,19 +69,19 @@ export default function Testimonials() {
   return (
     <div className="cosmic-bg min-h-screen pt-28 pb-20">
       <div className="max-w-6xl mx-auto px-6 md:px-10" data-testid="testimonials-page">
-        <p className="font-accent text-xs text-[#D4AF37] mb-3 tracking-widest uppercase">
+        <p className="font-accent text-xs text-[#B8860B] mb-3 tracking-widest uppercase">
           {t("testimonials.eyebrow")}
         </p>
         <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl text-zinc-50">
           {t("testimonials.title_a")}{" "}
           <span className="text-gold-gradient italic">{t("testimonials.title_b")}</span>
         </h1>
-        <p className="mt-4 font-body text-zinc-400 max-w-2xl leading-relaxed">
+        <p className="mt-4 font-body text-zinc-700 max-w-2xl leading-relaxed">
           {t("testimonials.intro")}
         </p>
 
         <div className="ornate-divider my-10">
-          <span className="font-accent text-xs text-[#D4AF37]">ॐ</span>
+          <span className="font-accent text-xs text-[#B8860B]">ॐ</span>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">

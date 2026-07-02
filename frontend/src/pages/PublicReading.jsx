@@ -31,14 +31,14 @@ export default function PublicReading() {
     <div className="cosmic-bg min-h-screen flex items-center justify-center px-6">
       <div className="text-center max-w-md" data-testid="public-reading-error">
         <p className="font-heading text-3xl text-zinc-100 mb-3">Reading unavailable</p>
-        <p className="text-zinc-400 font-body mb-6">{err}</p>
+        <p className="text-zinc-700 font-body mb-6">{err}</p>
         <Link to="/" className="btn-saffron inline-flex">Discover Jyotish</Link>
       </div>
     </div>
   );
   if (!r) return (
     <div className="cosmic-bg min-h-screen flex items-center justify-center">
-      <div className="font-accent text-xs text-[#D4AF37] animate-pulse">loading...</div>
+      <div className="font-accent text-xs text-[#B8860B] animate-pulse">loading...</div>
     </div>
   );
 
@@ -56,7 +56,7 @@ export default function PublicReading() {
             <span className="font-heading text-xl md:text-2xl">
               <span className="text-gold-gradient font-semibold">Satish</span>
               <span className="text-zinc-200"> Numero</span>
-              <span className="text-zinc-400"> World</span>
+              <span className="text-zinc-700"> World</span>
             </span>
           </Link>
           <Link to="/register">
@@ -71,12 +71,12 @@ export default function PublicReading() {
         {/* Header */}
         <div className="text-center mb-12 fade-up">
           <div className="ornate-divider mb-4">
-            <span className="font-accent text-xs text-[#D4AF37]">A Shared Reading</span>
+            <span className="font-accent text-xs text-[#B8860B]">A Shared Reading</span>
           </div>
           <h1 className="font-heading text-4xl md:text-5xl text-zinc-50">
             The kundali of <span className="text-gold-gradient italic" data-testid="public-reading-author">{r.author_name}</span>
           </h1>
-          <p className="mt-3 text-sm text-zinc-500 font-body">
+          <p className="mt-3 text-sm text-zinc-800 font-body">
             {r.tier === "premium" ? "Premium Reading" : "Basic Reading"} · {new Date(r.created_at).toLocaleDateString()}
           </p>
         </div>
@@ -88,22 +88,22 @@ export default function PublicReading() {
             <div className="grid md:grid-cols-3 gap-6">
               <div className="premium-card p-6">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Kundali Lagna Chart</span>
+                  <span className="font-accent text-xs text-[#B8860B]">Kundali Lagna Chart</span>
                 </div>
                 <KundaliChart chart={r.chart} />
                 <div className="mt-4 text-center">
-                  <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                  <div className="font-accent text-[10px] text-zinc-800">Ascendant</div>
                   <div className="font-heading text-2xl text-[#FFD700]">{r.chart.ascendant_english}</div>
                 </div>
               </div>
               {r.chart.chandra && (
                 <div className="premium-card p-6">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Chandra Rashi Chart</span>
+                    <span className="font-accent text-xs text-[#B8860B]">Chandra Rashi Chart</span>
                   </div>
                   <KundaliChart chart={r.chart.chandra} />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Chandra Lagna</div>
+                    <div className="font-accent text-[10px] text-zinc-800">Chandra Lagna</div>
                     <div className="font-heading text-2xl text-[#FF9933]">{r.chart.chandra.ascendant_english}</div>
                   </div>
                 </div>
@@ -111,12 +111,12 @@ export default function PublicReading() {
               {r.chart.navamsha && (
                 <div className="premium-card p-6">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                    <span className="font-accent text-xs text-[#B8860B]">Navamsha Chart · D9</span>
                   </div>
                   <KundaliChart chart={r.chart.navamsha} />
                   <div className="mt-4 text-center">
-                    <div className="font-accent text-[10px] text-zinc-500">Navamsha Ascendant</div>
-                    <div className="font-heading text-2xl text-[#D4AF37]">{r.chart.navamsha.ascendant_english}</div>
+                    <div className="font-accent text-[10px] text-zinc-800">Navamsha Ascendant</div>
+                    <div className="font-heading text-2xl text-[#B8860B]">{r.chart.navamsha.ascendant_english}</div>
                   </div>
                 </div>
               )}
@@ -125,7 +125,7 @@ export default function PublicReading() {
             {/* Reading — full width below */}
             <div className="premium-card p-6 md:p-8">
               <div className="ornate-divider mb-4">
-                <span className="font-accent text-xs text-[#D4AF37]">Reading</span>
+                <span className="font-accent text-xs text-[#B8860B]">Reading</span>
               </div>
               <AdviceMarkdown testId="public-premium-advice">{r.advice}</AdviceMarkdown>
             </div>
@@ -134,27 +134,27 @@ export default function PublicReading() {
             {r.chart.planets && (
               <div className="glass-card p-6">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">Planetary Positions</span>
+                  <span className="font-accent text-xs text-[#B8860B]">Planetary Positions</span>
                 </div>
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(212,175,55,0.2)]">
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Navamsha</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">States</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Graha</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Rashi</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">°</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">House</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Navamsha</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">States</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {r.chart.planets.map((p) => (
                       <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                         <TableCell className="text-zinc-100 font-body">{p.name}</TableCell>
-                        <TableCell className="text-zinc-300 font-body">{p.rashi_english}</TableCell>
-                        <TableCell className="text-zinc-400 font-body">{p.degree}°</TableCell>
+                        <TableCell className="text-zinc-800 font-body">{p.rashi_english}</TableCell>
+                        <TableCell className="text-zinc-700 font-body">{p.degree}°</TableCell>
                         <TableCell className="text-[#FFD700] font-body">{p.house}</TableCell>
-                        <TableCell className="text-[#D4AF37] font-body">{p.navamsha_sign_english || "—"}</TableCell>
+                        <TableCell className="text-[#B8860B] font-body">{p.navamsha_sign_english || "—"}</TableCell>
                         <TableCell><PlanetStates states={p.states} /></TableCell>
                       </TableRow>
                     ))}
@@ -166,7 +166,7 @@ export default function PublicReading() {
             {r.chart.numerology_dasha && (
               <div className="premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">
+                  <span className="font-accent text-xs text-[#B8860B]">
                     Numerology Dasha · 81-year ank cycle (Mulank {r.chart.mulank})
                   </span>
                 </div>
@@ -179,16 +179,16 @@ export default function PublicReading() {
             {r.summary && (
               <div className="grid grid-cols-3 gap-4 mb-8 text-center">
                 <div>
-                  <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                  <div className="font-accent text-[10px] text-zinc-800">Ascendant</div>
                   <div className="font-heading text-xl text-[#FFD700]">{r.summary.ascendant}</div>
                 </div>
                 <div>
-                  <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                  <div className="font-accent text-[10px] text-zinc-800">Sun</div>
                   <div className="font-heading text-xl text-[#FF9933]">{r.summary.sun_sign}</div>
                 </div>
                 <div>
-                  <div className="font-accent text-[10px] text-zinc-500">Moon</div>
-                  <div className="font-heading text-xl text-[#D4AF37]">{r.summary.moon_sign}</div>
+                  <div className="font-accent text-[10px] text-zinc-800">Moon</div>
+                  <div className="font-heading text-xl text-[#B8860B]">{r.summary.moon_sign}</div>
                 </div>
               </div>
             )}
@@ -200,12 +200,12 @@ export default function PublicReading() {
         <div className="mt-16 text-center fade-up">
           <div className="glass-card p-10 max-w-2xl mx-auto">
             <div className="ornate-divider mb-4">
-              <span className="font-accent text-xs text-[#D4AF37]">ज्योतिष</span>
+              <span className="font-accent text-xs text-[#B8860B]">ज्योतिष</span>
             </div>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50 mb-3">
               Curious about your <span className="text-gold-gradient italic">own kundali?</span>
             </h2>
-            <p className="text-zinc-400 font-body mb-6">
+            <p className="text-zinc-700 font-body mb-6">
               Cast your personal Vedic reading in under a minute — AI-authored by a seasoned Jyotishi.
             </p>
             <div className="flex justify-center gap-3 flex-wrap">
@@ -215,7 +215,7 @@ export default function PublicReading() {
                 </button>
               </Link>
               <Link to="/grahas">
-                <button className="px-8 py-3 border border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)] font-body">
+                <button className="px-8 py-3 border border-[rgba(212,175,55,0.4)] text-[#B8860B] hover:bg-[rgba(212,175,55,0.08)] font-body">
                   Explore Free Wisdom
                 </button>
               </Link>

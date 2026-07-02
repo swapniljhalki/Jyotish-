@@ -74,12 +74,12 @@ export default function TestimonialStrip() {
             <span className="sb-eyebrow">Loved by seekers</span>
             <h2 className="sb-h2">
               Words from{" "}
-              <span className="italic font-medium" style={{ color: "#8B5E1A" }}>our community.</span>
+              <span className="italic font-medium" style={{ color: "#5C3A09" }}>our community.</span>
             </h2>
           </div>
           <Link
             to="/testimonials"
-            className="hidden sm:inline-flex items-center gap-1 text-[12px] font-semibold tracking-widest uppercase text-[#8B5E1A] hover:text-[#FF8C00] transition-colors shrink-0"
+            className="hidden sm:inline-flex items-center gap-1 text-[12px] font-semibold tracking-widest uppercase text-[#5C3A09] hover:text-[#FF8C00] transition-colors shrink-0"
             data-testid="strip-view-all-link"
           >
             View all <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
@@ -112,7 +112,7 @@ export default function TestimonialStrip() {
               <div>
                 <div
                   className="font-heading text-lg"
-                  style={{ color: "#8B5E1A" }}
+                  style={{ color: "#5C3A09" }}
                   data-testid="strip-author"
                 >
                   — {current.author}
@@ -140,7 +140,7 @@ export default function TestimonialStrip() {
               data-testid="strip-prev-btn"
               className="h-10 w-10 rounded-full bg-white shadow-md border border-[rgba(139,94,26,0.12)] hover:bg-[#FFF7ED] hover:border-[#FF8C00] flex items-center justify-center transition-colors"
             >
-              <ChevronLeft className="h-4 w-4 text-[#8B5E1A]" strokeWidth={2} />
+              <ChevronLeft className="h-4 w-4 text-[#5C3A09]" strokeWidth={2} />
             </button>
           </div>
           <div className="absolute inset-y-0 right-0 hidden md:flex items-center translate-x-1/2">
@@ -151,7 +151,7 @@ export default function TestimonialStrip() {
               data-testid="strip-next-btn"
               className="h-10 w-10 rounded-full bg-white shadow-md border border-[rgba(139,94,26,0.12)] hover:bg-[#FFF7ED] hover:border-[#FF8C00] flex items-center justify-center transition-colors"
             >
-              <ChevronRight className="h-4 w-4 text-[#8B5E1A]" strokeWidth={2} />
+              <ChevronRight className="h-4 w-4 text-[#5C3A09]" strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function TestimonialStrip() {
         <div className="sm:hidden text-center mt-6">
           <Link
             to="/testimonials"
-            className="inline-flex items-center gap-1 text-[12px] font-semibold tracking-widest uppercase text-[#8B5E1A] hover:text-[#FF8C00]"
+            className="inline-flex items-center gap-1 text-[12px] font-semibold tracking-widest uppercase text-[#5C3A09] hover:text-[#FF8C00]"
             data-testid="strip-view-all-link-mobile"
           >
             View all reviews <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />

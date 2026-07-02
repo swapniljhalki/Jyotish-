@@ -27,17 +27,17 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md glass-card p-10 fade-up" data-testid="forgot-password-page">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles className="h-4 w-4 text-[#FFD700]" />
-          <span className="font-accent text-xs text-[#D4AF37]">Password Reset</span>
+          <span className="font-accent text-xs text-[#B8860B]">Password Reset</span>
         </div>
         <h1 className="font-heading text-4xl text-zinc-50 mb-2">Forgot password?</h1>
-        <p className="font-body text-zinc-400 mb-8">
+        <p className="font-body text-zinc-700 mb-8">
           Enter your email and we'll send a reset link.
         </p>
 
         {sent ? (
-          <div className="text-sm font-body text-zinc-300 space-y-3" data-testid="forgot-password-success">
+          <div className="text-sm font-body text-zinc-800 space-y-3" data-testid="forgot-password-success">
             <p>If an account exists for <span className="text-[#FFD700]">{email}</span>, a reset link has been sent.</p>
-            <p className="text-xs text-zinc-500 italic">
+            <p className="text-xs text-zinc-800 italic">
               (Dev mode: emails are logged to the admin outbox — check <Link to="/admin" className="text-[#FF9933]">/admin</Link> if you're an admin.)
             </p>
             <Link to="/login" className="text-[#FF9933] hover:text-[#FFD700] text-sm">← Back to login</Link>
@@ -45,7 +45,7 @@ export default function ForgotPassword() {
         ) : (
           <form onSubmit={submit} className="space-y-5" data-testid="forgot-password-form">
             <div>
-              <Label className="font-accent text-[10px] text-zinc-400">Email</Label>
+              <Label className="font-accent text-[10px] text-zinc-700">Email</Label>
               <Input
                 type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}

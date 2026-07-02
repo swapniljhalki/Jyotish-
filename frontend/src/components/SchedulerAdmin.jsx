@@ -76,7 +76,7 @@ export default function SchedulerAdmin() {
     } catch (e) { toast.error(formatApiError(e.response?.data?.detail) || e.message); }
   };
 
-  if (!cfg) return <div className="text-zinc-500 font-body italic py-10 text-center">Loading scheduler…</div>;
+  if (!cfg) return <div className="text-zinc-800 font-body italic py-10 text-center">Loading scheduler…</div>;
 
   return (
     <div className="space-y-6" data-testid="admin-scheduler-panel">
@@ -84,14 +84,14 @@ export default function SchedulerAdmin() {
       <div className="glass-card p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-accent text-xs text-[#D4AF37] mb-2">Google Calendar / Meet</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-2">Google Calendar / Meet</p>
             <h3 className="font-heading text-2xl text-zinc-50">
               {cfg.google_connected ? "Connected" : "Not connected"}
               {cfg.google_connected
                 ? <CheckCircle2 className="inline-block h-5 w-5 ml-2 text-green-400" />
                 : <AlertCircle className="inline-block h-5 w-5 ml-2 text-orange-400" />}
             </h3>
-            <p className="font-body text-sm text-zinc-400 mt-2 max-w-xl">
+            <p className="font-body text-sm text-zinc-700 mt-2 max-w-xl">
               {cfg.google_connected
                 ? "Bookings will receive real Google Meet links and land on the astrologer's calendar."
                 : "Until you connect, paid bookings receive a placeholder meet.google.com link (stub mode). Connect once with the astrologer's Gmail to enable real Meet auto-generation."}
@@ -113,11 +113,11 @@ export default function SchedulerAdmin() {
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="font-accent text-xs text-[#D4AF37] mb-1">Weekly availability</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-1">Weekly availability</p>
             <h3 className="font-heading text-2xl text-zinc-50">Recurring slots</h3>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <label className="font-accent text-[10px] text-zinc-400 uppercase tracking-widest">Duration</label>
+            <label className="font-accent text-[10px] text-zinc-700 uppercase tracking-widest">Duration</label>
             <select value={slotMinutes} onChange={(e) => setSlotMinutes(e.target.value)} className="bg-[#121824] border border-[rgba(212,175,55,0.2)] text-zinc-100 px-3 py-2 rounded" data-testid="scheduler-slot-minutes">
               <option value={15}>15 min</option><option value={30}>30 min</option><option value={45}>45 min</option><option value={60}>60 min</option>
             </select>
@@ -125,14 +125,14 @@ export default function SchedulerAdmin() {
           </div>
         </div>
         <div className="space-y-3">
-          {rules.length === 0 && <p className="text-zinc-500 italic text-sm font-body">No availability rules yet — add one to start accepting bookings.</p>}
+          {rules.length === 0 && <p className="text-zinc-800 italic text-sm font-body">No availability rules yet — add one to start accepting bookings.</p>}
           {rules.map((r, i) => (
             <div key={i} className="flex items-center gap-3 p-3 rounded border border-[rgba(212,175,55,0.12)] bg-[#0A0D14]" data-testid={`scheduler-rule-${i}`}>
               <select value={r.day} onChange={(e) => updateRule(i, "day", e.target.value)} className="bg-[#121824] border border-[rgba(212,175,55,0.2)] text-zinc-100 px-3 py-2 rounded text-sm">
                 {DAYS.map((d, idx) => <option key={idx} value={idx}>{d}</option>)}
               </select>
               <input type="time" value={r.start} onChange={(e) => updateRule(i, "start", e.target.value)} className="bg-[#121824] border border-[rgba(212,175,55,0.2)] text-zinc-100 px-3 py-2 rounded text-sm" />
-              <span className="text-zinc-500 text-sm">to</span>
+              <span className="text-zinc-800 text-sm">to</span>
               <input type="time" value={r.end} onChange={(e) => updateRule(i, "end", e.target.value)} className="bg-[#121824] border border-[rgba(212,175,55,0.2)] text-zinc-100 px-3 py-2 rounded text-sm" />
               <Button variant="ghost" size="sm" onClick={() => removeRule(i)} className="text-red-400 hover:text-red-300 ml-auto" data-testid={`scheduler-rule-remove-${i}`}>
                 <Trash2 className="h-4 w-4" />
@@ -141,7 +141,7 @@ export default function SchedulerAdmin() {
           ))}
         </div>
         <div className="flex items-center gap-3 mt-4">
-          <Button onClick={addRule} variant="outline" className="border-[rgba(212,175,55,0.4)] text-[#D4AF37] hover:bg-[rgba(212,175,55,0.08)]" data-testid="scheduler-add-rule">
+          <Button onClick={addRule} variant="outline" className="border-[rgba(212,175,55,0.4)] text-[#B8860B] hover:bg-[rgba(212,175,55,0.08)]" data-testid="scheduler-add-rule">
             <Plus className="h-4 w-4 mr-2" /> Add rule
           </Button>
           <Button onClick={save} disabled={saving} className="bg-[#FF9933] text-[#0A0D14] hover:bg-[#E68A2E]" data-testid="scheduler-save">
@@ -152,15 +152,15 @@ export default function SchedulerAdmin() {
 
       {/* Bookings */}
       <div className="glass-card p-6">
-        <p className="font-accent text-xs text-[#D4AF37] mb-1">Bookings</p>
+        <p className="font-accent text-xs text-[#B8860B] mb-1">Bookings</p>
         <h3 className="font-heading text-2xl text-zinc-50 mb-4">All consultations ({bookings.length})</h3>
         {bookings.length === 0 ? (
-          <p className="text-zinc-500 italic font-body text-sm">No bookings yet.</p>
+          <p className="text-zinc-800 italic font-body text-sm">No bookings yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm font-body">
               <thead>
-                <tr className="text-left text-zinc-400 font-accent text-[10px] uppercase tracking-widest border-b border-[rgba(212,175,55,0.15)]">
+                <tr className="text-left text-zinc-700 font-accent text-[10px] uppercase tracking-widest border-b border-[rgba(212,175,55,0.15)]">
                   <th className="py-2 pr-3">Slot (UTC)</th>
                   <th className="pr-3">Customer</th>
                   <th className="pr-3">Status</th>
@@ -172,10 +172,10 @@ export default function SchedulerAdmin() {
                 {bookings.map((b) => (
                   <tr key={b.id} className="border-b border-[rgba(212,175,55,0.08)]" data-testid={`scheduler-booking-${b.id}`}>
                     <td className="py-2 pr-3 text-zinc-200 whitespace-nowrap">{new Date(b.slot_start_utc).toLocaleString()}</td>
-                    <td className="pr-3 text-zinc-200">{b.customer_name} <span className="text-zinc-500 text-xs">({b.user_email})</span></td>
+                    <td className="pr-3 text-zinc-200">{b.customer_name} <span className="text-zinc-800 text-xs">({b.user_email})</span></td>
                     <td className="pr-3"><span className={b.status === "paid" ? "text-green-400" : "text-orange-300"}>{b.status}</span></td>
                     <td className="pr-3"><a href={b.meet_url || "#"} target="_blank" rel="noopener" className="text-[#FF9933] hover:text-[#FFD700] underline-offset-4 hover:underline">{b.meet_url ? "open" : "—"}</a></td>
-                    <td className="pr-3 text-zinc-400 text-xs">{b.customer_phone || "—"}</td>
+                    <td className="pr-3 text-zinc-700 text-xs">{b.customer_phone || "—"}</td>
                   </tr>
                 ))}
               </tbody>

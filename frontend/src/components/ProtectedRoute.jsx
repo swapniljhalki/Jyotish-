@@ -7,7 +7,7 @@ export default function ProtectedRoute({ children, minTier }) {
   if (loading || user === null) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="font-accent text-xs text-[#D4AF37] tracking-widest animate-pulse">
+        <div className="font-accent text-xs text-[#B8860B] tracking-widest animate-pulse">
           consulting the stars...
         </div>
       </div>

@@ -43,7 +43,7 @@ function Period({ p, level, active, expanded, onToggle, children }) {
       >
         {onToggle && (
           <ChevronRight
-            className={`h-3 w-3 text-zinc-500 transition-transform shrink-0 ${
+            className={`h-3 w-3 text-zinc-800 transition-transform shrink-0 ${
               expanded ? "rotate-90" : ""
             }`}
           />
@@ -55,10 +55,10 @@ function Period({ p, level, active, expanded, onToggle, children }) {
           {PLANET_GLYPH[p.lord] || "✦"}
         </span>
         <span className="font-body text-sm text-zinc-100 w-20 shrink-0">{p.lord}</span>
-        <span className="font-body text-xs text-zinc-400 flex-1 truncate">
+        <span className="font-body text-xs text-zinc-700 flex-1 truncate">
           {dateLabel(p.start)} → {dateLabel(p.end)}
         </span>
-        <span className="font-accent text-[10px] text-zinc-500 shrink-0">
+        <span className="font-accent text-[10px] text-zinc-800 shrink-0">
           {p.years.toFixed(2)}y
         </span>
         {isCurrent && (
@@ -94,7 +94,7 @@ export default function DashaTimeline({ dasha }) {
 
   if (!dasha?.mahadashas?.length) {
     return (
-      <div className="text-zinc-500 text-sm font-body italic">
+      <div className="text-zinc-800 text-sm font-body italic">
         Vimshottari Dasha unavailable for this reading (legacy chart).
       </div>
     );
@@ -116,7 +116,7 @@ export default function DashaTimeline({ dasha }) {
             className="glass-card p-3 text-center"
             data-testid={`dasha-current-${label.toLowerCase()}`}
           >
-            <div className="font-accent text-[9px] text-zinc-500 tracking-widest uppercase">
+            <div className="font-accent text-[9px] text-zinc-800 tracking-widest uppercase">
               {label}
             </div>
             <div className="mt-1 flex items-center justify-center gap-2">

@@ -26,11 +26,11 @@ export default function PanchangSection() {
     <section className="relative cosmic-bg py-24 md:py-28 border-y border-[rgba(212,175,55,0.15)]" data-testid="panchang-section">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="text-center mb-14 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">Today's Sky</p>
+          <p className="font-accent text-xs text-[#B8860B] mb-3">Today's Sky</p>
           <h2 className="font-heading text-4xl md:text-5xl text-zinc-50">
             Panchang & <span className="text-gold-gradient italic">festivals.</span>
           </h2>
-          <p className="mt-3 font-body text-zinc-400 text-sm max-w-xl mx-auto">
+          <p className="mt-3 font-body text-zinc-700 text-sm max-w-xl mx-auto">
             The five limbs of Vedic time-keeping for today, plus what to celebrate next.
           </p>
         </div>
@@ -42,49 +42,49 @@ export default function PanchangSection() {
               <>
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-[#D4AF37]" />
-                    <span className="font-accent text-xs text-[#D4AF37]">
+                    <Sparkles className="h-4 w-4 text-[#B8860B]" />
+                    <span className="font-accent text-xs text-[#B8860B]">
                       {new Date(p.date).toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                     </span>
                   </div>
-                  <span className="text-[10px] font-accent text-zinc-500">{p.timezone}</span>
+                  <span className="text-[10px] font-accent text-zinc-800">{p.timezone}</span>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-x-8 gap-y-6">
                   <div data-testid="panchang-tithi">
-                    <div className="font-accent text-[10px] text-zinc-500 mb-1">Tithi</div>
+                    <div className="font-accent text-[10px] text-zinc-800 mb-1">Tithi</div>
                     <div className="font-heading text-2xl text-[#FFD700]">{p.tithi.name}</div>
-                    <div className="text-xs text-zinc-400 font-body italic">{p.tithi.paksha} Paksha · {p.tithi.index}</div>
+                    <div className="text-xs text-zinc-700 font-body italic">{p.tithi.paksha} Paksha · {p.tithi.index}</div>
                     <div className="mt-2"><ProgressBar value={p.tithi.progress} /></div>
                   </div>
                   <div data-testid="panchang-nakshatra">
-                    <div className="font-accent text-[10px] text-zinc-500 mb-1">Nakshatra</div>
+                    <div className="font-accent text-[10px] text-zinc-800 mb-1">Nakshatra</div>
                     <div className="font-heading text-2xl text-[#FF9933]">{p.nakshatra.name}</div>
-                    <div className="text-xs text-zinc-400 font-body italic">Pada {p.nakshatra.pada}</div>
+                    <div className="text-xs text-zinc-700 font-body italic">Pada {p.nakshatra.pada}</div>
                     <div className="mt-2"><ProgressBar value={p.nakshatra.progress} /></div>
                   </div>
                   <div data-testid="panchang-yoga">
-                    <div className="font-accent text-[10px] text-zinc-500 mb-1">Yoga</div>
-                    <div className="font-heading text-2xl text-[#D4AF37]">{p.yoga.name}</div>
-                    <div className="text-xs text-zinc-400 font-body italic">#{p.yoga.index}</div>
+                    <div className="font-accent text-[10px] text-zinc-800 mb-1">Yoga</div>
+                    <div className="font-heading text-2xl text-[#B8860B]">{p.yoga.name}</div>
+                    <div className="text-xs text-zinc-700 font-body italic">#{p.yoga.index}</div>
                     <div className="mt-2"><ProgressBar value={p.yoga.progress} /></div>
                   </div>
                   <div data-testid="panchang-vara">
-                    <div className="font-accent text-[10px] text-zinc-500 mb-1">Vara</div>
+                    <div className="font-accent text-[10px] text-zinc-800 mb-1">Vara</div>
                     <div className="font-heading text-2xl text-zinc-100">{p.vara.sanskrit}</div>
-                    <div className="text-xs text-zinc-400 font-body italic">{p.vara.english}</div>
+                    <div className="text-xs text-zinc-700 font-body italic">{p.vara.english}</div>
                   </div>
                   <div className="flex items-center gap-2" data-testid="panchang-sun">
                     <Sun className="h-5 w-5 text-[#FF9933]" />
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Sun in</div>
+                      <div className="font-accent text-[10px] text-zinc-800">Sun in</div>
                       <div className="font-heading text-lg text-zinc-100">{p.sun_sign}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2" data-testid="panchang-moon">
-                    <Moon className="h-5 w-5 text-[#D4AF37]" />
+                    <Moon className="h-5 w-5 text-[#B8860B]" />
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Moon in</div>
+                      <div className="font-accent text-[10px] text-zinc-800">Moon in</div>
                       <div className="font-heading text-lg text-zinc-100">{p.moon_sign}</div>
                     </div>
                   </div>
@@ -92,7 +92,7 @@ export default function PanchangSection() {
 
                 {/* Divider between panchang and festivals */}
                 <div className="my-8 ornate-divider">
-                  <span className="font-accent text-xs text-[#D4AF37]">
+                  <span className="font-accent text-xs text-[#B8860B]">
                     <Calendar className="inline h-3 w-3 mr-1.5 -mt-0.5" />
                     Upcoming Festivals
                   </span>
@@ -100,7 +100,7 @@ export default function PanchangSection() {
 
                 {/* Horizontal festival strip */}
                 {festivals.length === 0 ? (
-                  <div className="text-zinc-500 font-body text-sm italic text-center py-4">
+                  <div className="text-zinc-800 font-body text-sm italic text-center py-4">
                     No festivals on the horizon.
                   </div>
                 ) : (
@@ -117,13 +117,13 @@ export default function PanchangSection() {
                       >
                         <div className="flex items-baseline gap-3 mb-2">
                           <div className="flex-shrink-0 text-center">
-                            <div className="font-accent text-[10px] text-[#D4AF37]">
+                            <div className="font-accent text-[10px] text-[#B8860B]">
                               {new Date(f.date).toLocaleDateString("en-IN", { month: "short" }).toUpperCase()}
                             </div>
                             <div className="font-heading text-3xl text-[#FFD700] leading-none">
                               {new Date(f.date).getDate()}
                             </div>
-                            <div className="text-[9px] font-body text-zinc-500 mt-1">{f.weekday.slice(0, 3)}</div>
+                            <div className="text-[9px] font-body text-zinc-800 mt-1">{f.weekday.slice(0, 3)}</div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-heading text-base text-zinc-50 leading-tight line-clamp-2">{f.name}</div>
@@ -132,14 +132,14 @@ export default function PanchangSection() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-zinc-400 font-body line-clamp-2">{f.description}</p>
+                        <p className="text-xs text-zinc-700 font-body line-clamp-2">{f.description}</p>
                       </div>
                     ))}
                   </div>
                 )}
               </>
             ) : (
-              <div className="font-accent text-xs text-[#D4AF37] animate-pulse text-center py-12">
+              <div className="font-accent text-xs text-[#B8860B] animate-pulse text-center py-12">
                 consulting the heavens...
               </div>
             )}

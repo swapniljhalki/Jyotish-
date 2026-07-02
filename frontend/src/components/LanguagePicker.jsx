@@ -37,12 +37,12 @@ export default function LanguagePicker({ variant = "navbar" }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         title={t("nav.language")}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[rgba(212,175,55,0.25)] hover:border-[#FF9933] hover:bg-[rgba(255,153,51,0.08)] transition-colors text-xs text-zinc-300"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-[rgba(212,175,55,0.25)] hover:border-[#FF9933] hover:bg-[rgba(255,153,51,0.08)] transition-colors text-xs text-zinc-800"
         data-testid="language-picker-trigger"
       >
-        <Globe className="h-3.5 w-3.5 text-[#D4AF37]" />
+        <Globe className="h-3.5 w-3.5 text-[#B8860B]" />
         <span className="font-body">{isCompact ? current.code.toUpperCase() : current.native}</span>
-        <ChevronDown className={`h-3 w-3 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`h-3 w-3 text-zinc-800 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div
@@ -64,7 +64,7 @@ export default function LanguagePicker({ variant = "navbar" }) {
               >
                 <span>
                   <span className="block leading-tight">{l.native}</span>
-                  <span className="block text-[10px] text-zinc-500 leading-tight">{l.label}</span>
+                  <span className="block text-[10px] text-zinc-800 leading-tight">{l.label}</span>
                 </span>
                 {active && <Check className="h-3.5 w-3.5 text-[#FFD700]" />}
               </button>

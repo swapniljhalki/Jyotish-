@@ -74,14 +74,14 @@ export default function Login() {
         <form onSubmit={submit} className="w-full max-w-md fade-up" data-testid="login-form">
           <div className="flex items-center gap-2 mb-8">
             <Sparkles className="h-4 w-4 text-[#FFD700]" />
-            <span className="font-accent text-xs text-[#D4AF37]">Login</span>
+            <span className="font-accent text-xs text-[#B8860B]">Login</span>
           </div>
           <h1 className="font-heading text-4xl text-zinc-50 mb-2">Welcome back.</h1>
-          <p className="font-body text-zinc-400 mb-8">Enter your credentials to continue.</p>
+          <p className="font-body text-zinc-700 mb-8">Enter your credentials to continue.</p>
 
           <div className="space-y-5">
             <div>
-              <Label htmlFor="email" className="font-accent text-[10px] text-zinc-400">Email</Label>
+              <Label htmlFor="email" className="font-accent text-[10px] text-zinc-700">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -93,7 +93,7 @@ export default function Login() {
               />
             </div>
             <div>
-              <Label htmlFor="password" className="font-accent text-[10px] text-zinc-400">Password</Label>
+              <Label htmlFor="password" className="font-accent text-[10px] text-zinc-700">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -118,7 +118,7 @@ export default function Login() {
               {loading ? "Consulting stars..." : "Sign In"}
             </button>
             <div className="flex justify-between text-sm font-body">
-              <Link to="/forgot-password" className="text-zinc-400 hover:text-[#FF9933]" data-testid="login-forgot-link">
+              <Link to="/forgot-password" className="text-zinc-700 hover:text-[#FF9933]" data-testid="login-forgot-link">
                 Forgot password?
               </Link>
               <Link to="/register" className="text-[#FF9933] hover:text-[#FFD700]" data-testid="login-to-register">

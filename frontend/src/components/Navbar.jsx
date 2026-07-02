@@ -162,7 +162,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {user ? (
             <div className="hidden md:flex items-center gap-3">
-              <span className="text-[11px] font-medium tracking-wider uppercase text-[#8B5E1A]" data-testid="nav-user-tier">
+              <span className="text-[11px] font-medium tracking-wider uppercase text-[#5C3A09]" data-testid="nav-user-tier">
                 {user.tier}
               </span>
               {user.role === "admin" && (
@@ -221,7 +221,7 @@ export default function Navbar() {
             </NavLink>
 
             {/* Know the Basics group (mobile: shown as a labelled cluster, not collapsed) */}
-            <div className="mt-2 px-4 pb-1 text-[11px] font-bold tracking-widest uppercase text-[#8B5E1A]">
+            <div className="mt-2 px-4 pb-1 text-[11px] font-bold tracking-widest uppercase text-[#5C3A09]">
               Know the Basics
             </div>
             {KNOW_BASICS_ITEMS.map(({ to, label, blurb, icon: Icon }) => (

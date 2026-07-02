@@ -285,7 +285,16 @@ See `/app/memory/test_credentials.md`.
 - Backend (`/app/backend/server.py::_build_chart`): enriched chart response with `numerology` block via existing `compute_numerology(dob, full_name)`.
 - Frontend (`/app/frontend/src/pages/PremiumTier.jsx`): new section between AI advice and Numerology Dasha — 3-card grid (Root, Destiny, Name) each showing planet, derivation, traits, gemstone, colors, days, mantra, career.
 
-## Feb 20, 2026 — Vedic Numerology Chart (Lo Shu Grid) added (P0)
+## Feb 20, 2026 — Sitewide font legibility upgrade (P0)
+- User request: "Please make all fonts darker and legible."
+- Changes:
+  - `/app/frontend/src/index.css`: body & `.font-body` weight 450 → 500 for solid strokes across the app.
+  - Sitewide sed replacements across `/app/frontend/src`:
+    - Muted brown `#8B5E1A` → `#5C3A09` (used across accent labels, meta lines, form hints).
+    - Divider/eyebrow gold text `text-[#D4AF37]` (119 refs) → `text-[#B8860B]` (darker goldenrod, high contrast on cream).
+    - Legacy dark-theme grays: `text-zinc-300/400/500/600` → `text-zinc-700/800/900` (leftover Tailwind tokens on the light theme).
+- Verified via screenshots: landing hero paragraph, section eyebrows ("SIDEREAL VEDIC JYOTISH", "PREMIUM TIER · JYOTISHI"), form labels, and body copy all render darker with stronger contrast while keeping the warm gold aesthetic.
+
 - User request: "In premium tier please add vedic numerology chart by taking input of date of birth provided from user details section on top of page."
 - Backend (`/app/backend/numerology.py`): added `compute_lo_shu_grid(dob)`.
   - Returns 3×3 grid in classic layout: `4-9-2 / 3-5-7 / 8-1-6`.
@@ -298,6 +307,8 @@ See `/app/memory/test_credentials.md`.
   - Right column lists "Present Numbers · Strengths" and "Missing Numbers · Growth Areas" with the meaning of each cell.
   - Below: two coloured boxes — "Completed Arrows · Karmic Gifts" and "Missing Arrows · Karmic Lessons".
 - Verified end-to-end: Ravi Kumar 1990-05-15 → grid `[0,2,0][1,2,0][0,2,1]`, present 1/3/5/6/9, missing 2/4/7/8, arrow 9-5-1 (Plane of Will) complete. PDF (6 pages, 2.85 MB) — Lo Shu grid, arrows, and interpretations all render on Page 6 with no cutoff.
+
+## Feb 20, 2026 — Vedic Numerology Chart (Lo Shu Grid) added (P0)
 
 
 

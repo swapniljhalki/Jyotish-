@@ -25,7 +25,7 @@ export default function About() {
               <span className="sb-eyebrow" data-testid="about-eyebrow">About the astrologer</span>
               <h1 className="sb-h1" data-testid="about-heading">
                 Welcome — I'm{" "}
-                <span className="italic font-medium" style={{ color: "#8B5E1A" }}>Satissh Jhalki.</span>
+                <span className="italic font-medium" style={{ color: "#5C3A09" }}>Satissh Jhalki.</span>
               </h1>
               <p className="sb-lead mt-8">
                 A professional Numerologist, Astrologer, and Tarot Reader dedicated to helping individuals
@@ -47,7 +47,7 @@ export default function About() {
               <div className="sb-card sb-card-hover">
                 <div className="flex items-center gap-2 mb-4">
                   <Sparkles className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.5} />
-                  <span className="text-[11px] font-bold tracking-widest uppercase text-[#8B5E1A]">My approach</span>
+                  <span className="text-[11px] font-bold tracking-widest uppercase text-[#5C3A09]">My approach</span>
                 </div>
                 <h3 className="font-heading font-bold text-2xl md:text-3xl text-[#2A1A05] mb-5 tracking-tight">
                   Traditional knowledge, intuitive interpretation, practical guidance.
@@ -106,7 +106,7 @@ export default function About() {
           <ul className="grid sm:grid-cols-2 gap-x-10 gap-y-5 max-w-4xl mx-auto" data-testid="about-services-list">
             {services.map((s) => (
               <li key={s} className="flex items-start gap-4 text-[16px] text-[#FDFBF7] leading-relaxed">
-                <Check className="h-5 w-5 mt-1 flex-shrink-0 text-[#D4AF37]" strokeWidth={2} />
+                <Check className="h-5 w-5 mt-1 flex-shrink-0 text-[#B8860B]" strokeWidth={2} />
                 <span>{s}</span>
               </li>
             ))}
@@ -121,7 +121,7 @@ export default function About() {
             <span className="sb-eyebrow">Begin here</span>
             <h2 className="sb-h2 mb-6">
               Your journey of self-discovery{" "}
-              <span className="italic font-medium" style={{ color: "#8B5E1A" }}>begins here.</span>
+              <span className="italic font-medium" style={{ color: "#5C3A09" }}>begins here.</span>
             </h2>
             <p className="sb-lead mx-auto mb-10">
               Let's uncover the guidance the universe has in store for you.

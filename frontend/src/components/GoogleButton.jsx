@@ -9,7 +9,7 @@ export default function GoogleButton({ label = "Continue with Google" }) {
   return (
     <>
       <div className="ornate-divider my-6">
-        <span className="font-accent text-[10px] text-zinc-500">or</span>
+        <span className="font-accent text-[10px] text-zinc-800">or</span>
       </div>
       <button
         type="button"
@@ -22,7 +22,7 @@ export default function GoogleButton({ label = "Continue with Google" }) {
         </svg>
         {label}
       </button>
-      <p className="mt-3 text-xs text-zinc-500 font-body text-center">
+      <p className="mt-3 text-xs text-zinc-800 font-body text-center">
         By continuing you agree to our terms. <Link to="/forgot-password" className="text-[#FF9933]">Forgot password?</Link>
       </p>
     </>

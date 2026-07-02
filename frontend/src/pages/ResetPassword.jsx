@@ -31,19 +31,19 @@ export default function ResetPassword() {
       <div className="w-full max-w-md glass-card p-10 fade-up" data-testid="reset-password-page">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles className="h-4 w-4 text-[#FFD700]" />
-          <span className="font-accent text-xs text-[#D4AF37]">New Password</span>
+          <span className="font-accent text-xs text-[#B8860B]">New Password</span>
         </div>
         <h1 className="font-heading text-4xl text-zinc-50 mb-2">Set new password.</h1>
 
         {!token && <p className="text-red-400 text-sm mb-4" data-testid="reset-no-token">Missing reset token in URL.</p>}
         {done ? (
-          <p className="text-sm text-zinc-300" data-testid="reset-password-success">
+          <p className="text-sm text-zinc-800" data-testid="reset-password-success">
             Password updated. Redirecting to login...
           </p>
         ) : (
           <form onSubmit={submit} className="space-y-5" data-testid="reset-password-form">
             <div>
-              <Label className="font-accent text-[10px] text-zinc-400">New Password (min 6)</Label>
+              <Label className="font-accent text-[10px] text-zinc-700">New Password (min 6)</Label>
               <Input
                 type="password" required minLength={6}
                 value={pw} onChange={(e) => setPw(e.target.value)}

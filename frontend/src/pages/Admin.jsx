@@ -97,7 +97,7 @@ export default function Admin() {
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16">
         <div className="mb-10 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">Admin</p>
+          <p className="font-accent text-xs text-[#B8860B] mb-3">Admin</p>
           <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
             Control <span className="text-gold-gradient italic">panel.</span>
           </h1>
@@ -126,20 +126,20 @@ export default function Admin() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-[rgba(212,175,55,0.2)]">
-                    <TableHead className="text-zinc-400 font-accent text-[10px]">Email</TableHead>
-                    <TableHead className="text-zinc-400 font-accent text-[10px]">Name</TableHead>
-                    <TableHead className="text-zinc-400 font-accent text-[10px]">Tier</TableHead>
-                    <TableHead className="text-zinc-400 font-accent text-[10px]">Role</TableHead>
-                    <TableHead className="text-zinc-400 font-accent text-[10px]">Provider</TableHead>
-                    <TableHead className="text-zinc-400 font-accent text-[10px]">Verified</TableHead>
-                    <TableHead className="text-zinc-400 font-accent text-[10px]"></TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Email</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Name</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Tier</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Role</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Provider</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Verified</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((u) => (
                     <TableRow key={u.id} className="border-[rgba(212,175,55,0.1)]" data-testid={`admin-user-row-${u.email}`}>
                       <TableCell className="text-zinc-100 font-body">{u.email}</TableCell>
-                      <TableCell className="text-zinc-300 font-body">{u.name}</TableCell>
+                      <TableCell className="text-zinc-800 font-body">{u.name}</TableCell>
                       <TableCell>
                         <Select value={u.tier} onValueChange={(v) => updateTier(u.id, v)}>
                           <SelectTrigger className="w-28 bg-[#121824] border-[rgba(212,175,55,0.2)] text-zinc-100" data-testid={`admin-tier-select-${u.email}`}>
@@ -153,11 +153,11 @@ export default function Admin() {
                         </Select>
                       </TableCell>
                       <TableCell className="font-body">
-                        <span className={u.role === "admin" ? "text-[#FFD700]" : "text-zinc-400"}>{u.role}</span>
+                        <span className={u.role === "admin" ? "text-[#FFD700]" : "text-zinc-700"}>{u.role}</span>
                       </TableCell>
-                      <TableCell className="text-zinc-400 font-body text-xs">{u.auth_provider}</TableCell>
+                      <TableCell className="text-zinc-700 font-body text-xs">{u.auth_provider}</TableCell>
                       <TableCell className="text-xs">
-                        {u.email_verified ? <span className="text-green-400">✓</span> : <span className="text-zinc-500">—</span>}
+                        {u.email_verified ? <span className="text-green-400">✓</span> : <span className="text-zinc-800">—</span>}
                       </TableCell>
                       <TableCell>
                         {u.id !== user.id && (
@@ -181,30 +181,30 @@ export default function Admin() {
           <TabsContent value="readings" className="mt-6">
             <div className="glass-card p-4 md:p-6" data-testid="admin-readings-table">
               {readings.length === 0 ? (
-                <p className="text-zinc-500 font-body italic text-center py-10">No readings yet.</p>
+                <p className="text-zinc-800 font-body italic text-center py-10">No readings yet.</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(212,175,55,0.2)]">
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Date</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">User</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Tier</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Ascendant</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Sun</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Moon</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">Shared</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]"></TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Date</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">User</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Tier</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Ascendant</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Sun</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Moon</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Shared</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {readings.map((r) => (
                       <TableRow key={r.id} className="border-[rgba(212,175,55,0.1)]" data-testid={`admin-reading-row-${r.id}`}>
-                        <TableCell className="text-zinc-300 font-body text-xs whitespace-nowrap">
+                        <TableCell className="text-zinc-800 font-body text-xs whitespace-nowrap">
                           {new Date(r.created_at).toLocaleString()}
                         </TableCell>
                         <TableCell className="text-zinc-200 font-body text-sm">
                           <div>{r.user_name || "—"}</div>
-                          <div className="text-xs text-zinc-500">{r.user_email || "(deleted user)"}</div>
+                          <div className="text-xs text-zinc-800">{r.user_email || "(deleted user)"}</div>
                         </TableCell>
                         <TableCell>
                           <span className={
@@ -215,11 +215,11 @@ export default function Admin() {
                             {r.tier}
                           </span>
                         </TableCell>
-                        <TableCell className="text-zinc-300 font-body text-sm">{r.summary?.ascendant || "—"}</TableCell>
-                        <TableCell className="text-zinc-300 font-body text-sm">{r.summary?.sun_sign || "—"}</TableCell>
-                        <TableCell className="text-zinc-300 font-body text-sm">{r.summary?.moon_sign || "—"}</TableCell>
+                        <TableCell className="text-zinc-800 font-body text-sm">{r.summary?.ascendant || "—"}</TableCell>
+                        <TableCell className="text-zinc-800 font-body text-sm">{r.summary?.sun_sign || "—"}</TableCell>
+                        <TableCell className="text-zinc-800 font-body text-sm">{r.summary?.moon_sign || "—"}</TableCell>
                         <TableCell className="text-xs">
-                          {r.is_shared ? <span className="text-green-400">✓</span> : <span className="text-zinc-500">—</span>}
+                          {r.is_shared ? <span className="text-green-400">✓</span> : <span className="text-zinc-800">—</span>}
                         </TableCell>
                         <TableCell>
                           <Button
@@ -246,21 +246,21 @@ export default function Admin() {
           <TabsContent value="emails" className="mt-6">
             <div className="space-y-3" data-testid="admin-emails-list">
               {emails.length === 0 && (
-                <p className="text-zinc-500 font-body italic text-center py-10">No emails yet.</p>
+                <p className="text-zinc-800 font-body italic text-center py-10">No emails yet.</p>
               )}
               {emails.map((e) => (
                 <div key={e.id} className="glass-card p-5" data-testid={`admin-email-${e.kind}`}>
                   <div className="flex items-start justify-between mb-2 gap-3">
                     <div>
-                      <div className="font-accent text-[10px] text-[#D4AF37] mb-1">{e.kind}</div>
+                      <div className="font-accent text-[10px] text-[#B8860B] mb-1">{e.kind}</div>
                       <div className="font-heading text-lg text-zinc-50">{e.subject}</div>
-                      <div className="text-xs text-zinc-500 font-body">→ {e.to}</div>
+                      <div className="text-xs text-zinc-800 font-body">→ {e.to}</div>
                     </div>
-                    <div className="text-xs text-zinc-600 font-body whitespace-nowrap">
+                    <div className="text-xs text-zinc-900 font-body whitespace-nowrap">
                       {new Date(e.sent_at).toLocaleString()}
                     </div>
                   </div>
-                  <pre className="mt-3 text-xs text-zinc-300 font-body whitespace-pre-wrap bg-[#0A0D14] p-3 rounded border border-[rgba(212,175,55,0.15)]">
+                  <pre className="mt-3 text-xs text-zinc-800 font-body whitespace-pre-wrap bg-[#0A0D14] p-3 rounded border border-[rgba(212,175,55,0.15)]">
                     {e.body}
                   </pre>
                 </div>
@@ -299,7 +299,7 @@ export default function Admin() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setReadingDetail(null)}
-                  className="text-zinc-400 hover:text-[#FF9933]"
+                  className="text-zinc-700 hover:text-[#FF9933]"
                   data-testid="admin-reading-close"
                 >
                   Close
@@ -310,14 +310,14 @@ export default function Admin() {
               <div ref={printableRef} className="printable-area p-6 md:p-8 relative">
                 <img src={snwLogo} alt="" className="print-watermark" />
                 <div className="mb-4">
-                  <div className="font-accent text-[10px] uppercase tracking-widest mb-1" style={{ color: "#8B5E1A" }}>
+                  <div className="font-accent text-[10px] uppercase tracking-widest mb-1" style={{ color: "#5C3A09" }}>
                     {readingDetail.tier} reading
                   </div>
                   <h3 className="font-heading text-2xl text-zinc-50">
                     {readingDetail.user_name || "Unknown"}{" "}
-                    <span className="text-zinc-500 text-base font-body">({readingDetail.user_email || "deleted user"})</span>
+                    <span className="text-zinc-800 text-base font-body">({readingDetail.user_email || "deleted user"})</span>
                   </h3>
-                  <div className="text-xs text-zinc-500 font-body mt-1">
+                  <div className="text-xs text-zinc-800 font-body mt-1">
                     {new Date(readingDetail.created_at).toLocaleString()}
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export default function Admin() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 rounded border border-[rgba(212,175,55,0.15)] bg-[#0A0D14] text-xs font-body">
                     {Object.entries(readingDetail.inputs).map(([k, v]) => (
                       <div key={k}>
-                        <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{k.replace(/_/g, " ")}</div>
+                        <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{k.replace(/_/g, " ")}</div>
                         <div className="text-zinc-200 mt-0.5 break-words">{String(v || "—")}</div>
                       </div>
                     ))}
@@ -336,19 +336,19 @@ export default function Admin() {
                 {readingDetail.summary && (
                   <div className="grid grid-cols-3 gap-4 mb-6 text-center">
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Ascendant</div>
+                      <div className="font-accent text-[10px] text-zinc-800">Ascendant</div>
                       <div className="font-heading text-lg" style={{ color: "#5C3A09", fontWeight: 600 }}>
                         {readingDetail.summary.ascendant || "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Sun</div>
+                      <div className="font-accent text-[10px] text-zinc-800">Sun</div>
                       <div className="font-heading text-lg" style={{ color: "#8B2500", fontWeight: 600 }}>
                         {readingDetail.summary.sun_sign || "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="font-accent text-[10px] text-zinc-500">Moon</div>
+                      <div className="font-accent text-[10px] text-zinc-800">Moon</div>
                       <div className="font-heading text-lg" style={{ color: "#6B3410", fontWeight: 600 }}>
                         {readingDetail.summary.moon_sign || "—"}
                       </div>
@@ -358,30 +358,30 @@ export default function Admin() {
 
                 {readingDetail.chart && (
                   <div className="glass-card p-5 mb-6">
-                    <div className="font-accent text-xs mb-3" style={{ color: "#8B5E1A" }}>Lagna Chart · D1</div>
+                    <div className="font-accent text-xs mb-3" style={{ color: "#5C3A09" }}>Lagna Chart · D1</div>
                     <KundaliChart chart={readingDetail.chart} large />
                   </div>
                 )}
 
                 {readingDetail.chart?.planets?.length > 0 && (
                   <div className="glass-card p-5 mb-6">
-                    <div className="font-accent text-xs mb-3" style={{ color: "#8B5E1A" }}>Planetary Positions</div>
+                    <div className="font-accent text-xs mb-3" style={{ color: "#5C3A09" }}>Planetary Positions</div>
                     <Table>
                       <TableHeader>
                         <TableRow className="border-[rgba(212,175,55,0.2)]">
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">Graha</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">Rashi</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">House</TableHead>
-                          <TableHead className="text-zinc-400 font-accent text-[10px]">Nakshatra</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">Graha</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">Rashi</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">°</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">House</TableHead>
+                          <TableHead className="text-zinc-700 font-accent text-[10px]">Nakshatra</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {readingDetail.chart.planets.map((p) => (
                           <TableRow key={p.code} className="border-[rgba(212,175,55,0.1)]">
                             <TableCell className="font-body text-zinc-100">{p.name}</TableCell>
-                            <TableCell className="font-body text-zinc-300">{p.rashi_english}</TableCell>
-                            <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
+                            <TableCell className="font-body text-zinc-800">{p.rashi_english}</TableCell>
+                            <TableCell className="font-body text-zinc-700">{p.degree}°</TableCell>
                             <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
                             <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.nakshatra || "—"}</TableCell>
                           </TableRow>
@@ -394,12 +394,12 @@ export default function Admin() {
                 <div data-testid="admin-reading-advice">
                   {readingDetail.advice
                     ? <AdviceMarkdown>{readingDetail.advice}</AdviceMarkdown>
-                    : <span className="text-zinc-500 italic">No advice text recorded.</span>}
+                    : <span className="text-zinc-800 italic">No advice text recorded.</span>}
                 </div>
 
                 {readingDetail.is_shared && readingDetail.share_token && (
                   <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-sm">
-                    <span className="font-accent text-[10px] text-[#D4AF37] mr-2">PUBLIC LINK</span>
+                    <span className="font-accent text-[10px] text-[#B8860B] mr-2">PUBLIC LINK</span>
                     <Link
                       to={`/r/${readingDetail.share_token}`}
                       className="text-[#FF9933] hover:text-[#FFD700] font-body break-all"

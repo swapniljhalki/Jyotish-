@@ -48,11 +48,11 @@ export default function ReadingsList() {
       <div className="max-w-5xl mx-auto px-6 md:px-12 py-16">
         <div className="mb-10 fade-up flex items-end justify-between flex-wrap gap-4">
           <div>
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">Archive</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-3">Archive</p>
             <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
               My <span className="text-gold-gradient italic">readings.</span>
             </h1>
-            <p className="mt-3 font-body text-zinc-400 max-w-xl">
+            <p className="mt-3 font-body text-zinc-700 max-w-xl">
               Every kundali and reading you've cast, preserved in the archive.
             </p>
           </div>
@@ -64,14 +64,14 @@ export default function ReadingsList() {
         {err && <div className="text-red-400 text-sm mb-4" data-testid="readings-error">{err}</div>}
 
         {items === null ? (
-          <div className="text-center font-accent text-xs text-[#D4AF37] animate-pulse py-20">
+          <div className="text-center font-accent text-xs text-[#B8860B] animate-pulse py-20">
             consulting the archive...
           </div>
         ) : items.length === 0 ? (
           <div className="glass-card p-12 text-center fade-up" data-testid="readings-empty">
-            <Sparkles className="h-8 w-8 text-[#D4AF37] mx-auto mb-4" />
+            <Sparkles className="h-8 w-8 text-[#B8860B] mx-auto mb-4" />
             <h3 className="font-heading text-2xl text-zinc-100 mb-2">No readings yet</h3>
-            <p className="font-body text-zinc-400 mb-6">Your archive is empty. Cast your first reading.</p>
+            <p className="font-body text-zinc-700 mb-6">Your archive is empty. Cast your first reading.</p>
             <Link to="/basic"><button className="btn-saffron">Begin →</button></Link>
           </div>
         ) : (
@@ -86,7 +86,7 @@ export default function ReadingsList() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <TierPill tier={r.tier} />
-                    <span className="text-[11px] font-body text-zinc-500">
+                    <span className="text-[11px] font-body text-zinc-800">
                       {new Date(r.created_at).toLocaleString()}
                     </span>
                     {r.is_shared && (
@@ -95,18 +95,18 @@ export default function ReadingsList() {
                   </div>
                   {r.summary && (
                     <div className="flex gap-5 mb-3 text-sm font-body">
-                      <span><span className="text-zinc-500">Lagna:</span> <span className="text-[#FFD700]">{r.summary.ascendant}</span></span>
-                      <span><span className="text-zinc-500">Sun:</span> <span className="text-[#FF9933]">{r.summary.sun_sign}</span></span>
-                      <span><span className="text-zinc-500">Moon:</span> <span className="text-[#D4AF37]">{r.summary.moon_sign}</span></span>
+                      <span><span className="text-zinc-800">Lagna:</span> <span className="text-[#FFD700]">{r.summary.ascendant}</span></span>
+                      <span><span className="text-zinc-800">Sun:</span> <span className="text-[#FF9933]">{r.summary.sun_sign}</span></span>
+                      <span><span className="text-zinc-800">Moon:</span> <span className="text-[#B8860B]">{r.summary.moon_sign}</span></span>
                     </div>
                   )}
-                  <p className="text-sm text-zinc-400 font-body italic line-clamp-2">
+                  <p className="text-sm text-zinc-700 font-body italic line-clamp-2">
                     {(r.advice_preview || "").replace(/^#{1,6}\s+/gm, "").replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").replace(/`(.+?)`/g, "$1")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Link to={`/readings/${r.id}`} data-testid={`reading-open-${r.id}`}>
-                    <button className="px-4 py-2 text-[#D4AF37] border border-[rgba(212,175,55,0.3)] hover:bg-[rgba(212,175,55,0.08)] text-sm font-body flex items-center gap-1">
+                    <button className="px-4 py-2 text-[#B8860B] border border-[rgba(212,175,55,0.3)] hover:bg-[rgba(212,175,55,0.08)] text-sm font-body flex items-center gap-1">
                       Open <ArrowRight className="h-3 w-3" />
                     </button>
                   </Link>

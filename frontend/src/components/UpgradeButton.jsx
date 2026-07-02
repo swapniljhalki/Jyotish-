@@ -188,7 +188,7 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
           <div className="relative bg-white border border-[rgba(212,175,55,0.4)] rounded-xl p-8 max-w-md w-full shadow-2xl">
             <button
               onClick={() => setAskPhone(false)}
-              className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-600"
+              className="absolute top-3 right-3 text-zinc-700 hover:text-zinc-900"
               data-testid="phone-modal-close"
             >
               <X className="h-5 w-5" />
@@ -197,7 +197,7 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
             <h3 className="font-heading text-2xl text-zinc-900 mb-2">
               Your mobile number?
             </h3>
-            <p className="font-body text-sm text-zinc-600 mb-5">
+            <p className="font-body text-sm text-zinc-900 mb-5">
               Razorpay needs your mobile for the payment receipt. We don't store it on our servers — only in your browser for next time.
             </p>
             <div className="flex items-stretch gap-2 mb-1">

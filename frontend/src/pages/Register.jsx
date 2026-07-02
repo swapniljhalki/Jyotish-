@@ -41,12 +41,12 @@ export default function Register() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#0A0D14] via-transparent to-[#0A0D14]/80" />
         <div className="relative z-10 flex flex-col justify-end p-12">
           <div className="ornate-divider mb-4">
-            <span className="font-accent text-xs text-[#D4AF37]">आरम्भ</span>
+            <span className="font-accent text-xs text-[#B8860B]">आरम्भ</span>
           </div>
           <h2 className="font-heading text-4xl text-zinc-50 leading-tight">
             Begin the <span className="text-gold-gradient italic">sacred journey.</span>
           </h2>
-          <p className="mt-4 font-body text-zinc-400 max-w-sm">
+          <p className="mt-4 font-body text-zinc-700 max-w-sm">
             Create your seeker account to unlock personalised readings.
           </p>
         </div>
@@ -56,14 +56,14 @@ export default function Register() {
         <form onSubmit={submit} className="w-full max-w-md fade-up" data-testid="register-form">
           <div className="flex items-center gap-2 mb-8">
             <Sparkles className="h-4 w-4 text-[#FFD700]" />
-            <span className="font-accent text-xs text-[#D4AF37]">Register</span>
+            <span className="font-accent text-xs text-[#B8860B]">Register</span>
           </div>
           <h1 className="font-heading text-4xl text-zinc-50 mb-2">Create account.</h1>
-          <p className="font-body text-zinc-400 mb-8">It takes a moment — the stars are patient.</p>
+          <p className="font-body text-zinc-700 mb-8">It takes a moment — the stars are patient.</p>
 
           <div className="space-y-5">
             <div>
-              <Label htmlFor="name" className="font-accent text-[10px] text-zinc-400">Full Name</Label>
+              <Label htmlFor="name" className="font-accent text-[10px] text-zinc-700">Full Name</Label>
               <Input
                 id="name"
                 required minLength={2}
@@ -74,7 +74,7 @@ export default function Register() {
               />
             </div>
             <div>
-              <Label htmlFor="email" className="font-accent text-[10px] text-zinc-400">Email</Label>
+              <Label htmlFor="email" className="font-accent text-[10px] text-zinc-700">Email</Label>
               <Input
                 id="email" type="email" required
                 value={email}
@@ -84,7 +84,7 @@ export default function Register() {
               />
             </div>
             <div>
-              <Label htmlFor="password" className="font-accent text-[10px] text-zinc-400">Password (min 6)</Label>
+              <Label htmlFor="password" className="font-accent text-[10px] text-zinc-700">Password (min 6)</Label>
               <Input
                 id="password" type="password" required minLength={6}
                 value={password}
@@ -104,7 +104,7 @@ export default function Register() {
             >
               {loading ? "Casting chart..." : "Begin Journey"}
             </button>
-            <p className="text-sm text-zinc-400 font-body text-center">
+            <p className="text-sm text-zinc-700 font-body text-center">
               Already a seeker?{" "}
               <Link to="/login" className="text-[#FF9933] hover:text-[#FFD700]" data-testid="register-to-login">
                 Sign in

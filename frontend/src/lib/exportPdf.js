@@ -132,7 +132,7 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
     // ---------- per-page chrome (border / footer) ---------- //
     const GOLD_DARK    = [184, 134, 11];    // #B8860B
     const GOLD_LIGHT   = [212, 175, 55];    // #D4AF37
-    const TEXT_DIM     = [139, 94, 26];     // dim gold for footer (#8B5E1A)
+    const TEXT_DIM     = [139, 94, 26];     // dim gold for footer (#5C3A09)
 
     const drawChrome = (pageIndex, totalPages) => {
       // Outer thin gold border

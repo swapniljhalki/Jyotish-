@@ -61,11 +61,11 @@ export default function Numerology() {
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-6xl mx-auto px-6 md:px-12 py-16 md:py-24">
         <div className="mb-12 fade-up">
-          <p className="font-accent text-xs text-[#D4AF37] mb-3">Vedic Numerology • Ank Jyotish</p>
+          <p className="font-accent text-xs text-[#B8860B] mb-3">Vedic Numerology • Ank Jyotish</p>
           <h1 className="font-heading text-5xl md:text-6xl text-zinc-50">
             The numbers of <span className="text-gold-gradient italic">your soul.</span>
           </h1>
-          <p className="mt-4 font-body text-zinc-400 max-w-2xl leading-relaxed">
+          <p className="mt-4 font-body text-zinc-700 max-w-2xl leading-relaxed">
             In Vedic numerology, every soul vibrates to a triad of numbers — your{" "}
             <em>Mulank</em> (root, from your day of birth), your <em>Bhagyank</em> (destiny,
             from your full date) and your <em>Naamank</em> (name vibration, by Chaldean values).
@@ -79,7 +79,7 @@ export default function Numerology() {
           data-testid="numerology-form"
         >
           <div className="md:col-span-1">
-            <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest">
+            <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest">
               FULL NAME (AT BIRTH)
             </label>
             <input
@@ -93,7 +93,7 @@ export default function Numerology() {
             />
           </div>
           <div className="md:col-span-1">
-            <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest">
+            <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest">
               DATE OF BIRTH
             </label>
             <input
@@ -129,19 +129,19 @@ export default function Numerology() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <NumberCard block={result.mulank} accent="text-[#FFD700]" />
               <NumberCard block={result.bhagyank} accent="text-[#FF9933]" />
-              <NumberCard block={result.naamank} accent="text-[#D4AF37]" />
+              <NumberCard block={result.naamank} accent="text-[#B8860B]" />
             </div>
 
             {/* AI Reading section */}
             <div className="premium-card p-8 md:p-12">
               <div className="ornate-divider mb-6">
-                <span className="font-accent text-xs text-[#D4AF37]">AI Numerology Reading</span>
+                <span className="font-accent text-xs text-[#B8860B]">AI Numerology Reading</span>
               </div>
 
               {!user ? (
                 <div className="text-center py-6">
-                  <Lock className="h-8 w-8 text-[#D4AF37] mx-auto mb-3" />
-                  <p className="font-body text-zinc-300 mb-5 max-w-lg mx-auto">
+                  <Lock className="h-8 w-8 text-[#B8860B] mx-auto mb-3" />
+                  <p className="font-body text-zinc-800 mb-5 max-w-lg mx-auto">
                     A personalised AI-authored reading is available for{" "}
                     <span className="text-[#FFD700]">Jyotishi (Premium)</span> members.
                     Sign in or begin your journey.
@@ -161,8 +161,8 @@ export default function Numerology() {
                 </div>
               ) : !isPremium ? (
                 <div className="text-center py-6">
-                  <Lock className="h-8 w-8 text-[#D4AF37] mx-auto mb-3" />
-                  <p className="font-body text-zinc-300 mb-5 max-w-lg mx-auto">
+                  <Lock className="h-8 w-8 text-[#B8860B] mx-auto mb-3" />
+                  <p className="font-body text-zinc-800 mb-5 max-w-lg mx-auto">
                     Unlock a personalised AI numerology reading by upgrading to the{" "}
                     <span className="text-[#FFD700]">Jyotishi</span> tier.
                   </p>
@@ -175,7 +175,7 @@ export default function Numerology() {
               ) : !advice ? (
                 <div className="text-center py-6">
                   <Sparkles className="h-8 w-8 text-[#FFD700] mx-auto mb-3" />
-                  <p className="font-body text-zinc-300 mb-5 max-w-lg mx-auto">
+                  <p className="font-body text-zinc-800 mb-5 max-w-lg mx-auto">
                     Generate a personalised reading weaving your Mulank, Bhagyank and Naamank
                     into a single voice.
                   </p>

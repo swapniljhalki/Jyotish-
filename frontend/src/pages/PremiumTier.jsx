@@ -125,7 +125,7 @@ export default function PremiumTier() {
           <span className="sb-eyebrow">{t("premium.eyebrow")}</span>
           <h1 className="sb-h1">
             {t("premium.title_a")}{" "}
-            <span className="italic font-medium" style={{ color: "#8B5E1A" }}>{t("premium.title_b")}</span>
+            <span className="italic font-medium" style={{ color: "#5C3A09" }}>{t("premium.title_b")}</span>
           </h1>
           <p className="sb-lead mt-6">
             {t("premium.intro")}
@@ -149,7 +149,7 @@ export default function PremiumTier() {
             {user ? (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <UpgradeButton tier="premium" data-testid="premium-upgrade-btn" />
-                <Link to="/pricing?need=premium" className="text-[12px] font-medium tracking-wider uppercase text-[#D4AF37] hover:text-[#FF8C00] transition-colors">
+                <Link to="/pricing?need=premium" className="text-[12px] font-medium tracking-wider uppercase text-[#B8860B] hover:text-[#FF8C00] transition-colors">
                   {t("common.compare_all_tiers")}
                 </Link>
               </div>
@@ -199,17 +199,17 @@ export default function PremiumTier() {
               <section className="mb-8" data-testid="premium-nakshatra-report">
                 <div className="glass-card p-6 md:p-8">
                   <div className="ornate-divider mb-5">
-                    <span className="font-accent text-xs text-[#D4AF37]">Nakshatra Report · Moon&apos;s Star</span>
+                    <span className="font-accent text-xs text-[#B8860B]">Nakshatra Report · Moon&apos;s Star</span>
                   </div>
                   <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
                     <div>
                       <div className="font-heading text-3xl md:text-4xl" style={{ color: "#2A1A05", fontWeight: 600 }}>
                         {result.chart.nakshatra_report.name}
-                        <span className="ml-3 font-accent text-base" style={{ color: "#8B5E1A" }}>
+                        <span className="ml-3 font-accent text-base" style={{ color: "#5C3A09" }}>
                           {result.chart.nakshatra_report.sanskrit}
                         </span>
                       </div>
-                      <div className="text-[12px] mt-1 font-accent tracking-widest uppercase" style={{ color: "#8B5E1A" }}>
+                      <div className="text-[12px] mt-1 font-accent tracking-widest uppercase" style={{ color: "#5C3A09" }}>
                         Pada {result.chart.nakshatra_report.pada} · {result.chart.nakshatra_report.range}
                       </div>
                     </div>
@@ -226,7 +226,7 @@ export default function PremiumTier() {
                       ["Quality", result.chart.nakshatra_report.quality],
                     ].map(([k, v]) => (
                       <div key={k} className="flex flex-col">
-                        <span className="font-accent text-[9px] uppercase tracking-widest" style={{ color: "#8B5E1A" }}>{k}</span>
+                        <span className="font-accent text-[9px] uppercase tracking-widest" style={{ color: "#5C3A09" }}>{k}</span>
                         <span style={{ color: "#2A1A05" }}>{v}</span>
                       </div>
                     ))}
@@ -250,9 +250,9 @@ export default function PremiumTier() {
                 data-testid="expand-kundali-d1"
                 aria-label="Expand Kundali Lagna Chart"
               >
-                <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#B8860B] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">{t("result.d1_title")}</span>
+                  <span className="font-accent text-xs text-[#B8860B]">{t("result.d1_title")}</span>
                 </div>
                 <KundaliChart chart={result.chart} large />
                 <div className="mt-4 text-center">
@@ -268,16 +268,16 @@ export default function PremiumTier() {
             {/* PAGE 2 (cont.) — Planetary positions pack with Lagna */}
             <section className="mb-8">
               <div className="glass-card p-6">
-                <div className="font-accent text-xs text-[#D4AF37] mb-4">{t("result.planetary_positions")}</div>
+                <div className="font-accent text-xs text-[#B8860B] mb-4">{t("result.planetary_positions")}</div>
                 <Table>
                   <TableHeader>
                     <TableRow className="border-[rgba(212,175,55,0.2)]">
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_graha")}</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_rashi")}</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">°</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_house")}</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_navamsha")}</TableHead>
-                      <TableHead className="text-zinc-400 font-accent text-[10px]">{t("result.col_states")}</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_graha")}</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_rashi")}</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">°</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_house")}</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_navamsha")}</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">{t("result.col_states")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -286,8 +286,8 @@ export default function PremiumTier() {
                         <TableCell className="font-body text-zinc-100">
                           {localizePlanet(p.name, lang)}
                         </TableCell>
-                        <TableCell className="font-body text-zinc-300">{localizeRashi(p.rashi_english, lang)}</TableCell>
-                        <TableCell className="font-body text-zinc-400">{p.degree}°</TableCell>
+                        <TableCell className="font-body text-zinc-800">{localizeRashi(p.rashi_english, lang)}</TableCell>
+                        <TableCell className="font-body text-zinc-700">{p.degree}°</TableCell>
                         <TableCell className="font-body" style={{ color: "#5C3A09", fontWeight: 600 }}>{p.house}</TableCell>
                         <TableCell className="font-body" style={{ color: "#6B3410" }}>{p.navamsha_sign_english ? localizeRashi(p.navamsha_sign_english, lang) : "—"}</TableCell>
                         <TableCell>
@@ -318,7 +318,7 @@ export default function PremiumTier() {
                 >
                   <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#FF9933] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">{t("result.chandra_title")}</span>
+                    <span className="font-accent text-xs text-[#B8860B]">{t("result.chandra_title")}</span>
                   </div>
                   <KundaliChart chart={result.chart.chandra} large />
                   <div className="mt-4 text-center">
@@ -348,9 +348,9 @@ export default function PremiumTier() {
                   data-testid="expand-kundali-navamsha"
                   aria-label="Expand Navamsha Chart D9"
                 >
-                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#D4AF37] opacity-60 group-hover:opacity-100" aria-hidden="true" />
+                  <Maximize2 className="absolute top-3 right-3 w-4 h-4 text-[#B8860B] opacity-60 group-hover:opacity-100" aria-hidden="true" />
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Navamsha Chart · D9</span>
+                    <span className="font-accent text-xs text-[#B8860B]">Navamsha Chart · D9</span>
                   </div>
                   <KundaliChart chart={result.chart.navamsha} large />
                   <div className="mt-4 text-center">
@@ -369,7 +369,7 @@ export default function PremiumTier() {
               <section data-pdf-page="vimshottari-dasha" className="mb-8" data-testid="premium-vimshottari">
                 <div className="glass-card p-6 md:p-8">
                   <div className="ornate-divider mb-5">
-                    <span className="font-accent text-xs text-[#D4AF37]">Vimshottari Mahadasha · 120-Year Cycle</span>
+                    <span className="font-accent text-xs text-[#B8860B]">Vimshottari Mahadasha · 120-Year Cycle</span>
                   </div>
 
                   <p className="font-body mb-4 text-sm leading-relaxed" style={{ color: "#2A1A05" }}>
@@ -395,10 +395,10 @@ export default function PremiumTier() {
                   <Table>
                     <TableHeader>
                       <TableRow className="border-[rgba(212,175,55,0.2)]">
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Mahadasha Lord</TableHead>
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Starts</TableHead>
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Ends</TableHead>
-                        <TableHead className="text-zinc-400 font-accent text-[10px]">Years</TableHead>
+                        <TableHead className="text-zinc-700 font-accent text-[10px]">Mahadasha Lord</TableHead>
+                        <TableHead className="text-zinc-700 font-accent text-[10px]">Starts</TableHead>
+                        <TableHead className="text-zinc-700 font-accent text-[10px]">Ends</TableHead>
+                        <TableHead className="text-zinc-700 font-accent text-[10px]">Years</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -431,7 +431,7 @@ export default function PremiumTier() {
 
                   {/* Planetary theme reference — fills P4 whitespace with useful context */}
                   <div className="ornate-divider mt-8 mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">Planetary Themes · What each period awakens</span>
+                    <span className="font-accent text-xs text-[#B8860B]">Planetary Themes · What each period awakens</span>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {[
@@ -448,9 +448,9 @@ export default function PremiumTier() {
                       <div key={p.lord} className="rounded-md p-2.5" style={{ background: "rgba(139,94,26,0.05)", border: "1px solid rgba(139,94,26,0.12)" }}>
                         <div className="flex items-baseline justify-between mb-1">
                           <span className="font-heading text-[13px]" style={{ color: "#2A1A05", fontWeight: 600 }}>{p.lord}</span>
-                          <span className="font-accent text-[9px]" style={{ color: "#8B5E1A" }}>{p.yrs}</span>
+                          <span className="font-accent text-[9px]" style={{ color: "#5C3A09" }}>{p.yrs}</span>
                         </div>
-                        <div className="font-accent text-[8.5px] uppercase tracking-wider mb-1" style={{ color: "#8B5E1A" }}>{p.sans}</div>
+                        <div className="font-accent text-[8.5px] uppercase tracking-wider mb-1" style={{ color: "#5C3A09" }}>{p.sans}</div>
                         <p className="text-[10px] leading-snug font-body" style={{ color: "#5C3A09" }}>{p.theme}</p>
                       </div>
                     ))}
@@ -474,7 +474,7 @@ export default function PremiumTier() {
             {result.chart?.numerology && (
               <section data-pdf-page="numerology-overview" className="mt-4" data-testid="premium-numerology-overview">
                 <div className="ornate-divider mb-5">
-                  <span className="font-accent text-xs text-[#D4AF37]">Numerology Overview · Mulank · Bhagyank · Naamank</span>
+                  <span className="font-accent text-xs text-[#B8860B]">Numerology Overview · Mulank · Bhagyank · Naamank</span>
                 </div>
                 <p className="font-body text-sm mb-6 leading-relaxed" style={{ color: "#2A1A05" }}>
                   Vedic numerology extracts three foundational numbers from your birth data. Each is ruled by a specific
@@ -483,7 +483,7 @@ export default function PremiumTier() {
                 <div className="grid md:grid-cols-3 gap-4">
                   {[
                     { key: "mulank",   entry: result.chart.numerology.mulank,   badge: "Root Number",    accent: "#B85C00" },
-                    { key: "bhagyank", entry: result.chart.numerology.bhagyank, badge: "Destiny Number", accent: "#8B5E1A" },
+                    { key: "bhagyank", entry: result.chart.numerology.bhagyank, badge: "Destiny Number", accent: "#5C3A09" },
                     { key: "naamank",  entry: result.chart.numerology.naamank,  badge: "Name Number",    accent: "#5C3A09" },
                   ].filter((c) => c.entry?.number).map((c) => (
                     <div
@@ -501,9 +501,9 @@ export default function PremiumTier() {
                       </div>
                       <div className="font-heading text-lg mb-1" style={{ color: "#2A1A05", fontWeight: 600 }}>
                         {c.entry.planet}
-                        <span className="ml-2 font-body text-xs" style={{ color: "#8B5E1A" }}>({c.entry.planet_english})</span>
+                        <span className="ml-2 font-body text-xs" style={{ color: "#5C3A09" }}>({c.entry.planet_english})</span>
                       </div>
-                      <div className="text-[10.5px] font-body italic mb-3" style={{ color: "#8B5E1A" }}>
+                      <div className="text-[10.5px] font-body italic mb-3" style={{ color: "#5C3A09" }}>
                         {c.entry.derivation}
                       </div>
                       <p className="text-[12px] font-body leading-snug mb-3" style={{ color: "#2A1A05" }}>
@@ -511,26 +511,26 @@ export default function PremiumTier() {
                       </p>
                       <div className="space-y-1.5 text-[11px] font-body" style={{ color: "#2A1A05" }}>
                         {c.entry.gemstone && (
-                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Gemstone</span>{c.entry.gemstone}</div>
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#5C3A09" }}>Gemstone</span>{c.entry.gemstone}</div>
                         )}
                         {c.entry.lucky_colors && (
-                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Colors</span>{c.entry.lucky_colors.join(", ")}</div>
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#5C3A09" }}>Colors</span>{c.entry.lucky_colors.join(", ")}</div>
                         )}
                         {c.entry.lucky_days && (
-                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Days</span>{c.entry.lucky_days.join(", ")}</div>
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#5C3A09" }}>Days</span>{c.entry.lucky_days.join(", ")}</div>
                         )}
                         {c.entry.mantra && (
-                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Mantra</span><em>{c.entry.mantra}</em></div>
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#5C3A09" }}>Mantra</span><em>{c.entry.mantra}</em></div>
                         )}
                         {c.entry.career && (
-                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Career</span>{c.entry.career}</div>
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#5C3A09" }}>Career</span>{c.entry.career}</div>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
                 {!result.chart.numerology.naamank?.number && (
-                  <p className="mt-4 text-[11px] font-body italic" style={{ color: "#8B5E1A" }}>
+                  <p className="mt-4 text-[11px] font-body italic" style={{ color: "#5C3A09" }}>
                     Naamank is calculated from your full name — enter one in the birth form to see it here.
                   </p>
                 )}
@@ -539,7 +539,7 @@ export default function PremiumTier() {
                 {result.chart.numerology.lo_shu && (
                   <div className="mt-10" data-testid="premium-lo-shu-grid">
                     <div className="ornate-divider mb-4">
-                      <span className="font-accent text-xs text-[#D4AF37]">
+                      <span className="font-accent text-xs text-[#B8860B]">
                         Vedic Numerology Chart · Lo Shu Grid (Jeevan Ank Yantra)
                       </span>
                     </div>
@@ -555,7 +555,7 @@ export default function PremiumTier() {
                           className="grid grid-cols-3 rounded-md overflow-hidden"
                           style={{
                             width: 320,
-                            border: "2px solid #8B5E1A",
+                            border: "2px solid #5C3A09",
                             background: "#FDFBF7",
                           }}
                         >
@@ -598,7 +598,7 @@ export default function PremiumTier() {
                             );
                           })}
                         </div>
-                        <div className="mt-3 text-[10.5px] font-body italic" style={{ color: "#8B5E1A" }}>
+                        <div className="mt-3 text-[10.5px] font-body italic" style={{ color: "#5C3A09" }}>
                           {result.chart.numerology.lo_shu.derivation}
                         </div>
                       </div>
@@ -631,7 +631,7 @@ export default function PremiumTier() {
                         {/* Missing numbers → growth areas */}
                         {result.chart.numerology.lo_shu.missing.length > 0 && (
                           <div>
-                            <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#8B5E1A" }}>
+                            <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#5C3A09" }}>
                               Missing Numbers · Growth Areas
                             </div>
                             <div className="grid grid-cols-1 gap-1.5">
@@ -639,12 +639,12 @@ export default function PremiumTier() {
                                 <div key={n} className="flex items-baseline gap-2 text-[12px] font-body" style={{ color: "#2A1A05" }}>
                                   <span
                                     className="inline-flex items-center justify-center rounded-full font-heading text-[10px]"
-                                    style={{ width: 22, height: 22, background: "rgba(139,94,26,0.08)", color: "#8B5E1A", border: "1px dashed rgba(139,94,26,0.4)", fontWeight: 500 }}
+                                    style={{ width: 22, height: 22, background: "rgba(139,94,26,0.08)", color: "#5C3A09", border: "1px dashed rgba(139,94,26,0.4)", fontWeight: 500 }}
                                   >
                                     {n}
                                   </span>
                                   <span>
-                                    <strong style={{ color: "#8B5E1A" }}>Cultivate: </strong>
+                                    <strong style={{ color: "#5C3A09" }}>Cultivate: </strong>
                                     {result.chart.numerology.lo_shu.grid.flat().find((c) => c.digit === n)?.meaning}
                                   </span>
                                 </div>
@@ -668,7 +668,7 @@ export default function PremiumTier() {
                               {result.chart.numerology.lo_shu.arrows_present.map((a) => (
                                 <li key={a.label} className="text-[12px] font-body" style={{ color: "#2A1A05" }}>
                                   <div className="font-heading text-[13px]" style={{ color: "#5C3A09", fontWeight: 600 }}>
-                                    {a.label} <span className="font-accent text-[10px]" style={{ color: "#8B5E1A" }}>({a.nums.join("-")})</span>
+                                    {a.label} <span className="font-accent text-[10px]" style={{ color: "#5C3A09" }}>({a.nums.join("-")})</span>
                                   </div>
                                   <div className="mt-0.5 leading-snug">{a.strength}</div>
                                 </li>
@@ -678,14 +678,14 @@ export default function PremiumTier() {
                         )}
                         {result.chart.numerology.lo_shu.arrows_missing.length > 0 && (
                           <div className="rounded-md p-4" style={{ background: "rgba(139,94,26,0.05)", border: "1px dashed rgba(139,94,26,0.35)" }}>
-                            <div className="font-accent text-[10px] uppercase tracking-widest mb-3" style={{ color: "#8B5E1A" }}>
+                            <div className="font-accent text-[10px] uppercase tracking-widest mb-3" style={{ color: "#5C3A09" }}>
                               Missing Arrows · Karmic Lessons
                             </div>
                             <ul className="space-y-2.5">
                               {result.chart.numerology.lo_shu.arrows_missing.map((a) => (
                                 <li key={a.label} className="text-[12px] font-body" style={{ color: "#2A1A05" }}>
                                   <div className="font-heading text-[13px]" style={{ color: "#5C3A09", fontWeight: 600 }}>
-                                    {a.label} <span className="font-accent text-[10px]" style={{ color: "#8B5E1A" }}>({a.nums.join("-")})</span>
+                                    {a.label} <span className="font-accent text-[10px]" style={{ color: "#5C3A09" }}>({a.nums.join("-")})</span>
                                   </div>
                                   <div className="mt-0.5 leading-snug">{a.weakness}</div>
                                 </li>
@@ -719,11 +719,11 @@ export default function PremiumTier() {
                 <img src={snwLogo} alt="" className="print-watermark" />
                 <section data-pdf-page="dasha" className="premium-card p-6 md:p-8">
                   <div className="ornate-divider mb-4">
-                    <span className="font-accent text-xs text-[#D4AF37]">
+                    <span className="font-accent text-xs text-[#B8860B]">
                       Numerology Dasha · Current State (Mulank {result.chart.mulank})
                     </span>
                   </div>
-                  <p className="font-body text-zinc-400 text-sm mb-5 max-w-3xl">
+                  <p className="font-body text-zinc-700 text-sm mb-5 max-w-3xl">
                     Driven by your Mulank ({result.chart.mulank}), this is your live position
                     across all four nested levels of the 81-year ank-mahadasha cycle.
                   </p>
@@ -734,7 +734,7 @@ export default function PremiumTier() {
               {/* Full interactive timeline (screen-only, NOT in PDF) */}
               <div className="no-print mt-8 premium-card p-6 md:p-8">
                 <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#D4AF37]">
+                  <span className="font-accent text-xs text-[#B8860B]">
                     Full 81-year Timeline · Drill into any period
                   </span>
                 </div>
@@ -748,11 +748,11 @@ export default function PremiumTier() {
         {/* Chaldean Name Numerology — standalone section, always visible */}
         <div className="mt-20 fade-up" data-testid="chaldean-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.name_section")}</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-3">{t("premium_numerology.name_section")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
               {t("premium_numerology.name_title_a")} <span className="text-gold-gradient italic">{t("premium_numerology.name_title_b")}</span>
             </h2>
-            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+            <p className="mt-3 font-body text-zinc-700 max-w-2xl leading-relaxed text-sm">
               {t("premium_numerology.name_intro")}
             </p>
           </div>
@@ -763,7 +763,7 @@ export default function PremiumTier() {
             data-testid="chaldean-form"
           >
             <div className="md:col-span-2">
-              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+              <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
                 {t("premium_numerology.name_label")}
               </label>
               <input
@@ -796,7 +796,7 @@ export default function PremiumTier() {
             <div className="mt-8 space-y-6" data-testid="chaldean-result">
               {/* Letter-by-letter breakdown */}
               <div className="glass-card p-6">
-                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-4">
+                <div className="font-accent text-[10px] text-[#B8860B] tracking-widest mb-4">
                   {t("premium_numerology.letters_title")}
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -823,14 +823,14 @@ export default function PremiumTier() {
                 </div>
                 <div className="flex items-baseline gap-4 mt-4 pt-4 border-t border-[rgba(212,175,55,0.15)]">
                   <div>
-                    <div className="font-accent text-[10px] text-zinc-500 uppercase tracking-widest">Compound Total</div>
-                    <div className="font-heading text-3xl text-[#D4AF37]">
+                    <div className="font-accent text-[10px] text-zinc-800 uppercase tracking-widest">Compound Total</div>
+                    <div className="font-heading text-3xl text-[#B8860B]">
                       {chaldeanResult.compound_total}
                     </div>
                   </div>
-                  <div className="text-zinc-500 font-heading text-2xl">→</div>
+                  <div className="text-zinc-800 font-heading text-2xl">→</div>
                   <div>
-                    <div className="font-accent text-[10px] text-zinc-500 uppercase tracking-widest">Reduced</div>
+                    <div className="font-accent text-[10px] text-zinc-800 uppercase tracking-widest">Reduced</div>
                     <div className="font-heading text-3xl text-[#FFD700]">
                       {chaldeanResult.name_number.number}
                     </div>
@@ -840,7 +840,7 @@ export default function PremiumTier() {
 
               {/* Planet profile card — reuse same look as NumberCard from Numerology page */}
               <div className="premium-card p-6 md:p-8">
-                <div className="font-accent text-[10px] text-[#D4AF37] mb-3 tracking-widest">
+                <div className="font-accent text-[10px] text-[#B8860B] mb-3 tracking-widest">
                   {chaldeanResult.name_number.label}
                 </div>
                 <div className="flex items-start justify-between mb-5 flex-wrap gap-4">
@@ -848,7 +848,7 @@ export default function PremiumTier() {
                     <div className="font-heading text-7xl text-[#FFD700] leading-none">
                       {chaldeanResult.name_number.number}
                     </div>
-                    <div className="mt-1 font-body text-xs text-zinc-500">
+                    <div className="mt-1 font-body text-xs text-zinc-800">
                       {chaldeanResult.name_number.derivation}
                     </div>
                   </div>
@@ -856,7 +856,7 @@ export default function PremiumTier() {
                     <div className="font-heading text-2xl text-zinc-100">
                       {chaldeanResult.name_number.planet}
                     </div>
-                    <div className="font-body text-xs text-zinc-500">
+                    <div className="font-body text-xs text-zinc-800">
                       {chaldeanResult.name_number.planet_english}
                     </div>
                   </div>
@@ -874,19 +874,19 @@ export default function PremiumTier() {
                     [t("premium_numerology.lucky_numbers"), (chaldeanResult.name_number.lucky_numbers || []).join(", ")],
                   ].map(([label, val]) => (
                     <div key={label} className="flex justify-between gap-3">
-                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{label}</span>
-                      <span className="text-zinc-300 text-right">{val}</span>
+                      <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{label}</span>
+                      <span className="text-zinc-800 text-right">{val}</span>
                     </div>
                   ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-[rgba(212,175,55,0.12)] grid grid-cols-1 gap-2 text-xs font-body">
                   <div>
-                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.career")}</div>
-                    <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.career}</div>
+                    <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.career")}</div>
+                    <div className="text-zinc-800 mt-0.5">{chaldeanResult.name_number.career}</div>
                   </div>
                   <div>
-                    <div className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.challenges")}</div>
-                    <div className="text-zinc-300 mt-0.5">{chaldeanResult.name_number.challenges}</div>
+                    <div className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.challenges")}</div>
+                    <div className="text-zinc-800 mt-0.5">{chaldeanResult.name_number.challenges}</div>
                   </div>
                 </div>
               </div>
@@ -897,11 +897,11 @@ export default function PremiumTier() {
         {/* Mobile Number Numerology */}
         <div className="mt-20 fade-up" data-testid="mobile-numerology-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#D4AF37] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
               {t("premium_numerology.mobile_title_a2")} <span className="text-gold-gradient italic">{t("premium_numerology.mobile_title_b2")}</span>
             </h2>
-            <p className="mt-3 font-body text-zinc-400 max-w-2xl leading-relaxed text-sm">
+            <p className="mt-3 font-body text-zinc-700 max-w-2xl leading-relaxed text-sm">
               {t("premium_numerology.mobile_intro2")}
             </p>
           </div>
@@ -912,7 +912,7 @@ export default function PremiumTier() {
             data-testid="mobile-form"
           >
             <div className="md:col-span-2">
-              <label className="font-accent text-[10px] text-[#D4AF37] block mb-2 tracking-widest uppercase">
+              <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
                 {t("premium_numerology.mobile_label")}
               </label>
               <input
@@ -947,10 +947,10 @@ export default function PremiumTier() {
                 <NumberCard block={mobileResult.mobile_number_ank} accent="text-[#FFD700]" />
               </div>
               <div className="glass-card p-6">
-                <div className="font-accent text-[10px] text-[#D4AF37] tracking-widest mb-3">
+                <div className="font-accent text-[10px] text-[#B8860B] tracking-widest mb-3">
                   {t("premium_numerology.digit_comp")}
                 </div>
-                <div className="font-body text-sm text-zinc-300 mb-4">
+                <div className="font-body text-sm text-zinc-800 mb-4">
                   {t("premium_numerology.number_label")} <span className="text-zinc-100 font-mono">{mobileResult.digits_used}</span>
                 </div>
                 <div className="grid grid-cols-5 gap-2 mb-5">
@@ -965,7 +965,7 @@ export default function PremiumTier() {
                       data-testid={`mobile-digit-${d}`}
                     >
                       <div className="font-heading text-lg text-[#FFD700]">{d}</div>
-                      <div className="font-accent text-[9px] text-zinc-500 tracking-widest">
+                      <div className="font-accent text-[9px] text-zinc-800 tracking-widest">
                         ×{count}
                       </div>
                     </div>
@@ -973,16 +973,16 @@ export default function PremiumTier() {
                 </div>
                 <div className="space-y-2 text-xs font-body">
                   <div className="flex justify-between gap-3">
-                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.digit_sum")}</span>
+                    <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.digit_sum")}</span>
                     <span className="text-zinc-200">{mobileResult.digit_sum}</span>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.dominant_digit")}</span>
+                    <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.dominant_digit")}</span>
                     <span className="text-zinc-200">{mobileResult.dominant_digit}</span>
                   </div>
                   {mobileResult.missing_digits.length > 0 && (
                     <div className="flex justify-between gap-3">
-                      <span className="font-accent text-[9px] text-zinc-500 uppercase tracking-widest">{t("premium_numerology.missing_digits")}</span>
+                      <span className="font-accent text-[9px] text-zinc-800 uppercase tracking-widest">{t("premium_numerology.missing_digits")}</span>
                       <span className="text-zinc-200">{mobileResult.missing_digits.join(", ")}</span>
                     </div>
                   )}

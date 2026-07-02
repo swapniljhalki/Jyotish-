@@ -61,7 +61,7 @@ function buildComponents(v) {
 
   const MdP = (props) => <p style={{ margin: v.pMargin, lineHeight: v.pLineHeight }} {...props} />;
   const MdStrong = (props) => <strong style={{ color: "#5C3A09", fontWeight: 700 }} {...props} />;
-  const MdEm = (props) => <em style={{ color: "#8B5E1A", fontStyle: "italic" }} {...props} />;
+  const MdEm = (props) => <em style={{ color: "#5C3A09", fontStyle: "italic" }} {...props} />;
   const MdUl = ({ ordered: _o, ...rest }) => (
     <ul style={{ margin: v.ulMargin, padding: 0, listStyle: "disc", lineHeight: v.pLineHeight }} {...rest} />
   );
@@ -137,7 +137,7 @@ function buildComponents(v) {
     />
   );
   const MdA = (props) => (
-    <a style={{ color: "#8B5E1A", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer" {...props} />
+    <a style={{ color: "#5C3A09", textDecoration: "underline" }} target="_blank" rel="noopener noreferrer" {...props} />
   );
 
   return {

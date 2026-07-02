@@ -21,7 +21,7 @@ import UpgradeButton from "../components/UpgradeButton";
 
 const TIER_META = {
   free:    { label: "Seeker",  blurb: "Free tier · Browse the basics", color: "#6B3410" },
-  basic:   { label: "Sadhaka", blurb: "Basic tier · AI birth readings", color: "#8B5E1A" },
+  basic:   { label: "Sadhaka", blurb: "Basic tier · AI birth readings", color: "#5C3A09" },
   premium: { label: "Jyotishi", blurb: "Premium tier · Full Kundali, Dasha & 1:1 consults", color: "#FF8C00" },
 };
 
@@ -101,7 +101,7 @@ export default function Profile() {
           <span className="sb-eyebrow">Your account</span>
           <h1 className="sb-h1">
             Hello,{" "}
-            <span className="italic font-medium" style={{ color: "#8B5E1A" }}>
+            <span className="italic font-medium" style={{ color: "#5C3A09" }}>
               {user.name || "Seeker"}.
             </span>
           </h1>
@@ -193,7 +193,7 @@ export default function Profile() {
                 />
                 <Link
                   to="/pricing"
-                  className="text-[12px] font-semibold tracking-widest uppercase text-[#8B5E1A] hover:text-[#FF8C00] transition-colors"
+                  className="text-[12px] font-semibold tracking-widest uppercase text-[#5C3A09] hover:text-[#FF8C00] transition-colors"
                   data-testid="profile-pricing-link"
                 >
                   Compare all tiers
@@ -209,7 +209,7 @@ export default function Profile() {
               <div className="flex items-center justify-between gap-3">
                 <dt
                   className="text-[10px] font-bold tracking-widest uppercase"
-                  style={{ color: "#8B5E1A" }}
+                  style={{ color: "#5C3A09" }}
                 >
                   Sign-in method
                 </dt>
@@ -220,7 +220,7 @@ export default function Profile() {
               <div className="flex items-center justify-between gap-3">
                 <dt
                   className="text-[10px] font-bold tracking-widest uppercase"
-                  style={{ color: "#8B5E1A" }}
+                  style={{ color: "#5C3A09" }}
                 >
                   Member since
                 </dt>
@@ -236,7 +236,7 @@ export default function Profile() {
               <div className="flex items-center justify-between gap-3">
                 <dt
                   className="text-[10px] font-bold tracking-widest uppercase"
-                  style={{ color: "#8B5E1A" }}
+                  style={{ color: "#5C3A09" }}
                 >
                   Role
                 </dt>
@@ -251,7 +251,7 @@ export default function Profile() {
               <div className="flex items-center justify-between gap-3">
                 <dt
                   className="text-[10px] font-bold tracking-widest uppercase"
-                  style={{ color: "#8B5E1A" }}
+                  style={{ color: "#5C3A09" }}
                 >
                   User ID
                 </dt>
@@ -274,7 +274,7 @@ export default function Profile() {
             <span className="sb-eyebrow">Scheduled meetings</span>
             <Link
               to="/book"
-              className="text-[12px] font-semibold tracking-widest uppercase text-[#8B5E1A] hover:text-[#FF8C00] transition-colors"
+              className="text-[12px] font-semibold tracking-widest uppercase text-[#5C3A09] hover:text-[#FF8C00] transition-colors"
               data-testid="profile-book-link"
             >
               Book new →
@@ -343,7 +343,7 @@ export default function Profile() {
                             {startsAt}
                           </span>
                         )}
-                        <span className="text-[12px]" style={{ color: "#8B5E1A" }}>
+                        <span className="text-[12px]" style={{ color: "#5C3A09" }}>
                           Booked on {bookedAt}
                         </span>
                       </div>
@@ -377,7 +377,7 @@ export default function Profile() {
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-[#8B5E1A]" strokeWidth={1.75} />
+                  <BookOpen className="h-4 w-4 text-[#5C3A09]" strokeWidth={1.75} />
                   <span className="font-heading text-lg" style={{ color: "#2A1A05" }}>
                     My readings
                   </span>
@@ -386,7 +386,7 @@ export default function Profile() {
                   Open your saved Kundali interpretations.
                 </p>
               </div>
-              <ArrowRight className="h-4 w-4 text-[#8B5E1A] shrink-0" strokeWidth={1.75} />
+              <ArrowRight className="h-4 w-4 text-[#5C3A09] shrink-0" strokeWidth={1.75} />
             </Link>
 
             {user.auth_provider === "email" && (
@@ -397,7 +397,7 @@ export default function Profile() {
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <KeyRound className="h-4 w-4 text-[#8B5E1A]" strokeWidth={1.75} />
+                    <KeyRound className="h-4 w-4 text-[#5C3A09]" strokeWidth={1.75} />
                     <span className="font-heading text-lg" style={{ color: "#2A1A05" }}>
                       Change password
                     </span>
@@ -406,7 +406,7 @@ export default function Profile() {
                     We&apos;ll email you a secure reset link.
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-[#8B5E1A] shrink-0" strokeWidth={1.75} />
+                <ArrowRight className="h-4 w-4 text-[#5C3A09] shrink-0" strokeWidth={1.75} />
               </Link>
             )}
 
