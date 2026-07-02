@@ -272,4 +272,10 @@ See `/app/memory/test_credentials.md`.
 - Fix: Added `compact` variant to `AdviceMarkdown.jsx` (body 0.78rem, line-height 1.4, tighter heading/paragraph margins, table & list padding shrunk). Wired `<AdviceMarkdown compact>` only in `PremiumTier.jsx` — Basic keeps the spacious default styling.
 - Verified: Premium PDF now = exactly 5 pages (2.2 MB). All 9 advice subsections (Overall Personality, Career & Dharma, Wealth & Finances, Relationships & Marriage, Health & Vitality, Spiritual Path, Current Focus, Remedies, Closing Blessing) fit on the single reading page. No section is split.
 
+## Feb 20, 2026 — Premium PDF reading legibility reverted (P0 follow-up)
+- User request: "In premium tier, in pdf report please do not make detailed reading compact, please make it more legible."
+- Removed the `compact` prop from `<AdviceMarkdown>` in `PremiumTier.jsx`; the reading now uses the default spacious styling (body 0.98rem, line-height 1.8).
+- Net effect: Premium PDF is now 6 pages. First 4 pages are unchanged (P1 cover+nakshatra, P2 lagna+planets, P3 chandra+navamsha, P4 vimshottari). The reading flows naturally across P5–P6 at legible size; no section, chart, table, or heading is cut mid-way. Verified via AI structural analysis.
+
+
 

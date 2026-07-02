@@ -425,9 +425,9 @@ export default function PremiumTier() {
               </section>
             )}
 
-            {/* PAGE 5 — AI advice text (no leading divider label per Basic layout) */}
+            {/* PAGE 5+ — AI advice text (spacious/legible; may span to page 6) */}
             <section data-pdf-page="advice">
-              <AdviceMarkdown testId="premium-advice" compact>{result.advice}</AdviceMarkdown>
+              <AdviceMarkdown testId="premium-advice">{result.advice}</AdviceMarkdown>
               <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
                 <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
                   Open in archive & share →
