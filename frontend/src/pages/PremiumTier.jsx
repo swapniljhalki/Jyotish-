@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -38,6 +38,16 @@ export default function PremiumTier() {
   const [mobileResult, setMobileResult] = useState(null);
   const [mobileLoading, setMobileLoading] = useState(false);
   const [mobileErr, setMobileErr] = useState("");
+
+  // Auto-prefill the Chaldean Name field from the birth-form name whenever
+  // the user submits a birth reading — but never clobber a manual edit.
+  useEffect(() => {
+    const nameFromForm = inputs?.full_name?.trim();
+    if (nameFromForm && !chaldeanName) {
+      setChaldeanName(nameFromForm);
+    }
+  }, [inputs?.full_name, chaldeanName]);
+
 
   // Expanded Kundali Modal
   const [expanded, setExpanded] = useState(null); // { title, ascendantLabel, ascendantName, chart, accentColor }

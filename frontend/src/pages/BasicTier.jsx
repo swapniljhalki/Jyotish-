@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import api from "../lib/api";
 import { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
@@ -39,6 +39,15 @@ export default function BasicTier() {
   const [mobileResult, setMobileResult] = useState(null);
   const [mobileLoading, setMobileLoading] = useState(false);
   const [mobileErr, setMobileErr] = useState("");
+
+  // Auto-prefill the Chaldean Name field from the birth-form name whenever
+  // the user submits a birth reading — but never clobber a manual edit.
+  useEffect(() => {
+    const nameFromForm = inputs?.full_name?.trim();
+    if (nameFromForm && !chaldeanName) {
+      setChaldeanName(nameFromForm);
+    }
+  }, [inputs?.full_name, chaldeanName]);
 
   const submit = async (values) => {
     setErr("");
