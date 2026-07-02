@@ -469,6 +469,74 @@ export default function PremiumTier() {
               </div>
             </section>
 
+            {/* Numerology Overview — Mulank / Bhagyank / Naamank; starts a fresh
+                PDF page so it doesn't awkwardly split with the AI advice above. */}
+            {result.chart?.numerology && (
+              <section data-pdf-page="numerology-overview" className="mt-4" data-testid="premium-numerology-overview">
+                <div className="ornate-divider mb-5">
+                  <span className="font-accent text-xs text-[#D4AF37]">Numerology Overview · Mulank · Bhagyank · Naamank</span>
+                </div>
+                <p className="font-body text-sm mb-6 leading-relaxed" style={{ color: "#2A1A05" }}>
+                  Vedic numerology extracts three foundational numbers from your birth data. Each is ruled by a specific
+                  planet whose energy quietly colors your temperament, destiny, and public identity alongside your Kundali placements.
+                </p>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {[
+                    { key: "mulank",   entry: result.chart.numerology.mulank,   badge: "Root Number",    accent: "#B85C00" },
+                    { key: "bhagyank", entry: result.chart.numerology.bhagyank, badge: "Destiny Number", accent: "#8B5E1A" },
+                    { key: "naamank",  entry: result.chart.numerology.naamank,  badge: "Name Number",    accent: "#5C3A09" },
+                  ].filter((c) => c.entry?.number).map((c) => (
+                    <div
+                      key={c.key}
+                      className="glass-card p-5"
+                      data-testid={`premium-numerology-${c.key}`}
+                    >
+                      <div className="flex items-baseline justify-between mb-3">
+                        <span className="font-accent text-[9px] uppercase tracking-widest" style={{ color: c.accent }}>
+                          {c.badge}
+                        </span>
+                        <span className="font-heading text-4xl" style={{ color: c.accent, fontWeight: 700, lineHeight: 1 }}>
+                          {c.entry.number}
+                        </span>
+                      </div>
+                      <div className="font-heading text-lg mb-1" style={{ color: "#2A1A05", fontWeight: 600 }}>
+                        {c.entry.planet}
+                        <span className="ml-2 font-body text-xs" style={{ color: "#8B5E1A" }}>({c.entry.planet_english})</span>
+                      </div>
+                      <div className="text-[10.5px] font-body italic mb-3" style={{ color: "#8B5E1A" }}>
+                        {c.entry.derivation}
+                      </div>
+                      <p className="text-[12px] font-body leading-snug mb-3" style={{ color: "#2A1A05" }}>
+                        {c.entry.traits}
+                      </p>
+                      <div className="space-y-1.5 text-[11px] font-body" style={{ color: "#2A1A05" }}>
+                        {c.entry.gemstone && (
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Gemstone</span>{c.entry.gemstone}</div>
+                        )}
+                        {c.entry.lucky_colors && (
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Colors</span>{c.entry.lucky_colors.join(", ")}</div>
+                        )}
+                        {c.entry.lucky_days && (
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Days</span>{c.entry.lucky_days.join(", ")}</div>
+                        )}
+                        {c.entry.mantra && (
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Mantra</span><em>{c.entry.mantra}</em></div>
+                        )}
+                        {c.entry.career && (
+                          <div><span className="font-accent text-[9px] uppercase tracking-widest mr-1.5" style={{ color: "#8B5E1A" }}>Career</span>{c.entry.career}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {!result.chart.numerology.naamank?.number && (
+                  <p className="mt-4 text-[11px] font-body italic" style={{ color: "#8B5E1A" }}>
+                    Naamank is calculated from your full name — enter one in the birth form to see it here.
+                  </p>
+                )}
+              </section>
+            )}
+
           </div>
 
           {/* Numerology Dasha — separate downloadable section (NOT part of the main reading PDF) */}

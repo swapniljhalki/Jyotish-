@@ -276,9 +276,16 @@ See `/app/memory/test_credentials.md`.
 - User request: "from page 1 to 4 please utilize full page for content, do not split on 2 pages."
 - Root cause: Page 4 (Vimshottari) had only a 9-row table filling ~50% of the page, leaving significant blank space in the lower half.
 - Fix in `/app/frontend/src/pages/PremiumTier.jsx`:
-  - Added an introductory paragraph explaining the Vimshottari system (calculated from Moon Nakshatra, 9 planetary periods = 120 years) above the "Currently running" line.
-  - Added a **Planetary Themes** 3×3 grid below the table: 9 compact cards, each showing lord (Sun/Moon/Mars/Rahu/Jupiter/Saturn/Mercury/Ketu/Venus), Sanskrit name, duration in years, and a one-line theme (e.g. Sun · Surya · 6 yrs — "Authority, self-realization, leadership, health of father & spine").
-- Verified: PDF regenerated (2.68 MB, 6 pages). Page 4 confirmed via image analysis: intro + table + themes grid all fit on a single page with no overflow; page is now well-filled. P1–P3 unchanged (already complete/legible). P5–6 = spacious detailed reading.
+  - Added an introductory paragraph explaining the Vimshottari system above the "Currently running" line.
+  - Added a **Planetary Themes** 3×3 grid below the table.
+- Verified: P4 now well-filled on a single page, no overflow.
+
+## Feb 20, 2026 — Numerology Overview section added to Premium (P0)
+- User request: "In premium tier, below kundali reading, please insert a section to provide basic numerology advice such as Mulank, Bhagyank, Namank. Please keep this before numerology dasha section."
+- Backend (`/app/backend/server.py::_build_chart`): enriched the chart response with a full `numerology` block via existing `compute_numerology(dob, full_name)` — returns Mulank, Bhagyank, Naamank each with ruling planet (Sanskrit + English), derivation, traits, gemstone, lucky colors/days, mantra, career.
+- Frontend (`/app/frontend/src/pages/PremiumTier.jsx`): added a new `data-pdf-page="numerology-overview"` section between the AI advice and the Numerology Dasha. Renders a 3-column grid — Root Number (Mulank), Destiny Number (Bhagyank), Name Number (Naamank) — each card showing planet, derivation, traits, gemstone, colors, days, mantra, and career.
+- Verified end-to-end: Ravi Kumar (DOB 1990-05-15) → Mulank 6 (Shukra), Bhagyank 3 (Guru), Naamank 7 (Ketu). PDF regenerated (3.09 MB, 7 pages). Page 7 confirmed via image analysis: all three cards fully visible with complete derivations and profiles, page well-utilized.
+
 
 
 

@@ -1418,7 +1418,9 @@ def _parse_inputs(body: AstroIn):
 
 
 async def _build_chart(body: AstroIn) -> dict:
-    """Geocode place + compute Parashari chart (Swiss Ephemeris, Lahiri, whole-sign)."""
+    """Geocode place + compute Parashari chart (Swiss Ephemeris, Lahiri, whole-sign).
+    Also attaches a Vedic numerology overview (Mulank / Bhagyank / Naamank) so
+    the Premium reading can render both astrology + numerology summaries side by side."""
     dob, tob, pob = _parse_inputs(body)
     loc = await geocode_place(db, pob)
     if not loc:
@@ -1426,12 +1428,16 @@ async def _build_chart(body: AstroIn) -> dict:
             status_code=422,
             detail=f"Could not locate '{pob}'. Please use a more specific place (e.g. 'Mumbai, India').",
         )
-    return compute_chart_from_local(
+    chart = compute_chart_from_local(
         dob.year, dob.month, dob.day,
         tob.hour, tob.minute,
         loc["lat"], loc["lon"],
         loc["display_name"],
     )
+    # Enrich with Vedic numerology (Mulank/Bhagyank/Naamank + planet profiles).
+    # Uses the user's supplied full_name for Naamank; Mulank/Bhagyank are DOB-only.
+    chart["numerology"] = compute_numerology(dob, (body.full_name or "").strip())
+    return chart
 
 
 def _ask_claude_blocking(system: str, user_msg: str, session_id: str) -> str:
