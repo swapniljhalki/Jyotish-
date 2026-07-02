@@ -1825,6 +1825,51 @@ def _public_reading(r: dict) -> dict:
     return out
 
 
+# --- Premium: Tarot 3-card spread + AI interpretation ------------------ #
+class TarotIn(BaseModel):
+    question: Optional[str] = None
+    language: Optional[str] = "en"
+
+
+@api.post("/astrology/tarot/reading")
+async def astrology_tarot(body: TarotIn, user: dict = Depends(get_current_user)):
+    """Draw a 3-card Past · Present · Future spread from the Major Arcana and
+    generate a personalised interpretation via Claude. Premium tier only."""
+    require_tier(user, "premium")
+    from tarot import draw_three_card_spread
+
+    spread = draw_three_card_spread()
+    question = (body.question or "").strip()
+
+    card_lines = "\n".join(
+        f"- {c['position'].upper()}: {c['name']} ({c['orientation']}) — "
+        f"{c['meaning']} · Keywords: {', '.join(c['keywords'])}"
+        for c in spread
+    )
+    system = (
+        "You are a wise, warm Vedic tarot reader trained in the Rider-Waite tradition. "
+        "Interpret a 3-card spread (Past · Present · Future) drawn from the Major Arcana. "
+        "Speak directly to the seeker in second person. Weave the three cards into a single "
+        "flowing narrative — the past feeding the present, the present shaping the future. "
+        "Honour reversed cards by naming their shadow lesson. Do NOT re-list the card meanings; "
+        "synthesise them. Close with a short, empowering line of guidance. "
+        "Use Markdown ## for the three section headings only. Keep total length under 320 words."
+        + _lang_instruction(body.language)
+    )
+    user_msg = (
+        f"Seeker's question: {question or '(no specific question — a general life reading)'}\n\n"
+        f"The cards drawn:\n{card_lines}\n\n"
+        f"Give a warm, personal interpretation."
+    )
+    interpretation = await _ask_claude(system, user_msg, f"tarot-{user['id']}")
+
+    return {
+        "spread": spread,
+        "question": question,
+        "interpretation": interpretation,
+    }
+
+
 @api.get("/readings")
 async def list_readings(user: dict = Depends(get_current_user)):
     items = await db.readings.find(

@@ -40,6 +40,12 @@ export default function PremiumTier() {
   const [mobileLoading, setMobileLoading] = useState(false);
   const [mobileErr, setMobileErr] = useState("");
 
+  // Tarot Reading (3-card Past · Present · Future spread + AI interpretation)
+  const [tarotQuestion, setTarotQuestion] = useState("");
+  const [tarotResult, setTarotResult] = useState(null);
+  const [tarotLoading, setTarotLoading] = useState(false);
+  const [tarotErr, setTarotErr] = useState("");
+
   // Auto-prefill the Chaldean Name field from the birth-form name whenever
   // the user submits a birth reading — but never clobber a manual edit.
   useEffect(() => {
@@ -113,6 +119,24 @@ export default function PremiumTier() {
       setMobileErr(formatApiError(e2.response?.data?.detail) || e2.message);
     } finally {
       setMobileLoading(false);
+    }
+  };
+
+  const submitTarot = async (e) => {
+    e.preventDefault();
+    setTarotErr("");
+    setTarotResult(null);
+    setTarotLoading(true);
+    try {
+      const { data } = await api.post("/astrology/tarot/reading", {
+        question: tarotQuestion,
+        language: i18n.resolvedLanguage,
+      });
+      setTarotResult(data);
+    } catch (e2) {
+      setTarotErr(formatApiError(e2.response?.data?.detail) || e2.message);
+    } finally {
+      setTarotLoading(false);
     }
   };
 
@@ -987,6 +1011,132 @@ export default function PremiumTier() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tarot Reading — 3-card Past · Present · Future spread + AI interpretation */}
+        <div className="mt-20 fade-up" data-testid="tarot-section">
+          <div className="mb-8">
+            <p className="font-accent text-xs text-[#B8860B] mb-3">Rider-Waite · Major Arcana</p>
+            <h2 className="font-heading text-3xl md:text-4xl" style={{ color: "#14172B" }}>
+              Tarot Reading — <span className="text-gold-gradient italic">Past · Present · Future</span>
+            </h2>
+            <p className="mt-3 font-body text-zinc-700 max-w-2xl leading-relaxed text-sm">
+              Draw three cards from the Major Arcana. Optionally, hold a specific question in mind — the AI
+              synthesises the spread into a warm, personal interpretation woven from the classical meanings.
+            </p>
+          </div>
+
+          <form
+            onSubmit={submitTarot}
+            className="glass-card p-6 md:p-8 grid grid-cols-1 gap-4"
+            data-testid="tarot-form"
+          >
+            <div>
+              <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
+                Your Question (optional)
+              </label>
+              <textarea
+                rows={2}
+                value={tarotQuestion}
+                onChange={(e) => setTarotQuestion(e.target.value)}
+                placeholder="e.g. What should I focus on for my career right now?"
+                data-testid="tarot-question-input"
+                className="w-full bg-[#FDFBF7] border border-[rgba(139,94,26,0.25)] rounded-md px-3 py-2 text-zinc-900 font-body focus:outline-none focus:border-[#FF9933] resize-none"
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                disabled={tarotLoading}
+                data-testid="tarot-draw-btn"
+                className="btn-saffron disabled:opacity-50"
+              >
+                {tarotLoading ? "Shuffling the deck…" : "Draw Cards"}
+              </button>
+            </div>
+          </form>
+
+          {tarotErr && (
+            <div className="mt-4 text-sm text-red-600 font-body glass-card p-4" data-testid="tarot-error">
+              {tarotErr}
+            </div>
+          )}
+
+          {tarotResult && (
+            <div className="mt-8 space-y-8" data-testid="tarot-result">
+              {/* The three drawn cards */}
+              <div className="grid md:grid-cols-3 gap-5">
+                {tarotResult.spread.map((c) => {
+                  const reversed = c.orientation === "reversed";
+                  return (
+                    <div
+                      key={c.position}
+                      data-testid={`tarot-card-${c.position}`}
+                      className="rounded-lg p-5 text-center"
+                      style={{
+                        background: "linear-gradient(155deg, #FDFBF7 0%, #F5E9D0 100%)",
+                        border: "2px solid #B8860B",
+                        boxShadow: "0 6px 16px rgba(139,94,26,0.12)",
+                      }}
+                    >
+                      <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#B8860B" }}>
+                        {c.position}
+                      </div>
+                      <div
+                        className="font-heading mb-1"
+                        style={{
+                          color: reversed ? "#8B2500" : "#14172B",
+                          fontSize: "1.6rem",
+                          lineHeight: 1.15,
+                          fontWeight: 600,
+                          transform: reversed ? "rotate(180deg)" : "none",
+                          display: "inline-block",
+                          padding: "0.4rem 0",
+                        }}
+                      >
+                        {c.name}
+                      </div>
+                      <div className="font-accent text-[9px] tracking-widest uppercase mb-3" style={{ color: reversed ? "#8B2500" : "#5C3A09" }}>
+                        {c.number} · {c.orientation}
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-1.5 mb-3">
+                        {c.keywords.map((k) => (
+                          <span
+                            key={k}
+                            className="text-[10px] font-body px-2 py-0.5 rounded-full"
+                            style={{ background: "rgba(184,134,11,0.15)", color: "#5C3A09" }}
+                          >
+                            {k}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-[12px] font-body leading-snug italic" style={{ color: "#2A1A05" }}>
+                        {c.meaning}
+                      </p>
+                      <div className="mt-3 pt-3 border-t border-[rgba(139,94,26,0.18)] font-accent text-[9px] uppercase tracking-widest" style={{ color: "#8B2500" }}>
+                        {c.position_meaning}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* AI interpretation woven across the three cards */}
+              <div className="glass-card p-6 md:p-8" data-testid="tarot-interpretation">
+                <div className="ornate-divider mb-5">
+                  <span className="font-accent text-xs text-[#B8860B]">
+                    The Reader Speaks · Weaving Your Cards
+                  </span>
+                </div>
+                {tarotResult.question && (
+                  <p className="text-[13px] font-body italic mb-4" style={{ color: "#5C3A09" }}>
+                    Your question: “{tarotResult.question}”
+                  </p>
+                )}
+                <AdviceMarkdown>{tarotResult.interpretation}</AdviceMarkdown>
               </div>
             </div>
           )}

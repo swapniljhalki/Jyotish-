@@ -295,6 +295,19 @@ See `/app/memory/test_credentials.md`.
     - Legacy dark-theme grays: `text-zinc-300/400/500/600` → `text-zinc-700/800/900` (leftover Tailwind tokens on the light theme).
 - Verified via screenshots: landing hero paragraph, section eyebrows ("SIDEREAL VEDIC JYOTISH", "PREMIUM TIER · JYOTISHI"), form labels, and body copy all render darker with stronger contrast while keeping the warm gold aesthetic.
 
+## Feb 20, 2026 — Tarot Reading feature added to Premium (P0)
+- User request: "In premium tier, after mobile number numerology section, add a tarot reading feature."
+- Backend:
+  - New `/app/backend/tarot.py`: 22 Major Arcana cards (Rider-Waite tradition) with upright/reversed meanings + keywords. `draw_three_card_spread(seed=None)` returns unique random 3 cards each with independent orientation for Past/Present/Future positions.
+  - New endpoint `POST /api/astrology/tarot/reading` (Premium-tier only): accepts optional `question` + `language`, draws the spread, calls Claude Sonnet 4.5 for a woven interpretation (~320 words, honors reversed shadows, respects the user's language).
+- Frontend (`/app/frontend/src/pages/PremiumTier.jsx`):
+  - New "Tarot Reading — Past · Present · Future" section placed after Mobile Number Numerology.
+  - Optional question textarea → "Draw Cards" button ("Shuffling the deck…" while loading).
+  - Three parchment-styled cards with gold border showing position, card name (rotated 180° when reversed with maroon accent), Roman-numeral index, keyword pills, classical meaning, and position meaning.
+  - AI interpretation rendered below via `<AdviceMarkdown>`, with the user's question echoed as an italic quote.
+- Verified end-to-end with curl + screenshot: cards drawn (The Empress upright / The World upright / Judgement reversed) → 12s Claude response → all three cards visible with correct orientations + full interpretation ("Honour the completion, then listen…").
+
+
 - User request: "In premium tier please add vedic numerology chart by taking input of date of birth provided from user details section on top of page."
 - Backend (`/app/backend/numerology.py`): added `compute_lo_shu_grid(dob)`.
   - Returns 3×3 grid in classic layout: `4-9-2 / 3-5-7 / 8-1-6`.
