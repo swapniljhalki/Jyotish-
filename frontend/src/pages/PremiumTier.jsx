@@ -602,11 +602,11 @@ export default function PremiumTier() {
                 <div className="ornate-divider mb-5">
                   <span className="font-accent text-xs text-[#B8860B]">Mulank · Bhagyank · Naamank</span>
                 </div>
-                <p className="font-body text-sm mb-6 leading-relaxed" style={{ color: "#2A1A05" }}>
+                <p className="font-body text-sm mb-10 leading-relaxed" style={{ color: "#2A1A05" }}>
                   Vedic numerology extracts three foundational numbers from your birth data. Each is ruled by a specific
                   planet whose energy quietly colors your temperament, destiny, and public identity alongside your Kundali placements.
                 </p>
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-3 gap-4 pt-2">
                   {[
                     { key: "mulank",   entry: result.chart.numerology.mulank,   badge: "Root Number",    accent: "#B85C00" },
                     { key: "bhagyank", entry: result.chart.numerology.bhagyank, badge: "Destiny Number", accent: "#5C3A09" },
@@ -850,10 +850,12 @@ export default function PremiumTier() {
                     Vedic Numerology Mahadasha · Full 81-year Timeline
                   </span>
                 </div>
-                <p className="font-body text-sm mb-5" style={{ color: "#2A1A05" }}>
+                <p className="font-body text-sm mb-10 leading-relaxed" style={{ color: "#2A1A05" }}>
                   Your complete 81-year ank-mahadasha cycle. Each row is a major life period; drill into any Mahadasha, Antardasha, Pratyantardasha, or Sookshma-dasha level to explore periods across your life.
                 </p>
-                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
+                <div className="pt-2">
+                  <NumDashaTimeline dasha={result.chart.numerology_dasha} />
+                </div>
               </section>
             )}
           {/* MOVED — belongs to the Vedic Numerology Report PDF (chaldean-numerology) */}
