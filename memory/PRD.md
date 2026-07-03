@@ -324,6 +324,12 @@ See `/app/memory/test_credentials.md`.
 - Applied `data-pdf-soft-break="md"` to each outer Mahadasha row wrapper in `/app/frontend/src/components/NumDashaTimeline.jsx`. This gives the pagination logic per-row break candidates so the 81-year timeline never splits a Mahadasha row across two pages.
 - Verified end-to-end: PDF regenerated (3 pages, 1.09 MB, down from 22 pages/2.34 MB in the failed intermediate). AI structural analysis confirms P1 has Ganesha + all three number cards + Lo Shu; P2 holds the full 81-year Mahadasha timeline with drilled Rahu/Ketu levels; P3 has the current-state Dasha table intact.
 
+## Feb 20, 2026 — Ganesha banner artwork replaced (P0)
+- User request: "Please replace ganesha banner in all pdf reports with the attached image" (uploaded a black-and-white ornate line-art of Lord Ganesha in a mandala frame).
+- Swapped `/app/frontend/src/assets/ganesha.jpg` with the new 63KB artwork. Since `GaneshaBanner.jsx` imports from that single path, the new image now appears in every report that uses the banner — Basic Tier PDF, Premium Vedic Astrology Report, and Premium Vedic Numerology Report.
+- Verified via screenshot: the new banner (elegant black line-art on cream) renders correctly above the user details cover.
+
+
 
 
 
