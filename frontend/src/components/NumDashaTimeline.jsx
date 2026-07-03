@@ -99,7 +99,7 @@ export default function NumDashaTimeline({ dasha }) {
   return (
     <div className="space-y-4" data-testid="num-dasha-timeline">
       {/* Current dasha banner */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
         {[
           { label: "Mahadasha", n: curMD, tint: "#FFD700" },
           { label: "Antardasha", n: curAD, tint: "#FF9933" },

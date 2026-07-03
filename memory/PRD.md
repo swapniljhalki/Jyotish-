@@ -351,6 +351,12 @@ See `/app/memory/test_credentials.md`.
   - Content below (3-card grid on P1; `<NumDashaTimeline />` on P3) now wrapped in `<div className="pt-2">` for extra top-padding.
 - Verified by testing agent (`/app/test_reports/iteration_8.json`, success rate 100%): confirmed a ~40px vertical gap between the intro paragraph and following content, both in the live on-screen render and in Pages 1 & 3 of the downloaded PDF.
 
+## Feb 20, 2026 — 40px gap between Dasha summary banner and Mahadasha rows (P0)
+- User request: In `Vedic Numerology Report` PDF, add 40px vertical separation between the Mahadasha/Antardasha/Pratyantardasha/Daily-Dasha summary boxes and the Mahadasha rows table below.
+- Fix: `/app/frontend/src/components/NumDashaTimeline.jsx` — current-dasha banner grid `mb-2` → `mb-10` (40px in Tailwind).
+- Verified via PDF regeneration + Page 3 image inspection: clear 40px gap between the summary card row and the "Shukra · 15 May 1990" first Mahadasha row.
+
+
 
 
 
