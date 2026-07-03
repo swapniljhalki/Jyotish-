@@ -104,6 +104,19 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
       .filter((y, i, arr) => y > 0 && (i === 0 || y !== arr[i - 1])) // dedupe, skip 0
       .sort((a, b) => a - b)
       .slice(1);                                                      // drop first marker
+
+    // Soft breakpoints: preferred split lines for content that naturally exceeds
+    // one page (e.g. rows of a long table). Unlike [data-pdf-page], these do NOT
+    // force a page break — they are only chosen when the natural slice boundary
+    // (defaultEnd) would otherwise fall mid-element. The nearest soft-break at
+    // or before defaultEnd is used, so entire rows stay intact across pages.
+    const softBreaks = Array.from(node.querySelectorAll("[data-pdf-soft-break]"))
+      .map((el) => {
+        const top = el.getBoundingClientRect().top - nodeRect.top;
+        return Math.round(top * canvasYPerCssPx);
+      })
+      .filter((y) => y > 0)
+      .sort((a, b) => a - b);
     // Intentionally suppress lint: scale is computed for clarity but not
     // strictly needed once we use the canvas/css ratio directly.
     void scale;
@@ -200,13 +213,40 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
         // marker is asking for.
         cutAt = breakStart;
       } else {
-        // No marker inside this chunk — but check if there's a marker just
-        // beyond `defaultEnd`. If it's close (within 25% of chunkPx), absorb
-        // it into the current page so we don't end up emitting a tiny
-        // near-empty "leftover" page between two real ones.
+        // No hard marker inside this chunk — but check if there's a hard
+        // marker just beyond `defaultEnd`. If it's close (within 25% of
+        // chunkPx), absorb it into the current page so we don't end up
+        // emitting a tiny near-empty "leftover" page between two real ones.
         const nextMarker = sectionStarts.find((y) => y >= defaultEnd);
         if (nextMarker !== undefined && nextMarker - defaultEnd < chunkPx * 0.25) {
           cutAt = nextMarker;
+        } else {
+          // Otherwise: look for the LATEST soft-break marker at or before
+          // `defaultEnd` (but past renderedPx). This lets us cut cleanly
+          // between whole rows of a long list/table instead of slicing
+          // one open mid-way. If no soft-break is found in the window, we
+          // fall back to the pixel-boundary cut (natural defaultEnd).
+          let softCut;
+          for (const y of softBreaks) {
+            if (y > renderedPx + 8 && y <= defaultEnd) {
+              softCut = y;                // remember most-recent candidate
+            } else if (y > defaultEnd) {
+              break;
+            }
+          }
+          // Only use the soft cut if it actually saves us from mid-row
+          // slicing (i.e. defaultEnd falls between softCut and the next
+          // soft-break OR content-end). We prefer soft cuts that would
+          // otherwise leave a row split — indicated by there being another
+          // soft-break shortly after defaultEnd.
+          if (softCut !== undefined) {
+            const nextSoft = softBreaks.find((y) => y > defaultEnd);
+            const nearNextSoft = nextSoft !== undefined && (nextSoft - defaultEnd) < chunkPx * 0.15;
+            const nearPrevSoft = (defaultEnd - softCut) < chunkPx * 0.15;
+            if (nearNextSoft || !nearPrevSoft) {
+              cutAt = softCut;
+            }
+          }
         }
       }
 

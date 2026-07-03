@@ -135,8 +135,8 @@ export default function NumDashaTimeline({ dasha }) {
 
       <div className="space-y-1" data-testid="num-dasha-mahadashas">
         {dasha.mahadashas.map((md) => (
+          <div key={md.start} data-pdf-soft-break="md">
           <Period
-            key={md.start}
             p={md}
             level="md"
             active={curMD}
@@ -168,6 +168,7 @@ export default function NumDashaTimeline({ dasha }) {
               </Period>
             ))}
           </Period>
+          </div>
         ))}
       </div>
     </div>

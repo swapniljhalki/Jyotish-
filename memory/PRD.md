@@ -310,10 +310,20 @@ See `/app/memory/test_credentials.md`.
 ## Feb 20, 2026 — Two collapsible reports in Premium tier (P0)
 - User request: Group the Premium result into two collapsible sections — (1) Vedic Astrology Report and (2) Vedic Numerology Report.
 - Added `<CollapsibleSection>` helper (chevron-rotating gold-bordered header, `max-height:0` when closed but keeps children mounted so `exportPdf`'s `neutralizeOverflow` can still capture them if the user downloads with a section collapsed).
-- **Section 1 — Vedic Astrology Report** (`data-testid="vedic-astrology-report"`, default open) contains: user details cover · Nakshatra report · Lagna chart · Planetary positions · Chandra Rashi chart · Navamsha chart · Vimshottari Mahadasha table · Personalised AI reading. PDF button → `Vedic-Astrology-Report.pdf`.
-- **Section 2 — Vedic Numerology Report** (`data-testid="vedic-numerology-report"`, default open) contains: Mulank / Bhagyank / Naamank cards · Vedic Numerology Chart (Lo Shu Grid) with arrows · Current Numerology Dasha table (`NumDashaCurrentTable`) · full 81-year Vedic Numerology Mahadasha timeline (`NumDashaTimeline`). Own PDF button (uses new `numerologyRef`) → `Vedic-Numerology-Report.pdf`.
-- Chaldean Name Numerology, Mobile Number Numerology, and Tarot Reading remain as separate standalone sections below the two reports.
-- Verified end-to-end: both toggles work, all 10+ inner data-testids resolve, screenshots confirm the parchment layout renders cleanly.
+- **Section 1 — Vedic Astrology Report**: user details · Nakshatra · Lagna/Chandra/Navamsha charts · Planetary positions · Vimshottari Mahadasha · Personalised AI reading. PDF button → `Vedic-Astrology-Report.pdf`.
+- **Section 2 — Vedic Numerology Report**: Mulank/Bhagyank/Naamank cards · Lo Shu Grid · Current Numerology Dasha · full 81-year Mahadasha timeline. PDF button → `Vedic-Numerology-Report.pdf`.
+- Chaldean, Mobile Numerology, and Tarot remain as separate standalone sections below.
+
+## Feb 20, 2026 — Vedic Numerology Report PDF layout (P0 follow-up)
+- User request: Format Numerology Report PDF as — P1 Ganesha + Mulank/Bhagyank/Naamank + Lo Shu Grid · P2 81-year Mahadasha timeline (no row-cut mid-content) · P3 Current Numerology Dasha state.
+- Changes:
+  - Added `<GaneshaBanner />` at the top of the numerology printable-area (parallel to Astrology Report).
+  - Reordered sections: cover (overview cards + Lo Shu grid packed on P1) → 81-year timeline (`data-pdf-page="numerology-mahadasha"` starts fresh P2) → Current Dasha state (`data-pdf-page="numerology-dasha-current"` starts fresh P3).
+  - Removed `no-print` from the 81-year timeline so it now appears in the PDF.
+- New pagination primitive in `/app/frontend/src/lib/exportPdf.js`: `[data-pdf-soft-break]` attribute — soft page-break hints. Unlike hard `[data-pdf-page]` markers, soft-breaks are only used when the natural slice boundary would otherwise fall mid-content. When defaultEnd would cut inside content and a soft-break is nearby, the slicer cuts at the last soft-break instead — keeping entire rows intact across pages.
+- Applied `data-pdf-soft-break="md"` to each outer Mahadasha row wrapper in `/app/frontend/src/components/NumDashaTimeline.jsx`. This gives the pagination logic per-row break candidates so the 81-year timeline never splits a Mahadasha row across two pages.
+- Verified end-to-end: PDF regenerated (3 pages, 1.09 MB, down from 22 pages/2.34 MB in the failed intermediate). AI structural analysis confirms P1 has Ganesha + all three number cards + Lo Shu; P2 holds the full 81-year Mahadasha timeline with drilled Rahu/Ketu levels; P3 has the current-state Dasha table intact.
+
 
 
 

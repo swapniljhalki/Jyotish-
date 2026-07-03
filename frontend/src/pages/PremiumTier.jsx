@@ -576,9 +576,12 @@ export default function PremiumTier() {
           <div ref={numerologyRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="premium-numerology-report-result">
             <img src={snwLogo} alt="" className="print-watermark" />
 
-            {/* 1) Mulank / Bhagyank / Naamank overview cards */}
+            {/* Decorative invocation banner — opens Page 1 (parallel to Vedic Astrology Report) */}
+            <GaneshaBanner />
+
+            {/* PAGE 1 — Mulank / Bhagyank / Naamank overview cards */}
             {result.chart?.numerology && (
-              <section data-pdf-page="numerology-overview" data-testid="premium-numerology-overview">
+              <section data-pdf-page="numerology-cover" data-testid="premium-numerology-overview">
                 <div className="ornate-divider mb-5">
                   <span className="font-accent text-xs text-[#B8860B]">Mulank · Bhagyank · Naamank</span>
                 </div>
@@ -643,9 +646,9 @@ export default function PremiumTier() {
               </section>
             )}
 
-            {/* 2) Vedic Numerology Chart — Lo Shu Grid derived from DOB */}
+            {/* PAGE 1 (cont.) — Vedic Numerology Chart · Lo Shu Grid packs with the cards above */}
             {result.chart?.numerology?.lo_shu && (
-              <section data-pdf-page="numerology-chart" className="mt-10" data-testid="premium-lo-shu-grid">
+              <section className="mt-10" data-testid="premium-lo-shu-grid">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#B8860B]">
                     Vedic Numerology Chart · Lo Shu Grid (Jeevan Ank Yantra)
@@ -803,9 +806,28 @@ export default function PremiumTier() {
               </section>
             )}
 
-            {/* 3) Current Numerology Dasha details */}
+            {/* PAGE 2 — Vedic Numerology Mahadasha · 81-year full timeline
+                Uses `data-pdf-page` so it starts on a fresh page; children stay
+                intact — the pagination logic will break between whole Mahadasha
+                rows (each row carries its own `data-pdf-page` marker set from
+                inside NumDashaTimeline) rather than mid-row. */}
             {result.chart?.numerology_dasha && (
-              <section data-pdf-page="numerology-dasha" className="mt-10" data-testid="premium-numerology-dasha-current">
+              <section data-pdf-page="numerology-mahadasha" className="mt-10" data-testid="premium-numerology-mahadasha">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#B8860B]">
+                    Vedic Numerology Mahadasha · Full 81-year Timeline
+                  </span>
+                </div>
+                <p className="font-body text-sm mb-5" style={{ color: "#2A1A05" }}>
+                  Your complete 81-year ank-mahadasha cycle. Each row is a major life period; drill into any Mahadasha, Antardasha, Pratyantardasha, or Sookshma-dasha level to explore periods across your life.
+                </p>
+                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
+              </section>
+            )}
+
+            {/* PAGE 3+ — Current Numerology Dasha State */}
+            {result.chart?.numerology_dasha && (
+              <section data-pdf-page="numerology-dasha-current" className="mt-10" data-testid="premium-numerology-dasha-current">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#B8860B]">
                     Numerology Dasha · Current State (Mulank {result.chart.mulank})
@@ -816,21 +838,6 @@ export default function PremiumTier() {
                   across all four nested levels of the 81-year ank-mahadasha cycle.
                 </p>
                 <NumDashaCurrentTable dasha={result.chart.numerology_dasha} />
-              </section>
-            )}
-
-            {/* 4) Vedic Numerology Mahadasha — full 81-year interactive timeline */}
-            {result.chart?.numerology_dasha && (
-              <section className="no-print mt-10" data-testid="premium-numerology-mahadasha">
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#B8860B]">
-                    Vedic Numerology Mahadasha · Full 81-year Timeline
-                  </span>
-                </div>
-                <p className="font-body text-sm mb-5" style={{ color: "#2A1A05" }}>
-                  Drill into any Mahadasha, Antardasha, Pratyantardasha, or Sookshma-dasha level to explore periods across your life.
-                </p>
-                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
               </section>
             )}
           </div>
