@@ -174,7 +174,7 @@ export default function SchedulerAdmin() {
                     <td className="py-2 pr-3 text-zinc-200 whitespace-nowrap">{new Date(b.slot_start_utc).toLocaleString()}</td>
                     <td className="pr-3 text-zinc-200">{b.customer_name} <span className="text-zinc-800 text-xs">({b.user_email})</span></td>
                     <td className="pr-3"><span className={b.status === "paid" ? "text-green-400" : "text-orange-300"}>{b.status}</span></td>
-                    <td className="pr-3"><a href={b.meet_url || "#"} target="_blank" rel="noopener" className="text-[#FF9933] hover:text-[#FFD700] underline-offset-4 hover:underline">{b.meet_url ? "open" : "—"}</a></td>
+                    <td className="pr-3"><a href={b.meet_url || "#"} target="_blank" rel="noopener noreferrer" className="text-[#FF9933] hover:text-[#FFD700] underline-offset-4 hover:underline">{b.meet_url ? "open" : "—"}</a></td>
                     <td className="pr-3 text-zinc-700 text-xs">{b.customer_phone || "—"}</td>
                   </tr>
                 ))}

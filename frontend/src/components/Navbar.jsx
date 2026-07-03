@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -46,7 +46,6 @@ function KnowBasicsDropdown({ linkClass }) {
   }, [open]);
 
   // Close on route change
-  // eslint-disable-next-line
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
   return (
@@ -121,6 +120,13 @@ export default function Navbar() {
       isActive ? "text-[#FF8C00]" : "text-[#2A1A05]"
     }`;
 
+  // Memoise so filter+map don't re-run on every parent render / route change.
+  // (Cheap here, but this is a hot render path — every route change re-runs Navbar.)
+  const visibleNavItems = useMemo(
+    () => navItems.filter((item) => item.to !== "/about" && (!item.authOnly || user)),
+    [user]
+  );
+
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-[rgba(253,251,247,0.85)] border-b border-[rgba(92,58,9,0.08)]">
       <div className="sb-container h-16 flex items-center justify-between">
@@ -147,7 +153,7 @@ export default function Navbar() {
           <KnowBasicsDropdown linkClass={linkClass} />
 
           {/* Remaining flat items */}
-          {navItems.filter((item) => item.to !== "/about" && (!item.authOnly || user)).map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -245,7 +251,7 @@ export default function Navbar() {
             ))}
 
             {/* Remaining flat items */}
-            {navItems.filter((item) => item.to !== "/about" && (!item.authOnly || user)).map((item) => (
+            {visibleNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

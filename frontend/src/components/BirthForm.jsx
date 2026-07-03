@@ -11,8 +11,7 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
   // Latitude/longitude are captured when the user picks from the dropdown.
   // Kept locally for now — easy to forward to the backend later if we want
   // to compute charts without re-geocoding on the server.
-  // eslint-disable-next-line no-unused-vars
-  const [coords, setCoords] = useState(null);
+  const [, setCoords] = useState(null);
 
   const submit = (e) => {
     e.preventDefault();

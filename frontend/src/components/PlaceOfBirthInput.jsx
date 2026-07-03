@@ -28,8 +28,7 @@ export default function PlaceOfBirthInput({
   // Keep query in sync if parent overrides value (rare)
   useEffect(() => {
     if (value !== undefined && value !== query) setQuery(value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [value, query]);
 
   useEffect(() => {
     if (skipNextSearch.current) {

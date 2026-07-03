@@ -198,7 +198,7 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
               Your mobile number?
             </h3>
             <p className="font-body text-sm text-zinc-900 mb-5">
-              Razorpay needs your mobile for the payment receipt. We don't store it on our servers — only in your browser for next time.
+              Razorpay needs your mobile for the payment receipt. We don&apos;t store it on our servers — only in your browser for next time.
             </p>
             <div className="flex items-stretch gap-2 mb-1">
               <span className="px-3 py-2.5 rounded-md border border-zinc-300 bg-zinc-50 text-zinc-700 font-body text-sm flex items-center">

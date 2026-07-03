@@ -26,7 +26,7 @@ export default function PanchangSection() {
     <section className="relative cosmic-bg py-24 md:py-28 border-y border-[rgba(212,175,55,0.15)]" data-testid="panchang-section">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="text-center mb-14 fade-up">
-          <p className="font-accent text-xs text-[#B8860B] mb-3">Today's Sky</p>
+          <p className="font-accent text-xs text-[#B8860B] mb-3">Today&apos;s Sky</p>
           <h2 className="font-heading text-4xl md:text-5xl text-zinc-50">
             Panchang & <span className="text-gold-gradient italic">festivals.</span>
           </h2>

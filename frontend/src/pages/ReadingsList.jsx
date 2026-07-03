@@ -53,7 +53,7 @@ export default function ReadingsList() {
               My <span className="text-gold-gradient italic">readings.</span>
             </h1>
             <p className="mt-3 font-body text-zinc-700 max-w-xl">
-              Every kundali and reading you've cast, preserved in the archive.
+              Every kundali and reading you&apos;ve cast, preserved in the archive.
             </p>
           </div>
           <Link to="/basic">

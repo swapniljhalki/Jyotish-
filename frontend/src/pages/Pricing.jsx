@@ -15,12 +15,12 @@ export default function Pricing() {
   const params = new URLSearchParams(loc.search);
   const recommend = params.get("need");
   const [pending, setPending] = useState("");
-  const [payMode, setPayMode] = useState(null);
 
   useEffect(() => {
-    api.get("/payments/config").then((r) => setPayMode(r.data?.mode)).catch(() => {});
-    void payMode;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Fetch payment config eagerly so any downstream <UpgradeButton /> gets a
+    // warm HTTP cache. We don't need to store the value here.
+    api.get("/payments/config").catch(() => {});
+  }, []);
 
   const TIERS = [
     {

@@ -111,7 +111,6 @@ def test_sec003_cookies_secure_flag():
     set_cookies = r.headers.get("set-cookie", "")
     # requests concatenates multiple Set-Cookie; also inspect raw
     raw_headers = r.raw.headers.getlist("Set-Cookie") if hasattr(r.raw.headers, "getlist") else [set_cookies]
-    combined = "\n".join(raw_headers)
     access_line = next((h for h in raw_headers if h.lower().startswith("access_token=")), None)
     refresh_line = next((h for h in raw_headers if h.lower().startswith("refresh_token=")), None)
     assert access_line, f"No access_token cookie. Headers: {raw_headers}"

@@ -6,6 +6,7 @@ Each drawn card is either upright or reversed with equal probability.
 from __future__ import annotations
 
 import random
+import secrets
 from typing import Literal
 
 CardOrientation = Literal["upright", "reversed"]
@@ -50,14 +51,23 @@ def draw_three_card_spread(seed: int | None = None) -> list[dict]:
     Returns a list of 3 dicts in fixed positional order (past → present → future),
     each containing the card details, orientation, its meaning in that orientation
     and the position's meaning.
+
+    In production (seed=None) we use `secrets` for CSPRNG-quality randomness so
+    each user's reading is unpredictable and cannot be replayed. When a seed is
+    provided (tests / demos) we fall back to `random.Random(seed)` for reproducibility.
     """
-    rng = random.Random(seed)
-    drawn = rng.sample(MAJOR_ARCANA, 3)
+    if seed is None:
+        drawn = list(secrets.SystemRandom().sample(MAJOR_ARCANA, 3))
+        pick_orientation = lambda: secrets.choice(("upright", "reversed"))  # noqa: E731
+    else:
+        rng = random.Random(seed)
+        drawn = rng.sample(MAJOR_ARCANA, 3)
+        pick_orientation = lambda: rng.choice(("upright", "reversed"))  # noqa: E731
     positions = ("past", "present", "future")
 
     spread = []
     for pos, card in zip(positions, drawn):
-        orientation: CardOrientation = rng.choice(("upright", "reversed"))
+        orientation: CardOrientation = pick_orientation()
         spread.append({
             "position": pos,
             "position_meaning": POSITION_MEANINGS[pos],

@@ -19,7 +19,7 @@ def admin_session():
     session.headers.update({"Content-Type": "application/json"})
     response = session.post(f"{BASE_URL}/api/auth/login", json={
         "email": "admin@vedic.com",
-        "password": "admin123"
+        "password": os.environ.get("ADMIN_PASSWORD", "test1234")
     })
     assert response.status_code == 200, f"Admin login failed: {response.text}"
     return session
@@ -114,7 +114,7 @@ class TestPremiumChartEngine:
             f"Ketu should be 180° from Rahu. Rahu={rahu_lon}, Ketu={ketu_lon}, expected={expected_ketu}"
         
         # Ketu should always be retrograde
-        assert planets["Ke"]["retrograde"] == True, "Ketu should always be retrograde"
+        assert planets["Ke"]["retrograde"] is True, "Ketu should always be retrograde"
         
         print(f"✓ Ketu at {ketu_lon}° is 180° from Rahu at {rahu_lon}°")
 
@@ -148,7 +148,7 @@ class TestNakshatraPada:
             assert 1 <= planet["nakshatra_pada"] <= 4, \
                 f"{planet['name']} pada {planet['nakshatra_pada']} out of range"
         
-        print(f"✓ All planets have valid nakshatra and pada")
+        print("✓ All planets have valid nakshatra and pada")
     
     def test_ascendant_has_nakshatra_and_pada(self, premium_user_session):
         """Ascendant should have nakshatra and pada"""
@@ -198,7 +198,7 @@ class TestPlanetDetails:
             assert 1 <= planet["house"] <= 12, f"Invalid house: {planet['house']}"
             assert isinstance(planet["retrograde"], bool)
         
-        print(f"✓ All planets have required fields with valid values")
+        print("✓ All planets have required fields with valid values")
 
 
 # ============ HOUSES ============
@@ -225,7 +225,7 @@ class TestHouses:
             assert key in houses, f"Missing house key '{key}'"
             assert isinstance(houses[key], list), f"House {key} should be a list"
         
-        print(f"✓ Houses dict has string keys '1' through '12'")
+        print("✓ Houses dict has string keys '1' through '12'")
     
     def test_house_signs_has_string_keys(self, premium_user_session):
         """house_signs dict should have string keys '1' through '12'"""
@@ -247,7 +247,7 @@ class TestHouses:
             # Value should be rashi index 0-11
             assert 0 <= house_signs[key] < 12, f"Invalid rashi index for house {key}"
         
-        print(f"✓ house_signs dict has string keys '1' through '12'")
+        print("✓ house_signs dict has string keys '1' through '12'")
 
 
 # ============ GEOCODING ============
@@ -319,7 +319,7 @@ class TestGeocoding:
             
             print(f"  ✓ {city}: {chart['latitude']}°, {chart['longitude']}°")
         
-        print(f"✓ All cities geocoded correctly")
+        print("✓ All cities geocoded correctly")
 
 
 # ============ DETERMINISM ============
@@ -356,7 +356,7 @@ class TestDeterminism:
             assert p1["rashi"] == p2["rashi"], f"{p1['name']} rashi differs"
             assert p1["nakshatra"] == p2["nakshatra"], f"{p1['name']} nakshatra differs"
         
-        print(f"✓ Chart computation is deterministic")
+        print("✓ Chart computation is deterministic")
 
 
 # ============ LAHIRI AYANAMSA ACCURACY ============
@@ -450,7 +450,7 @@ class TestGeocodeCache:
         # Note: We can't directly query MongoDB from tests, but we can verify
         # the second request is faster (cache hit) or check via admin endpoint if available
         # For now, we just verify the request succeeds
-        print(f"✓ Geocoding request succeeded (cache should be populated)")
+        print("✓ Geocoding request succeeded (cache should be populated)")
 
 
 if __name__ == "__main__":

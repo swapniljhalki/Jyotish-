@@ -1,0 +1,62 @@
+{
+  "summary": "Regression pass after code-review cleanup (secrets.SystemRandom in tarot, payments_webhook refactor, JSX apostrophe escaping, Navbar useMemo, rel=noreferrer). All 9 backend pytest tests PASSED. Frontend spot-checks on Home, About, and Book pages PASSED — navbar links render correctly and no HTML entity artifacts visible.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_code_review_regression.py",
+    "/app/test_reports/pytest/iteration_10.xml"
+  ],
+  "verification_results": {
+    "Auth": {
+      "admin login + Secure cookies + httpOnly": "PASS",
+      "/me role=admin, tier=premium": "PASS",
+      "premium user (testuser) login + tier=premium": "PASS"
+    },
+    "Tarot (secrets.SystemRandom)": {
+      "3-card spread with unique past/present/future": "PASS",
+      "RNG variety across 6 draws (SystemRandom working)": "PASS - multiple distinct card sets observed",
+      "Free user (demo) blocked with 403": "PASS"
+    },
+    "Payments webhook (refactor)": {
+      "invalid signature returns 400": "PASS - signature check preserved after split into _webhook_handle_captured/_failed"
+    },
+    "Panchang": {
+      "GET /api/panchang/today 200 with JSON body": "PASS"
+    },
+    "Astrology tiers (regression)": {
+      "POST /api/astrology/basic/start returns chart+id (premium user)": "PASS",
+      "POST /api/astrology/premium/start returns chart+id (premium user)": "PASS",
+      "Note": "Used /start async endpoints instead of sync /basic and /premium — the sync variants call Claude and take >30s (LLM latency), causing spurious ReadTimeouts in a short-timeout test harness. The /start variant exercises the exact same auth/tier/chart pipeline; the LLM step is unrelated to the code-review changes."
+    },
+    "Frontend": {
+      "Navbar renders on /": "PASS - links: About, Numerology, Basic, Premium, Pricing, Testimonials, Login, Begin Journey",
+      "Navbar renders on /about": "PASS - identical link set (visibleNavItems useMemo did not break rendering)",
+      "Navbar renders on /book (authenticated)": "PASS - authenticated-user link set incl. Readings, Pricing, Profile, Logout",
+      "About page apostrophes": "PASS - no &apos; / &#39; artifacts in rendered body",
+      "BookConsultation apostrophes": "PASS - 'can\u2019t quite answer' and 'you\u2019ll receive' visible in DOM as real apostrophes; 0 literal &apos; in page HTML"
+    }
+  },
+  "action_items": [],
+  "critical_code_review_comments": [
+    "tarot.py:60 correctly uses secrets.SystemRandom().sample when seed is None and random.Random(seed) when seeded — clean production/test split.",
+    "server.py payments_webhook refactor into _webhook_handle_captured + _webhook_handle_failed preserves signature verification (invalid sig -> 400 confirmed).",
+    "Navbar visibleNavItems useMemo optimisation did not regress link rendering on any route tested.",
+    "No HTML entity leakage observed after &apos; escaping — React renders JSX entities correctly."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_code_review_regression.py (new regression test file)"
+  ],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100% (spot-check on Navbar + apostrophe rendering)"},
+  "test_credentials": "admin@vedic.com/test1234, testuser@vedic.com/test1234, demo@vedic.com/demo1234 — all working.",
+  "seed_data_creation": "None — tests are read-only or exercise idempotent endpoints (login, tarot draw, webhook, panchang, /start returns chart without cleanup needs).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 10 regression suite at /app/backend/tests/test_code_review_regression.py — reruns in ~90s. If you need to test full sync /api/astrology/basic and /api/astrology/premium (which call Claude), use a >90s HTTP timeout; alternately use /start + poll /status/{id}. All security fixes from iteration 9 remain in place. Tarot uses secrets.SystemRandom (CSPRNG) in production and random.Random(seed) for reproducible tests."
+}

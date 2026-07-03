@@ -28,7 +28,7 @@ def admin_session():
     session.headers.update({"Content-Type": "application/json"})
     response = session.post(f"{BASE_URL}/api/auth/login", json={
         "email": "admin@vedic.com",
-        "password": "admin123"
+        "password": os.environ.get("ADMIN_PASSWORD", "test1234")
     })
     assert response.status_code == 200, f"Admin login failed: {response.text}"
     return session
@@ -53,7 +53,7 @@ class TestRegistrationVerificationEmail:
         })
         assert response.status_code == 200
         data = response.json()
-        assert data["email_verified"] == False, "New user should have email_verified=false"
+        assert not data["email_verified"], "New user should have email_verified=false"
         
         # Check admin outbox for verification email
         outbox_response = admin_session.get(f"{BASE_URL}/api/admin/emails")
@@ -108,7 +108,7 @@ class TestBruteForceLockout:
         })
         assert response.status_code == 429, f"6th attempt should return 429, got {response.status_code}"
         assert "Too many failed attempts" in response.json().get("detail", "")
-        print(f"✓ Lockout triggered after 5 failed attempts (429)")
+        print("✓ Lockout triggered after 5 failed attempts (429)")
 
 
 # ============ REFRESH TOKEN ============
@@ -136,14 +136,14 @@ class TestRefreshToken:
         assert refresh_response.status_code == 200
         data = refresh_response.json()
         assert "access_token" in data, "Refresh should return new access_token"
-        print(f"✓ Refresh token issued new access_token")
+        print("✓ Refresh token issued new access_token")
     
     def test_refresh_without_cookie_returns_401(self):
         """POST /api/auth/refresh without refresh_token returns 401"""
         fresh_session = requests.Session()
         response = fresh_session.post(f"{BASE_URL}/api/auth/refresh")
         assert response.status_code == 401
-        print(f"✓ Refresh without cookie returns 401")
+        print("✓ Refresh without cookie returns 401")
 
 
 # ============ FORGOT PASSWORD / RESET PASSWORD ============
@@ -158,8 +158,8 @@ class TestPasswordReset:
             "email": "nonexistent@vedic.com"
         })
         assert response.status_code == 200
-        assert response.json().get("ok") == True
-        print(f"✓ Forgot password returns 200 for non-existent email")
+        assert response.json().get("ok") is True
+        print("✓ Forgot password returns 200 for non-existent email")
     
     def test_forgot_password_sends_email_for_existing_user(self, admin_session):
         """POST /api/auth/forgot-password sends reset email when account exists"""
@@ -228,7 +228,7 @@ class TestPasswordReset:
             "new_password": new_password
         })
         assert reset_response.status_code == 200
-        assert reset_response.json().get("ok") == True
+        assert reset_response.json().get("ok") is True
         
         # Login with new password
         login_session = requests.Session()
@@ -238,7 +238,7 @@ class TestPasswordReset:
             "password": new_password
         })
         assert login_response.status_code == 200, f"Login with new password failed: {login_response.text}"
-        print(f"✓ Full password reset flow completed successfully")
+        print("✓ Full password reset flow completed successfully")
     
     def test_reset_password_invalid_token(self, api_client):
         """POST /api/auth/reset-password with invalid token returns 400"""
@@ -247,7 +247,7 @@ class TestPasswordReset:
             "new_password": "newpassword123"
         })
         assert response.status_code == 400
-        print(f"✓ Reset password with invalid token returns 400")
+        print("✓ Reset password with invalid token returns 400")
 
 
 # ============ EMAIL VERIFICATION ============
@@ -260,7 +260,7 @@ class TestEmailVerification:
         fresh_session = requests.Session()
         response = fresh_session.post(f"{BASE_URL}/api/auth/send-verification")
         assert response.status_code == 401
-        print(f"✓ Send verification requires auth (401)")
+        print("✓ Send verification requires auth (401)")
     
     def test_verify_email_full_flow(self, admin_session):
         """Full email verification flow: register -> get token from outbox -> verify"""
@@ -275,7 +275,7 @@ class TestEmailVerification:
             "name": "Email Verify Test"
         })
         assert reg_response.status_code == 200
-        assert reg_response.json()["email_verified"] == False
+        assert not reg_response.json()["email_verified"]
         
         # Get verification token from outbox
         outbox_response = admin_session.get(f"{BASE_URL}/api/admin/emails")
@@ -293,13 +293,13 @@ class TestEmailVerification:
             "token": verify_token
         })
         assert verify_response.status_code == 200
-        assert verify_response.json().get("ok") == True
+        assert verify_response.json().get("ok") is True
         
         # Check user is now verified via /me
         me_response = reg_session.get(f"{BASE_URL}/api/auth/me")
         assert me_response.status_code == 200
-        assert me_response.json()["email_verified"] == True
-        print(f"✓ Email verification flow completed - user now verified")
+        assert me_response.json()["email_verified"] is True
+        print("✓ Email verification flow completed - user now verified")
     
     def test_verify_email_invalid_token(self, api_client):
         """POST /api/auth/verify-email with invalid token returns 400"""
@@ -307,7 +307,7 @@ class TestEmailVerification:
             "token": "invalid_verification_token"
         })
         assert response.status_code == 400
-        print(f"✓ Verify email with invalid token returns 400")
+        print("✓ Verify email with invalid token returns 400")
 
 
 # ============ ADMIN ENDPOINTS ============
@@ -353,7 +353,7 @@ class TestAdminEndpoints:
         })
         assert patch_response.status_code == 200
         assert patch_response.json()["tier"] == "premium"
-        print(f"✓ Admin patched user tier to premium")
+        print("✓ Admin patched user tier to premium")
     
     def test_admin_delete_user(self, admin_session):
         """DELETE /api/admin/users/{id} removes user"""
@@ -373,13 +373,13 @@ class TestAdminEndpoints:
         # Admin deletes user
         delete_response = admin_session.delete(f"{BASE_URL}/api/admin/users/{user_id}")
         assert delete_response.status_code == 200
-        assert delete_response.json().get("ok") == True
+        assert delete_response.json().get("ok") is True
         
         # Verify user is gone
         users_response = admin_session.get(f"{BASE_URL}/api/admin/users")
         user_ids = [u["id"] for u in users_response.json()["users"]]
         assert user_id not in user_ids
-        print(f"✓ Admin deleted user successfully")
+        print("✓ Admin deleted user successfully")
     
     def test_admin_cannot_delete_self(self, admin_session):
         """DELETE /api/admin/users/{id} returns 400 when admin tries to delete self"""
@@ -391,7 +391,7 @@ class TestAdminEndpoints:
         delete_response = admin_session.delete(f"{BASE_URL}/api/admin/users/{admin_id}")
         assert delete_response.status_code == 400
         assert "Cannot delete your own" in delete_response.json().get("detail", "")
-        print(f"✓ Admin cannot delete own account (400)")
+        print("✓ Admin cannot delete own account (400)")
     
     def test_admin_list_emails(self, admin_session):
         """GET /api/admin/emails returns email outbox"""
@@ -436,7 +436,7 @@ class TestAdminEndpoints:
         delete_response = user_session.delete(f"{BASE_URL}/api/admin/users/someid")
         assert delete_response.status_code == 403
         
-        print(f"✓ Non-admin gets 403 on all admin endpoints")
+        print("✓ Non-admin gets 403 on all admin endpoints")
 
 
 # ============ GOOGLE OAUTH SESSION ============
@@ -449,7 +449,7 @@ class TestGoogleOAuthSession:
         response = api_client.post(f"{BASE_URL}/api/auth/google/session")
         assert response.status_code == 400
         assert "Missing X-Session-ID" in response.json().get("detail", "")
-        print(f"✓ Google session without header returns 400")
+        print("✓ Google session without header returns 400")
     
     def test_google_session_invalid_header_returns_401(self, api_client):
         """POST /api/auth/google/session with invalid X-Session-ID returns 401"""
@@ -459,7 +459,7 @@ class TestGoogleOAuthSession:
         )
         assert response.status_code == 401
         assert "Invalid session" in response.json().get("detail", "")
-        print(f"✓ Google session with invalid header returns 401")
+        print("✓ Google session with invalid header returns 401")
 
 
 if __name__ == "__main__":

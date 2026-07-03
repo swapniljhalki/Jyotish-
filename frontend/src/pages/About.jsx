@@ -24,7 +24,7 @@ export default function About() {
             <div className="fade-up">
               <span className="sb-eyebrow" data-testid="about-eyebrow">About the astrologer</span>
               <h1 className="sb-h1" data-testid="about-heading">
-                Welcome — I'm{" "}
+                Welcome — I&apos;m{" "}
                 <span className="italic font-medium" style={{ color: "#5C3A09" }}>Satissh Jhalki.</span>
               </h1>
               <p className="sb-lead mt-8">
@@ -73,21 +73,21 @@ export default function About() {
               <h2 className="sb-h2">A lifetime studying the sacred sciences.</h2>
             </div>
             <p className="text-[18px] leading-[1.75] text-[#5C3A09]">
-              I have been guiding clients through life's important questions using the powerful insights
+              I have been guiding clients through life&apos;s important questions using the powerful insights
               of <strong className="font-semibold text-[#2A1A05]">Numerology, Astrology, and Tarot</strong>.
               These ancient systems offer a deeper understanding of personality, relationships, career
               opportunities, life purpose, and the challenges and opportunities that lie ahead.
             </p>
             <p className="text-[18px] leading-[1.75] text-[#5C3A09]">
-              I believe that spiritual guidance is not about predicting a fixed future — it's about
+              I believe that spiritual guidance is not about predicting a fixed future — it&apos;s about
               understanding the energies, patterns, and possibilities that can help you navigate life
               more effectively. My readings are designed to empower you with knowledge, self-awareness,
               and a clearer perspective on your journey.
             </p>
             <p className="text-[18px] leading-[1.75] text-[#5C3A09]">
               Thousands of people turn to Numerology, Astrology, and Tarot for guidance during times of
-              uncertainty, transformation, and personal growth. If you're looking for honest insights,
-              compassionate support, and a deeper understanding of your life's path, I would be honored
+              uncertainty, transformation, and personal growth. If you&apos;re looking for honest insights,
+              compassionate support, and a deeper understanding of your life&apos;s path, I would be honored
               to assist you.
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function About() {
               <span className="italic font-medium" style={{ color: "#5C3A09" }}>begins here.</span>
             </h2>
             <p className="sb-lead mx-auto mb-10">
-              Let's uncover the guidance the universe has in store for you.
+              Let&apos;s uncover the guidance the universe has in store for you.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link to="/pricing" data-testid="about-cta-pricing">

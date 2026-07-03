@@ -186,7 +186,8 @@ class ForgotPasswordIn(BaseModel):
 
 class ResetPasswordIn(BaseModel):
     token: str
-    new_password: str
+    # SEC hardening — same 8-char minimum as registration.
+    new_password: str = Field(min_length=8)
 
 
 class VerifyEmailIn(BaseModel):
@@ -601,6 +602,61 @@ async def payments_verify(body: PaymentVerifyIn, user: dict = Depends(get_curren
     return {**public_user(updated), "tier": payment["tier"], "payment_status": "success"}
 
 
+async def _webhook_handle_captured(entity: dict, payment: dict | None, order_id: str, payment_id: str | None) -> None:
+    """Mark payment paid + upgrade the user's tier. Idempotent across
+    concurrent /payments/verify + webhook races (both set status=paid)."""
+    notes = entity.get("notes", {}) or {}
+    tier = (payment or {}).get("tier") or notes.get("tier")
+    user_id = (payment or {}).get("user_id") or notes.get("user_id")
+
+    if tier and user_id and tier in RZP_PRICING:
+        await db.users.update_one({"id": user_id}, {"$set": {"tier": tier}})
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if payment:
+        await db.payments.update_one(
+            {"order_id": order_id},
+            {"$set": {
+                "status": "paid",
+                "payment_id": payment_id,
+                "paid_at": now_iso,
+                "via_webhook": True,
+            }},
+        )
+    else:
+        # No prior /create-order record (rare) — log it anyway for audit.
+        await db.payments.insert_one({
+            "id": str(uuid.uuid4()),
+            "order_id": order_id,
+            "payment_id": payment_id,
+            "user_id": user_id,
+            "tier": tier,
+            "amount_paise": entity.get("amount"),
+            "currency": entity.get("currency", "INR"),
+            "mode": "live",
+            "status": "paid",
+            "via_webhook": True,
+            "created_at": now_iso,
+            "paid_at": now_iso,
+        })
+
+
+async def _webhook_handle_failed(entity: dict, payment: dict | None, order_id: str, payment_id: str | None) -> None:
+    """Mark payment failed. If no order record exists we simply ignore — a
+    failed payment for an order we never issued isn't ours to worry about."""
+    if not payment:
+        return
+    await db.payments.update_one(
+        {"order_id": order_id},
+        {"$set": {
+            "status": "failed",
+            "payment_id": payment_id,
+            "failed_at": datetime.now(timezone.utc).isoformat(),
+            "failure_reason": entity.get("error_description", ""),
+        }},
+    )
+
+
 @api.post("/payments/webhook")
 async def payments_webhook(request: Request):
     """Razorpay webhook — backend-to-backend payment confirmation safety net.
@@ -629,7 +685,6 @@ async def payments_webhook(request: Request):
     entity = payload.get("payload", {}).get("payment", {}).get("entity", {}) or {}
     order_id = entity.get("order_id")
     payment_id = entity.get("id")
-    notes = entity.get("notes", {}) or {}
 
     if not order_id:
         return {"ok": True, "ignored": True}
@@ -637,51 +692,9 @@ async def payments_webhook(request: Request):
     payment = await db.payments.find_one({"order_id": order_id})
 
     if event == "payment.captured":
-        # Resolve user + tier — prefer DB record, fall back to order notes.
-        tier = (payment or {}).get("tier") or notes.get("tier")
-        user_id = (payment or {}).get("user_id") or notes.get("user_id")
-
-        if tier and user_id and tier in RZP_PRICING:
-            await db.users.update_one({"id": user_id}, {"$set": {"tier": tier}})
-
-        if payment:
-            await db.payments.update_one(
-                {"order_id": order_id},
-                {"$set": {
-                    "status": "paid",
-                    "payment_id": payment_id,
-                    "paid_at": datetime.now(timezone.utc).isoformat(),
-                    "via_webhook": True,
-                }},
-            )
-        else:
-            # No prior /create-order record (rare) — log it anyway for audit.
-            await db.payments.insert_one({
-                "id": str(uuid.uuid4()),
-                "order_id": order_id,
-                "payment_id": payment_id,
-                "user_id": user_id,
-                "tier": tier,
-                "amount_paise": entity.get("amount"),
-                "currency": entity.get("currency", "INR"),
-                "mode": "live",
-                "status": "paid",
-                "via_webhook": True,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "paid_at": datetime.now(timezone.utc).isoformat(),
-            })
-
+        await _webhook_handle_captured(entity, payment, order_id, payment_id)
     elif event == "payment.failed":
-        if payment:
-            await db.payments.update_one(
-                {"order_id": order_id},
-                {"$set": {
-                    "status": "failed",
-                    "payment_id": payment_id,
-                    "failed_at": datetime.now(timezone.utc).isoformat(),
-                    "failure_reason": entity.get("error_description", ""),
-                }},
-            )
+        await _webhook_handle_failed(entity, payment, order_id, payment_id)
 
     return {"ok": True, "event": event}
 

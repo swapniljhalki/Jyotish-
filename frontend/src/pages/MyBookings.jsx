@@ -52,10 +52,10 @@ export default function MyBookings() {
                     {b.duration_min} min · ₹{(b.amount_paise / 100).toLocaleString("en-IN")} ·{" "}
                     <span className={b.status === "paid" ? "text-green-400" : "text-orange-300"}>{b.status}</span>
                   </div>
-                  {b.notes && <div className="font-body text-xs text-zinc-700 mt-2 italic">"{b.notes.slice(0, 120)}"</div>}
+                  {b.notes && <div className="font-body text-xs text-zinc-700 mt-2 italic">&quot;{b.notes.slice(0, 120)}&quot;</div>}
                 </div>
                 {b.meet_url && b.status === "paid" && (
-                  <a href={b.meet_url} target="_blank" rel="noopener" className="btn-saffron inline-flex items-center gap-2" data-testid={`my-booking-join-${b.id}`}>
+                  <a href={b.meet_url} target="_blank" rel="noopener noreferrer" className="btn-saffron inline-flex items-center gap-2" data-testid={`my-booking-join-${b.id}`}>
                     <Video className="h-4 w-4" /> {t("scheduler.join")}
                   </a>
                 )}

@@ -81,8 +81,8 @@ export default function BookConsultation() {
               <span className="italic font-medium" style={{ color: "#5C3A09" }}>Satissh.</span>
             </h1>
             <p className="sb-lead mt-6">
-              A private one-on-one session — for the questions a written reading can't quite answer.
-              Pick a time below; you'll receive a confirmation and a video-call link in your inbox.
+              A private one-on-one session — for the questions a written reading can&apos;t quite answer.
+              Pick a time below; you&apos;ll receive a confirmation and a video-call link in your inbox.
             </p>
             {scheduled && (
               <div
@@ -147,7 +147,7 @@ export default function BookConsultation() {
               </h3>
               <p className="text-[15px] text-[#FDFBF7]/80 leading-relaxed mb-8 max-w-md mx-auto">
                 Unlock the Premium (Jyotishi) tier to schedule a private one-on-one consultation with Satissh.
-                You'll also get the full Kundali reading, Numerology Dasha timeline, and all written insights.
+                You&apos;ll also get the full Kundali reading, Numerology Dasha timeline, and all written insights.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <UpgradeButton tier="premium" data-testid="book-upgrade-btn" />
@@ -161,7 +161,7 @@ export default function BookConsultation() {
               </div>
               {user?.tier === "basic" && (
                 <p className="text-[12px] text-[#FDFBF7]/60 mt-6">
-                  You're currently on the Sadhaka (Basic) tier — upgrade unlocks 1:1 consultations.
+                  You&apos;re currently on the Sadhaka (Basic) tier — upgrade unlocks 1:1 consultations.
                 </p>
               )}
             </div>

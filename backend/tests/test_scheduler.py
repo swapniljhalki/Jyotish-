@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://kundali-chart-1.preview.emergentagent.com").rstrip("/")
 API = f"{BASE}/api"
 
-ADMIN = {"email": "admin@vedic.com", "password": "admin123"}
+ADMIN = {"email": "admin@vedic.com", "password": os.environ.get("ADMIN_PASSWORD", "test1234")}
 PREMIUM = {"email": "testuser@vedic.com", "password": "test1234"}
 FREE = {"email": "demo@vedic.com", "password": "demo1234"}
 

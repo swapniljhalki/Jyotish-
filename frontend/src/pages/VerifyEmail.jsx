@@ -22,8 +22,7 @@ export default function VerifyEmail() {
         setStatus("error");
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, refresh]);
 
   return (
     <div className="min-h-[calc(100vh-64px)] cosmic-bg flex items-center justify-center p-8">

@@ -19,7 +19,7 @@ def admin_session():
     session.headers.update({"Content-Type": "application/json"})
     response = session.post(f"{BASE_URL}/api/auth/login", json={
         "email": "admin@vedic.com",
-        "password": "admin123"
+        "password": "test1234"
     })
     assert response.status_code == 200, f"Admin login failed: {response.text}"
     return session
@@ -232,7 +232,7 @@ class TestShareToggle:
         assert response.status_code == 200
         data = response.json()
         
-        assert data["is_shared"] == True
+        assert data["is_shared"] is True
         assert "share_token" in data
         assert len(data["share_token"]) > 10  # Token should be substantial
         print(f"✓ Share enabled, token: {data['share_token'][:10]}...")
@@ -262,7 +262,7 @@ class TestShareToggle:
         assert response.status_code == 200
         data = response.json()
         
-        assert data["is_shared"] == False
+        assert data["is_shared"] is False
         # Token should NOT be returned when disabling
         assert "share_token" not in data or data.get("share_token") is None
         print("✓ Share disabled, is_shared=false")
@@ -477,9 +477,9 @@ class TestNewReadingCreation:
             assert "moon_sign" in stored["summary"]
         
         # Verify is_shared defaults to false
-        assert stored.get("is_shared") == False, "New reading should have is_shared=false"
+        assert stored.get("is_shared") is False, "New reading should have is_shared=false"
         
-        print(f"✓ Basic reading created with summary and is_shared=false")
+        print("✓ Basic reading created with summary and is_shared=false")
         
         # Cleanup - delete the reading
         fresh_basic_user_session.delete(f"{BASE_URL}/api/readings/{reading_id}")
@@ -511,7 +511,7 @@ class TestDeleteReadingFullFlow:
         # Delete it
         delete_response = fresh_basic_user_session.delete(f"{BASE_URL}/api/readings/{reading_id}")
         assert delete_response.status_code == 200
-        assert delete_response.json().get("ok") == True
+        assert delete_response.json().get("ok") is True
         
         # Verify it's gone from list
         list_response2 = fresh_basic_user_session.get(f"{BASE_URL}/api/readings")

@@ -235,10 +235,10 @@ class TestAdminUser:
     """Admin user tests"""
     
     def test_admin_login(self, api_client):
-        """Admin user admin@vedic.com / admin123 can login with tier=premium"""
+        """Admin user (email/password from env) can login with tier=premium"""
         response = api_client.post(f"{BASE_URL}/api/auth/login", json={
             "email": "admin@vedic.com",
-            "password": "admin123"
+            "password": os.environ.get("ADMIN_PASSWORD", "test1234")
         })
         assert response.status_code == 200, f"Admin login failed: {response.text}"
         data = response.json()
@@ -271,7 +271,7 @@ class TestSubscription:
         assert me_response.status_code == 200
         me_data = me_response.json()
         assert me_data["tier"] == "premium"
-        print(f"✓ Subscription upgrade to premium verified via /me")
+        print("✓ Subscription upgrade to premium verified via /me")
     
     def test_subscribe_without_auth(self):
         """POST /api/subscribe without auth returns 401"""
@@ -432,7 +432,7 @@ class TestInputValidation:
         # Login as admin (premium)
         api_client.post(f"{BASE_URL}/api/auth/login", json={
             "email": "admin@vedic.com",
-            "password": "admin123"
+            "password": os.environ.get("ADMIN_PASSWORD", "test1234")
         })
         
         response = api_client.post(f"{BASE_URL}/api/astrology/premium", json={
@@ -447,7 +447,7 @@ class TestInputValidation:
         """Invalid time format returns 422"""
         api_client.post(f"{BASE_URL}/api/auth/login", json={
             "email": "admin@vedic.com",
-            "password": "admin123"
+            "password": os.environ.get("ADMIN_PASSWORD", "test1234")
         })
         
         response = api_client.post(f"{BASE_URL}/api/astrology/premium", json={
