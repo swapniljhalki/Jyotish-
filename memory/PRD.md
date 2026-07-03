@@ -335,6 +335,16 @@ See `/app/memory/test_credentials.md`.
 - Fix: Relocated the stamp to the **bottom-right corner** at **28% width** (about half the previous footprint) with an additional 40% dimming (~0.024 effective alpha). Preserves the brand presence on every page without ever sitting behind reading content.
 - Verified: PDF regenerated; each page rendered as an image + visually inspected. Page 2 timeline, Page 3 current-state table, and Page 1 Lo Shu grid all now have zero overlap with the watermark. Astrology Report + Basic Tier PDF benefit from the same change.
 
+## Feb 20, 2026 — Vedic Numerology Report expanded to 5-page layout (P0)
+- User request: Format Numerology Report PDF as — P1 Ganesha + User Details + Mulank/Bhagyank/Naamank; P2 Numerology Chart + Current Dasha; P3 81-year Mahadasha timeline; P4 Chaldean Name Numerology; P5 Mobile Number Numerology.
+- Changes in `/app/frontend/src/pages/PremiumTier.jsx`:
+  - Added a compact user-details block ("Numerology Report For {name}", DATE/TIME/PLACE) at the top of Page 1 (parallel to the Astrology Report cover).
+  - Reordered pagination markers so Lo Shu Grid starts P2 and packs with Current Dasha State; Mahadasha timeline starts P3.
+  - **Moved** the Chaldean Name Numerology and Mobile Number Numerology sections from below-the-collapsibles into the numerology printable-area (inside the Vedic Numerology Report collapsible). Each is now wrapped in a `<section data-pdf-page={result ? "chaldean-numerology" : undefined}>` — the marker is only emitted when a result exists, so the exporter never creates a blank page for an un-submitted section.
+  - Marked the intro headers + form elements with `no-print` so the PDF captures only the result cards (letter grid, Naamank profile, mobile ank profile, digit composition) — not empty input textboxes.
+- Verified end-to-end with an automated flow that computes Chaldean + Mobile then downloads the PDF. Rendered each page as PNG + inspected. Exactly 5 pages, every element cleanly on its designated page with no overlap.
+
+
 
 
 

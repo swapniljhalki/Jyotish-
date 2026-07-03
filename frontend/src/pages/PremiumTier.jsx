@@ -579,9 +579,26 @@ export default function PremiumTier() {
             {/* Decorative invocation banner — opens Page 1 (parallel to Vedic Astrology Report) */}
             <GaneshaBanner />
 
-            {/* PAGE 1 — Mulank / Bhagyank / Naamank overview cards */}
+            {/* PAGE 1 — Ganesha banner (above) + User Details + Mulank/Bhagyank/Naamank cards */}
             {result.chart?.numerology && (
               <section data-pdf-page="numerology-cover" data-testid="premium-numerology-overview">
+                {/* User Details block — mirrors the Astrology Report cover but compact */}
+                {inputs && (
+                  <div className="mb-8 text-center">
+                    <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#B8860B" }}>
+                      Numerology Report For
+                    </div>
+                    <div className="font-heading text-3xl md:text-4xl" style={{ color: "#14172B", fontWeight: 600 }}>
+                      {inputs.full_name || "Seeker"}
+                    </div>
+                    <div className="mt-3 flex flex-wrap justify-center gap-x-6 gap-y-1 text-[12px] font-body" style={{ color: "#2A1A05" }}>
+                      {inputs.date_of_birth && <span><span className="font-accent text-[9px] uppercase tracking-widest mr-1" style={{ color: "#5C3A09" }}>Date</span>{inputs.date_of_birth}</span>}
+                      {inputs.time_of_birth && <span><span className="font-accent text-[9px] uppercase tracking-widest mr-1" style={{ color: "#5C3A09" }}>Time</span>{inputs.time_of_birth}</span>}
+                      {inputs.place_of_birth && <span><span className="font-accent text-[9px] uppercase tracking-widest mr-1" style={{ color: "#5C3A09" }}>Place</span>{inputs.place_of_birth}</span>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="ornate-divider mb-5">
                   <span className="font-accent text-xs text-[#B8860B]">Mulank · Bhagyank · Naamank</span>
                 </div>
@@ -646,9 +663,9 @@ export default function PremiumTier() {
               </section>
             )}
 
-            {/* PAGE 1 (cont.) — Vedic Numerology Chart · Lo Shu Grid packs with the cards above */}
+            {/* PAGE 2 — Vedic Numerology Chart · Lo Shu Grid starts a fresh page */}
             {result.chart?.numerology?.lo_shu && (
-              <section className="mt-10" data-testid="premium-lo-shu-grid">
+              <section data-pdf-page="numerology-chart" className="mt-10" data-testid="premium-lo-shu-grid">
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs text-[#B8860B]">
                     Vedic Numerology Chart · Lo Shu Grid (Jeevan Ank Yantra)
@@ -806,11 +823,26 @@ export default function PremiumTier() {
               </section>
             )}
 
-            {/* PAGE 2 — Vedic Numerology Mahadasha · 81-year full timeline
+            {/* PAGE 2 (cont.) — Current Numerology Dasha State packs with Lo Shu Grid above */}
+            {result.chart?.numerology_dasha && (
+              <section className="mt-10" data-testid="premium-numerology-dasha-current">
+                <div className="ornate-divider mb-4">
+                  <span className="font-accent text-xs text-[#B8860B]">
+                    Numerology Dasha · Current State (Mulank {result.chart.mulank})
+                  </span>
+                </div>
+                <p className="font-body text-sm mb-5" style={{ color: "#2A1A05" }}>
+                  Driven by your Mulank ({result.chart.mulank}), this is your live position
+                  across all four nested levels of the 81-year ank-mahadasha cycle.
+                </p>
+                <NumDashaCurrentTable dasha={result.chart.numerology_dasha} />
+              </section>
+            )}
+            {/* PAGE 3 — Vedic Numerology Mahadasha · Full 81-year timeline
                 Uses `data-pdf-page` so it starts on a fresh page; children stay
                 intact — the pagination logic will break between whole Mahadasha
-                rows (each row carries its own `data-pdf-page` marker set from
-                inside NumDashaTimeline) rather than mid-row. */}
+                rows (each row carries `data-pdf-soft-break` markers from inside
+                NumDashaTimeline) rather than mid-row. */}
             {result.chart?.numerology_dasha && (
               <section data-pdf-page="numerology-mahadasha" className="mt-10" data-testid="premium-numerology-mahadasha">
                 <div className="ornate-divider mb-4">
@@ -824,36 +856,11 @@ export default function PremiumTier() {
                 <NumDashaTimeline dasha={result.chart.numerology_dasha} />
               </section>
             )}
-
-            {/* PAGE 3+ — Current Numerology Dasha State */}
-            {result.chart?.numerology_dasha && (
-              <section data-pdf-page="numerology-dasha-current" className="mt-10" data-testid="premium-numerology-dasha-current">
-                <div className="ornate-divider mb-4">
-                  <span className="font-accent text-xs text-[#B8860B]">
-                    Numerology Dasha · Current State (Mulank {result.chart.mulank})
-                  </span>
-                </div>
-                <p className="font-body text-sm mb-5" style={{ color: "#2A1A05" }}>
-                  Driven by your Mulank ({result.chart.mulank}), this is your live position
-                  across all four nested levels of the 81-year ank-mahadasha cycle.
-                </p>
-                <NumDashaCurrentTable dasha={result.chart.numerology_dasha} />
-              </section>
-            )}
-          </div>
-          </CollapsibleSection>
-          )}
-
-          {/* Legacy dasha block removed — its content is now inside Section 2 above.
-              (This branch is kept intentionally empty so that older references
-              to `dashaRef` in props don't crash the render tree.) */}
-          <div ref={dashaRef} className="hidden" aria-hidden="true" />
-          </div>
-        )}
-
-        {/* Chaldean Name Numerology — standalone section, always visible */}
+          {/* MOVED — belongs to the Vedic Numerology Report PDF (chaldean-numerology) */}
+            <section data-pdf-page={chaldeanResult ? "chaldean-numerology" : undefined} className="mt-10" data-testid="premium-chaldean-pdf-page">
+{/* Chaldean Name Numerology — standalone section, always visible */}
         <div className="mt-20 fade-up" data-testid="chaldean-section">
-          <div className="mb-8">
+          <div className="mb-8 no-print">
             <p className="font-accent text-xs text-[#B8860B] mb-3">{t("premium_numerology.name_section")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
               {t("premium_numerology.name_title_a")} <span className="text-gold-gradient italic">{t("premium_numerology.name_title_b")}</span>
@@ -865,7 +872,7 @@ export default function PremiumTier() {
 
           <form
             onSubmit={submitChaldean}
-            className="glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+            className="no-print glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
             data-testid="chaldean-form"
           >
             <div className="md:col-span-2">
@@ -1000,9 +1007,13 @@ export default function PremiumTier() {
           )}
         </div>
 
-        {/* Mobile Number Numerology */}
+            </section>
+
+            {/* MOVED — belongs to the Vedic Numerology Report PDF (mobile-numerology) */}
+            <section data-pdf-page={mobileResult ? "mobile-numerology" : undefined} className="mt-10" data-testid="premium-mobile-pdf-page">
+{/* Mobile Number Numerology */}
         <div className="mt-20 fade-up" data-testid="mobile-numerology-section">
-          <div className="mb-8">
+          <div className="mb-8 no-print">
             <p className="font-accent text-xs text-[#B8860B] mb-3">{t("premium_numerology.mobile_eyebrow")}</p>
             <h2 className="font-heading text-3xl md:text-4xl text-zinc-50">
               {t("premium_numerology.mobile_title_a2")} <span className="text-gold-gradient italic">{t("premium_numerology.mobile_title_b2")}</span>
@@ -1014,7 +1025,7 @@ export default function PremiumTier() {
 
           <form
             onSubmit={submitMobile}
-            className="glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+            className="no-print glass-card p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
             data-testid="mobile-form"
           >
             <div className="md:col-span-2">
@@ -1098,7 +1109,21 @@ export default function PremiumTier() {
           )}
         </div>
 
-        {/* Tarot Reading — 3-card Past · Present · Future spread + AI interpretation */}
+            </section>
+
+
+            </div>
+          </CollapsibleSection>
+          )}
+
+          {/* Legacy dasha block removed — its content is now inside Section 2 above.
+              (This branch is kept intentionally empty so that older references
+              to `dashaRef` in props don't crash the render tree.) */}
+          <div ref={dashaRef} className="hidden" aria-hidden="true" />
+          </div>
+        )}
+
+                        {/* Tarot Reading — 3-card Past · Present · Future spread + AI interpretation */}
         <div className="mt-20 fade-up" data-testid="tarot-section">
           <div className="mb-8">
             <p className="font-accent text-xs text-[#B8860B] mb-3">Rider-Waite · Major Arcana</p>
