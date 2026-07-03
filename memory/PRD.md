@@ -329,6 +329,13 @@ See `/app/memory/test_credentials.md`.
 - Swapped `/app/frontend/src/assets/ganesha.jpg` with the new 63KB artwork. Since `GaneshaBanner.jsx` imports from that single path, the new image now appears in every report that uses the banner — Basic Tier PDF, Premium Vedic Astrology Report, and Premium Vedic Numerology Report.
 - Verified via screenshot: the new banner (elegant black line-art on cream) renders correctly above the user details cover.
 
+## Feb 20, 2026 — PDF watermark relocated so it never overlaps text (P0)
+- User request: In the Vedic Numerology Report, ensure all text is clearly visible with no content overlap, including when the report spans multiple pages.
+- Root cause: The SNW brand mark stamped onto each page slice in `/app/frontend/src/lib/exportPdf.js` was drawn at 55% of page width, centered — which put it directly behind timeline rows and body copy on Page 2 of the Numerology Report.
+- Fix: Relocated the stamp to the **bottom-right corner** at **28% width** (about half the previous footprint) with an additional 40% dimming (~0.024 effective alpha). Preserves the brand presence on every page without ever sitting behind reading content.
+- Verified: PDF regenerated; each page rendered as an image + visually inspected. Page 2 timeline, Page 3 current-state table, and Page 1 Lo Shu grid all now have zero overlap with the watermark. Astrology Report + Basic Tier PDF benefit from the same change.
+
+
 
 
 

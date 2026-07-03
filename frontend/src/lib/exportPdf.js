@@ -259,12 +259,14 @@ export async function downloadNodeAsPdf(node, filename, options = {}) {
       ctx.fillRect(0, 0, slice.width, slice.height);
       ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
 
-      // Subtle SNW logo watermark behind content
+      // Subtle SNW brand mark — placed in the bottom-right corner and drawn
+      // at a smaller size + lower alpha so it never overlaps body text.
       if (logo) {
-        const w = slice.width * 0.55;
+        const w = slice.width * 0.28;              // was 0.55 (halved footprint)
         const h = (logo.height / logo.width) * w;
-        ctx.globalAlpha = watermarkAlpha;
-        ctx.drawImage(logo, (slice.width - w) / 2, (chunkPx - h) / 2, w, h);
+        const margin = Math.round(slice.width * 0.05);
+        ctx.globalAlpha = watermarkAlpha * 0.6;    // additional dim for corner position
+        ctx.drawImage(logo, slice.width - w - margin, chunkPx - h - margin, w, h);
         ctx.globalAlpha = 1;
       }
       slices.push(slice.toDataURL("image/jpeg", 0.88));
