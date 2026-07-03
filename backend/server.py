@@ -18,7 +18,7 @@ from datetime import datetime, timezone, timedelta, date as date_type, time as t
 from typing import Optional
 
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, Header
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -107,12 +107,14 @@ def create_refresh_token(user_id: str) -> str:
 
 
 def set_auth_cookies(response: Response, access: str, refresh: str):
+    # SEC-003: `secure=True` restricts cookies to HTTPS. Production runs behind
+    # an HTTPS ingress; local dev also runs behind the platform proxy over HTTPS.
     response.set_cookie(
-        key="access_token", value=access, httponly=True, secure=False,
+        key="access_token", value=access, httponly=True, secure=True,
         samesite="lax", max_age=ACCESS_TTL_MIN * 60, path="/",
     )
     response.set_cookie(
-        key="refresh_token", value=refresh, httponly=True, secure=False,
+        key="refresh_token", value=refresh, httponly=True, secure=True,
         samesite="lax", max_age=REFRESH_TTL_DAYS * 24 * 3600, path="/",
     )
 
@@ -143,7 +145,9 @@ admin_api = APIRouter(prefix="/api/admin")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
+    # SEC hardening: explicit allowlist from env (comma-separated); no wildcard
+    # in production. Whitespace tolerated around commas.
+    allow_origins=[o.strip() for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -153,7 +157,9 @@ app.add_middleware(
 # --- Models ---
 class RegisterIn(BaseModel):
     email: EmailStr
-    password: str
+    # SEC hardening: enforce a minimum password length at the model layer so
+    # registration cannot use short/weak secrets.
+    password: str = Field(min_length=8)
     name: str
 
 
@@ -357,7 +363,7 @@ async def forgot_password(body: ForgotPasswordIn, request: Request):
             "expires_at": expires, "used": False,
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
-        origin = request.headers.get("origin") or ""
+        origin = os.environ.get("FRONTEND_URL", "").rstrip("/")
         link = f"{origin}/reset-password?token={token}"
         await send_email(
             db, to=email, kind="password_reset",
@@ -379,8 +385,8 @@ async def reset_password(body: ResetPasswordIn):
         exp = exp.replace(tzinfo=timezone.utc)
     if exp < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Reset token expired")
-    if len(body.new_password) < 6:
-        raise HTTPException(status_code=422, detail="Password must be at least 6 characters")
+    if len(body.new_password) < 8:
+        raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
     await db.users.update_one(
         {"id": rec["user_id"]},
         {"$set": {"password_hash": hash_password(body.new_password)}},
@@ -401,7 +407,7 @@ async def _issue_verification(email: str, request: Request):
         "expires_at": expires, "used": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
-    origin = request.headers.get("origin") or ""
+    origin = os.environ.get("FRONTEND_URL", "").rstrip("/")
     link = f"{origin}/verify-email?token={token}"
     await send_email(
         db, to=email, kind="email_verification",
@@ -2026,15 +2032,27 @@ async def startup_event():
     except Exception as e:
         logger.warning(f"email_verification_tokens index: {e}")
 
-    # Primary admin
-    admin_email = os.environ.get("ADMIN_EMAIL", "admin@vedic.com")
-    admin_pw = os.environ.get("ADMIN_PASSWORD", "admin123")
+    # Primary admin — fail-fast at startup if password env is missing (no source-code fallback).
+    # SEC-001 fix: never bake credentials into source; require deployment to set them explicitly.
+    admin_email = os.environ.get("ADMIN_EMAIL")
+    admin_pw = os.environ.get("ADMIN_PASSWORD")
+    if not admin_email or not admin_pw:
+        raise RuntimeError(
+            "ADMIN_EMAIL and ADMIN_PASSWORD must be set in the environment. "
+            "No default is provided — this is a hardening requirement (SEC-001)."
+        )
     await _seed_admin(admin_email, admin_pw, "Admin")
 
-    # Separate readings-admin — dedicated reviewer account
-    readings_admin_email = os.environ.get("READINGS_ADMIN_EMAIL", "readings-admin@vedic.com")
-    readings_admin_pw = os.environ.get("READINGS_ADMIN_PASSWORD", "readings123")
-    await _seed_admin(readings_admin_email, readings_admin_pw, "Readings Admin")
+    # SEC-001 cleanup: remove any legacy `readings-admin@vedic.com` account that
+    # was previously seeded with a hard-coded default password. Its role &
+    # functionality are subsumed by the primary admin above.
+    try:
+        legacy = await db.users.find_one({"email": "readings-admin@vedic.com"})
+        if legacy:
+            await db.users.delete_one({"email": "readings-admin@vedic.com"})
+            logger.info("Removed legacy readings-admin@vedic.com account (SEC-001 cleanup).")
+    except Exception as e:
+        logger.warning(f"legacy readings-admin cleanup: {e}")
 
 
 async def _seed_admin(email: str, password: str, name: str):
@@ -2057,6 +2075,11 @@ async def _seed_admin(email: str, password: str, name: str):
         updates["email_verified"] = True
     if "auth_provider" not in existing:
         updates["auth_provider"] = "email"
+    # SEC-001: keep the stored password in sync with the env-configured secret so
+    # rotating `ADMIN_PASSWORD` in deployment actually rotates the admin login.
+    if not verify_password(password, existing["password_hash"]):
+        updates["password_hash"] = hash_password(password)
+        logger.info(f"Admin password rotated to match env for: {email}")
     if updates:
         await db.users.update_one({"id": existing["id"]}, {"$set": updates})
 
