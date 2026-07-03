@@ -25,7 +25,7 @@ function Period({ p, level, active, expanded, onToggle, children }) {
       <button
         onClick={onToggle}
         data-testid={`num-dasha-${level}-${p.number}-${p.start.slice(0, 10)}`}
-        className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-all text-left ${
+        className={`w-full flex items-center gap-3 px-3 py-1 rounded transition-all text-left ${
           isCurrent ? "bg-[rgba(255,153,51,0.10)]" : "hover:bg-[rgba(212,175,55,0.06)]"
         }`}
       >
@@ -133,7 +133,7 @@ export default function NumDashaTimeline({ dasha }) {
         })}
       </div>
 
-      <div className="space-y-1" data-testid="num-dasha-mahadashas">
+      <div className="space-y-0" data-testid="num-dasha-mahadashas">
         {dasha.mahadashas.map((md) => (
           <div key={md.start} data-pdf-soft-break="md">
           <Period

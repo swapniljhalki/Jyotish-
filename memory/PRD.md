@@ -354,7 +354,14 @@ See `/app/memory/test_credentials.md`.
 ## Feb 20, 2026 — 40px gap between Dasha summary banner and Mahadasha rows (P0)
 - User request: In `Vedic Numerology Report` PDF, add 40px vertical separation between the Mahadasha/Antardasha/Pratyantardasha/Daily-Dasha summary boxes and the Mahadasha rows table below.
 - Fix: `/app/frontend/src/components/NumDashaTimeline.jsx` — current-dasha banner grid `mb-2` → `mb-10` (40px in Tailwind).
-- Verified via PDF regeneration + Page 3 image inspection: clear 40px gap between the summary card row and the "Shukra · 15 May 1990" first Mahadasha row.
+
+## Feb 20, 2026 — Mahadasha table no longer breaks across pages (P0)
+- User bug: After adding the 40px gap, the last 3 Mahadasha rows (Rahu 2071 · Budha 2075 · Shukra 2080) spilled onto a new PDF page with heavy whitespace — table broken abruptly.
+- Fix in `/app/frontend/src/components/NumDashaTimeline.jsx`:
+  - Row button vertical padding `py-2` → `py-1` (halved per row).
+  - Root row list `space-y-1` → `space-y-0` (removed inter-row gap).
+- Net effect: full 81-year Mahadasha table (all 20+ rows including drilled Rahu antardashas + Ketu pratyantardashas) now fits on ONE PDF page. Verified via regenerated PDF Page 3 image — Shukra 1990 through Ketu 2093 all visible on the same page; no orphan rows spilling to a next page.
+
 
 
 
