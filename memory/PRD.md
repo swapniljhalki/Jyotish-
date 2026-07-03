@@ -344,6 +344,14 @@ See `/app/memory/test_credentials.md`.
   - Marked the intro headers + form elements with `no-print` so the PDF captures only the result cards (letter grid, Naamank profile, mobile ank profile, digit composition) — not empty input textboxes.
 - Verified end-to-end with an automated flow that computes Chaldean + Mobile then downloads the PDF. Rendered each page as PNG + inspected. Exactly 5 pages, every element cleanly on its designated page with no overlap.
 
+## Feb 20, 2026 — Numerology Report intro-paragraph spacing bug fix (P0)
+- User bug: Intro paragraph below "Mulank · Bhagyank · Naamank" was appearing to overlap with the 3-card grid below (same complaint for the Mahadasha section's intro overlapping the current-state banner).
+- Fix in `/app/frontend/src/pages/PremiumTier.jsx`:
+  - Both intro paragraphs bumped from `mb-6`/`mb-5` → `mb-10 leading-relaxed`.
+  - Content below (3-card grid on P1; `<NumDashaTimeline />` on P3) now wrapped in `<div className="pt-2">` for extra top-padding.
+- Verified by testing agent (`/app/test_reports/iteration_8.json`, success rate 100%): confirmed a ~40px vertical gap between the intro paragraph and following content, both in the live on-screen render and in Pages 1 & 3 of the downloaded PDF.
+
+
 
 
 
