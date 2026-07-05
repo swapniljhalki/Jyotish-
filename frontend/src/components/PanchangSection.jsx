@@ -35,9 +35,14 @@ export default function PanchangSection() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-1 gap-8">
-          {/* Combined Panchang + Festivals card — full width */}
-          <div className="premium-card p-8 fade-up" data-testid="panchang-card">
+        <div className="grid lg:grid-cols-1 gap-8 min-w-0">
+          {/* Combined Panchang + Festivals card — full width.
+              `min-w-0 overflow-hidden` is required because the festivals strip
+              below is a horizontal-scroll flex row of ~2160px worth of cards.
+              Without these, flex/grid children default to `min-width: auto`
+              and the inner scroll row would stretch this card (and the whole
+              page) to 2200+ px, breaking the mobile/tablet layout. */}
+          <div className="premium-card p-8 fade-up min-w-0 overflow-hidden" data-testid="panchang-card">
             {p ? (
               <>
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
