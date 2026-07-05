@@ -97,9 +97,10 @@ export default function NumDashaTimeline({ dasha }) {
   };
 
   return (
-    <div className="space-y-4" data-testid="num-dasha-timeline">
-      {/* Current dasha banner */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+    <div className="space-y-2" data-testid="num-dasha-timeline">
+      {/* Current dasha banner — mb-4 (was mb-10) so the 9 Mahadasha rows below
+          all fit on the same A4 page as the banner when exported to PDF. */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         {[
           { label: "Mahadasha", n: curMD, tint: "#FFD700" },
           { label: "Antardasha", n: curAD, tint: "#FF9933" },
@@ -170,6 +171,11 @@ export default function NumDashaTimeline({ dasha }) {
           </Period>
           </div>
         ))}
+        {/* Trailing soft-break marker just AFTER the last row — lets the PDF
+            exporter treat "end of timeline" as a valid cut point. Without this,
+            when content overflows by a hair, the exporter falls back to the
+            most-recent row-top marker and nudges the last row onto page 2. */}
+        <div data-pdf-soft-break="md-end" aria-hidden="true" style={{ height: 1 }} />
       </div>
     </div>
   );

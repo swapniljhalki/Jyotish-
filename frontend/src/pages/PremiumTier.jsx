@@ -550,11 +550,8 @@ export default function PremiumTier() {
               </section>
             )}
 
-            {/* PAGE 5 — Detailed Planetary Reading (AI advice) */}
+            {/* PAGE 5 — AI advice text (no heading — the reading opens with its own H1 from Claude) */}
             <section data-pdf-page="advice">
-              <div className="ornate-divider mb-5">
-                <span className="font-accent text-xs text-[#B8860B]">Detailed Planetary Reading</span>
-              </div>
               <AdviceMarkdown testId="premium-advice">{result.advice}</AdviceMarkdown>
               <div className="no-print mt-6 pt-4 border-t border-[rgba(212,175,55,0.15)] text-center">
                 <Link to={`/readings/${result.id}`} className="text-[#FF9933] text-sm font-body hover:text-[#FFD700]" data-testid="premium-open-in-archive">
@@ -845,20 +842,21 @@ export default function PremiumTier() {
                 Uses `data-pdf-page` so it starts on a fresh page; children stay
                 intact — the pagination logic will break between whole Mahadasha
                 rows (each row carries `data-pdf-soft-break` markers from inside
-                NumDashaTimeline) rather than mid-row. */}
+                NumDashaTimeline) rather than mid-row. Spacing is tightened
+                (mb-4 instead of mb-10) so all 9 Mahadasha rows + the current-
+                dasha banner comfortably fit on the same A4 page — otherwise
+                the last row would be nudged onto page 4 by ~30-40px. */}
             {result.chart?.numerology_dasha && (
               <section data-pdf-page="numerology-mahadasha" className="mt-10" data-testid="premium-numerology-mahadasha">
-                <div className="ornate-divider mb-4">
+                <div className="ornate-divider mb-3">
                   <span className="font-accent text-xs text-[#B8860B]">
                     Vedic Numerology Mahadasha · Full 81-year Timeline
                   </span>
                 </div>
-                <p className="font-body text-sm mb-10 leading-relaxed" style={{ color: "#2A1A05" }}>
+                <p className="font-body text-sm mb-4 leading-relaxed" style={{ color: "#2A1A05" }}>
                   Your complete 81-year ank-mahadasha cycle. Each row is a major life period; drill into any Mahadasha, Antardasha, Pratyantardasha, or Sookshma-dasha level to explore periods across your life.
                 </p>
-                <div className="pt-2">
-                  <NumDashaTimeline dasha={result.chart.numerology_dasha} />
-                </div>
+                <NumDashaTimeline dasha={result.chart.numerology_dasha} />
               </section>
             )}
           {/* MOVED — belongs to the Vedic Numerology Report PDF (chaldean-numerology) */}
