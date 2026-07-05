@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { Button } from "../components/ui/button";
 import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays, Download, Loader2 } from "lucide-react";
 import SchedulerAdmin from "../components/SchedulerAdmin";
-import { downloadNodeAsPdf } from "../lib/exportPdf";
+import { downloadNodeAsDocx } from "../lib/exportDocx";
 import KundaliChart from "../components/KundaliChart";
 import AdviceMarkdown from "../components/AdviceMarkdown";
 import snwLogo from "../assets/snw-logo.jpg";
@@ -20,7 +20,7 @@ export default function Admin() {
   const [emails, setEmails] = useState([]);
   const [readings, setReadings] = useState([]);
   const [readingDetail, setReadingDetail] = useState(null);
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingDoc, setDownloadingDoc] = useState(false);
   const printableRef = useRef(null);
   const [err, setErr] = useState("");
 
@@ -49,20 +49,20 @@ export default function Admin() {
     } catch (e) { toast.error(formatApiError(e.response?.data?.detail) || e.message); }
   };
 
-  const downloadReadingPdf = async () => {
-    if (!printableRef.current || downloadingPdf || !readingDetail) return;
-    setDownloadingPdf(true);
+  const downloadReadingDocx = async () => {
+    if (!printableRef.current || downloadingDoc || !readingDetail) return;
+    setDownloadingDoc(true);
     try {
       const userTag = (readingDetail.user_name || readingDetail.user_email || "user")
         .replace(/[^a-zA-Z0-9]+/g, "-").slice(0, 40);
-      const filename = `Reading-${readingDetail.tier}-${userTag}.pdf`;
-      await downloadNodeAsPdf(printableRef.current, filename);
-      toast.success("PDF downloaded");
+      const filename = `Reading-${readingDetail.tier}-${userTag}.docx`;
+      await downloadNodeAsDocx(printableRef.current, filename);
+      toast.success("Word document downloaded");
     } catch (e) {
-      console.error("Admin reading PDF export failed", e);
-      toast.error("Could not generate PDF. Please try again.");
+      console.error("Admin reading DOCX export failed", e);
+      toast.error("Could not generate Word doc. Please try again.");
     } finally {
-      setDownloadingPdf(false);
+      setDownloadingDoc(false);
     }
   };
 
@@ -285,15 +285,15 @@ export default function Admin() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={downloadReadingPdf}
-                  disabled={downloadingPdf}
+                  onClick={downloadReadingDocx}
+                  disabled={downloadingDoc}
                   className="text-[#FF9933] hover:text-[#FFD700] hover:bg-transparent disabled:opacity-50"
-                  data-testid="admin-reading-download-pdf"
+                  data-testid="admin-reading-download-word"
                 >
-                  {downloadingPdf
+                  {downloadingDoc
                     ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                     : <Download className="w-4 h-4 mr-1.5" />}
-                  {downloadingPdf ? "Preparing..." : "Download PDF"}
+                  {downloadingDoc ? "Preparing..." : "Download Word"}
                 </Button>
                 <Button
                   variant="ghost"

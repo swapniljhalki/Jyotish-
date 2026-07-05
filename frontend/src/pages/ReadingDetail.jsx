@@ -71,7 +71,7 @@ export default function ReadingDetail() {
     </div>
   );
 
-  const filename = `Reading-${r.tier}-${(r.summary?.ascendant || r.id).slice(0, 24)}.pdf`;
+  const filename = `Reading-${r.tier}-${(r.summary?.ascendant || r.id).slice(0, 24)}.docx`;
 
   return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
@@ -260,7 +260,7 @@ export default function ReadingDetail() {
           <div className="mt-10" data-testid="reading-dasha-block">
             <ResultActions
               targetRef={dashaRef}
-              filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}.pdf`}
+              filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}.docx`}
               testIdPrefix="reading-dasha"
             />
             {/* Printable: clean combined-table view */}

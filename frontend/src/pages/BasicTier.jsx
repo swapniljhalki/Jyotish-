@@ -223,7 +223,7 @@ export default function BasicTier() {
 
         {result && (
           <div className="mt-10 fade-up">
-          <ResultActions targetRef={resultRef} filename="Kundali-Basic-Reading.pdf" testIdPrefix="basic" />
+          <ResultActions targetRef={resultRef} filename="Kundali-Basic-Reading.docx" testIdPrefix="basic" />
 
           {/* On-screen result — also used as the PDF capture target */}
           <div ref={resultRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="basic-result">
