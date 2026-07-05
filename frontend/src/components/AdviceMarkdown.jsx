@@ -52,14 +52,24 @@ const COMPACT = {
 function buildComponents(v) {
   const H = (tag, s) => {
     const Tag = tag;
+    // `data-pdf-soft-break` tells the PDF exporter it's safe to cut a page
+    // just before this heading — so a long AI reading that spans 2-3 pages
+    // never gets sliced mid-paragraph. Instead, breaks land cleanly between
+    // ## sections (e.g. between "Career" and "Wealth").
     const Comp = (props) => (
-      <Tag style={{ ...HEADING_BASE, ...s }} {...props} />
+      <Tag data-pdf-soft-break="" style={{ ...HEADING_BASE, ...s }} {...props} />
     );
     Comp.displayName = `MdHeading_${tag}`;
     return Comp;
   };
 
-  const MdP = (props) => <p style={{ margin: v.pMargin, lineHeight: v.pLineHeight }} {...props} />;
+  // Paragraphs are also valid break points — cutting between two paragraphs
+  // reads much better than cutting mid-sentence. The exporter chooses the
+  // most-recent soft-break at/before its natural cut, so both headings and
+  // paragraphs give it a rich set of clean split candidates.
+  const MdP = (props) => (
+    <p data-pdf-soft-break="" style={{ margin: v.pMargin, lineHeight: v.pLineHeight }} {...props} />
+  );
   const MdStrong = (props) => <strong style={{ color: "#5C3A09", fontWeight: 700 }} {...props} />;
   const MdEm = (props) => <em style={{ color: "#5C3A09", fontStyle: "italic" }} {...props} />;
   const MdUl = ({ ordered: _o, ...rest }) => (

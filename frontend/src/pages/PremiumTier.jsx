@@ -519,6 +519,33 @@ export default function PremiumTier() {
                       })}
                     </TableBody>
                   </Table>
+
+                  {/* Planetary theme reference — companion context for the Vimshottari table */}
+                  <div className="ornate-divider mt-8 mb-4">
+                    <span className="font-accent text-xs text-[#B8860B]">Planetary Themes · What each period awakens</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { lord: "Sun",     sans: "Surya",   yrs: "6 yrs",  theme: "Authority, self-realization, leadership, health of father & spine." },
+                      { lord: "Moon",    sans: "Chandra", yrs: "10 yrs", theme: "Emotion, comfort, receptivity, mother, mind & memory." },
+                      { lord: "Mars",    sans: "Mangala", yrs: "7 yrs",  theme: "Courage, action, siblings, property disputes, surgery." },
+                      { lord: "Rahu",    sans: "Rāhu",    yrs: "18 yrs", theme: "Ambition, foreign lands, obsession, sudden rise or shock." },
+                      { lord: "Jupiter", sans: "Guru",    yrs: "16 yrs", theme: "Wisdom, dharma, children, teachers, prosperity, marriage." },
+                      { lord: "Saturn",  sans: "Shani",   yrs: "19 yrs", theme: "Discipline, karma, endurance, service, delayed rewards." },
+                      { lord: "Mercury", sans: "Budha",   yrs: "17 yrs", theme: "Intellect, communication, trade, education, adaptability." },
+                      { lord: "Ketu",    sans: "Ketu",    yrs: "7 yrs",  theme: "Detachment, moksha, past-life karma, isolation, insight." },
+                      { lord: "Venus",   sans: "Shukra",  yrs: "20 yrs", theme: "Love, luxury, artistry, spouse, comforts & sensory pleasure." },
+                    ].map((p) => (
+                      <div key={p.lord} className="rounded-md p-2.5" style={{ background: "rgba(139,94,26,0.05)", border: "1px solid rgba(139,94,26,0.12)" }}>
+                        <div className="flex items-baseline justify-between mb-1">
+                          <span className="font-heading text-[13px]" style={{ color: "#2A1A05", fontWeight: 600 }}>{p.lord}</span>
+                          <span className="font-accent text-[9px]" style={{ color: "#5C3A09" }}>{p.yrs}</span>
+                        </div>
+                        <div className="font-accent text-[8.5px] uppercase tracking-wider mb-1" style={{ color: "#5C3A09" }}>{p.sans}</div>
+                        <p className="text-[10px] leading-snug font-body" style={{ color: "#5C3A09" }}>{p.theme}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </section>
             )}
