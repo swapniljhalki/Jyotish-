@@ -18,6 +18,7 @@ from datetime import datetime, timezone, timedelta, date as date_type, time as t
 from typing import Optional
 
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, Header
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, EmailStr, Field
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -1674,6 +1675,103 @@ async def astrology_basic_status(reading_id: str, user: dict = Depends(get_curre
         "moon_sign": summary.get("moon_sign"),
         "nakshatra_report": chart.get("nakshatra_report"),
     }
+
+
+# Streaming variant — the ~500-word Vedic reading takes 30-90s to fully generate.
+# Instead of making the user stare at a spinner, we send the chart in the very
+# first SSE event (arrives in ~1-2s) and then stream Claude's tokens as they're
+# produced, so the "Detailed Reading" section fills in progressively — the user
+# starts reading within a second or two.
+@api.post("/astrology/basic/stream")
+async def astrology_basic_stream(body: AstroIn, user: dict = Depends(get_current_user)):
+    require_tier(user, "basic")
+    chart = await _build_chart(body)
+    system, user_msg, nakshatra_report, basic_chart, summary = _basic_prompts(body, chart)
+    reading_id = str(uuid.uuid4())
+    inputs_dump = body.model_dump()
+    await db.readings.insert_one({
+        "id": reading_id, "user_id": user["id"], "tier": "basic",
+        "inputs": inputs_dump, "chart": basic_chart, "advice": "",
+        "status": "processing",
+        "summary": summary,
+        "is_shared": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    async def event_stream():
+        # 1) chart event — lets the frontend render Ascendant / Moon sign /
+        #    Nakshatra / D1 / D9 charts immediately, in parallel with token streaming.
+        chart_payload = {
+            "id": reading_id,
+            "chart": basic_chart,
+            "ascendant": chart["ascendant_english"],
+            "ascendant_sanskrit": chart["ascendant"],
+            "sun_sign":  summary["sun_sign"],
+            "moon_sign": summary["moon_sign"],
+            "nakshatra_report": nakshatra_report,
+        }
+        yield f"event: chart\ndata: {json.dumps(chart_payload)}\n\n"
+
+        # 2) token deltas from Claude via litellm's async streaming
+        #    (emergentintegrations 0.1.0 doesn't expose stream_message yet, but
+        #    it uses litellm under the hood — we call the same proxy setup here
+        #    with stream=True to get token-by-token deltas.)
+        import litellm
+        from emergentintegrations.llm.chat import get_integration_proxy_url
+
+        emergent_key = os.environ["EMERGENT_LLM_KEY"]
+        params = {
+            "model": "claude-sonnet-4-5-20250929",
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user",   "content": user_msg},
+            ],
+            "api_key": emergent_key,
+            "api_base": get_integration_proxy_url() + "/llm",
+            "custom_llm_provider": "openai",
+            "stream": True,
+        }
+
+        collected = []
+        try:
+            response = await litellm.acompletion(**params)
+            async for chunk in response:
+                # litellm chunk shape: choices[0].delta.content (may be None)
+                delta = None
+                if chunk and getattr(chunk, "choices", None):
+                    ch0 = chunk.choices[0]
+                    if getattr(ch0, "delta", None) and getattr(ch0.delta, "content", None):
+                        delta = ch0.delta.content
+                if delta:
+                    collected.append(delta)
+                    yield f"event: delta\ndata: {json.dumps({'text': delta})}\n\n"
+        except Exception as e:
+            logging.exception("Basic streaming reading failed")
+            await db.readings.update_one(
+                {"id": reading_id}, {"$set": {"status": "failed", "error": str(e)}}
+            )
+            yield f"event: error\ndata: {json.dumps({'message': 'The reading could not be generated. Please try again.'})}\n\n"
+            return
+
+        # 3) persist the completed reading + done marker
+        advice_full = "".join(collected)
+        await db.readings.update_one(
+            {"id": reading_id},
+            {"$set": {"advice": advice_full, "status": "done"}},
+        )
+        yield f"event: done\ndata: {json.dumps({'id': reading_id})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            # Critical: disable proxy buffering so tokens arrive one at a time,
+            # not batched into one big chunk by nginx/Cloudflare.
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # --- Premium tier ---

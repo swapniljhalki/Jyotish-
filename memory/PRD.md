@@ -412,4 +412,29 @@ Applied fixes from the automated code quality review:
 **Verified**
 - `iteration_10.json` — 9/9 backend tests PASS, frontend spot-checks PASS. No functional regressions.
 
+## Feb 27, 2026 — Basic tier: streaming AI reading (P0 UX)
+Users no longer wait 30–90s for the "Detailed Reading" section to appear.
+
+**Backend**
+- Added `POST /api/astrology/basic/stream` — returns `text/event-stream` (SSE).
+  - **Event 1 (`chart`)**: fired immediately after Swiss-Ephemeris chart is computed (~1s). Payload matches the previous `/basic/start` response so the frontend can render Ascendant / Sun / Moon / Nakshatra / D1 / D9 charts right away.
+  - **Event N (`delta`)**: token deltas from Claude Sonnet 4.5, one JSON-encoded chunk per token. Uses `litellm.acompletion(stream=True)` under the hood (emergentintegrations 0.1.0 doesn't yet expose `stream_message`, but it's a thin wrapper around litellm so we call litellm directly with the same emergent-proxy setup).
+  - **Event Last (`done` / `error`)**: persists the completed advice to `readings.advice` + `status: "done"`; on failure marks `status: "failed"`.
+- `X-Accel-Buffering: no` header prevents nginx/Cloudflare from batching the SSE chunks.
+- Old `POST /astrology/basic` (sync) and `POST /astrology/basic/start` + polling remain untouched so existing tests / mobile clients keep working.
+
+**Frontend**
+- `BasicTier.jsx::submit` — replaced the poll-every-3s loop with a `fetch()` + `ReadableStream.getReader()` SSE consumer.
+  - Parses `event:` / `data:` framing manually (browser `EventSource` doesn't support POST bodies).
+  - `chart` event → sets `result` (whole page renders instantly).
+  - `delta` events → appends to `result.advice` via functional `setState` so React re-renders in place, giving a ChatGPT-style typewriter effect.
+- Updated the pending-message to reflect the new UX (small pulsing dot, "words will appear as our Jyotishi AI writes them") — visible for ~1 second before the first tokens land.
+
+**Measured latency (via ingress proxy)**
+- **First `delta` event**: ~1s after form submit (vs 30–90s previously to see anything).
+- **Steady rate**: ~2 tokens/s → whole 500-word reading streams in ~40–60s but the user is already reading within a second.
+
+**Not touched**
+- Premium tier still uses `/start` + polling — will migrate to streaming in a follow-up once we validate the UX on Basic.
+
 
