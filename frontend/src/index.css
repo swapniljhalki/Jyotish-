@@ -553,6 +553,12 @@ td, th { color: #1A1C29; }
   .snw-cover { padding: 22px 16px; }
   .snw-cover-name { font-size: 28px; }
   .snw-cover-meta { grid-template-columns: 1fr; gap: 10px; }
+  /* Ascendant / Sun Sign / Moon Sign trio — on mobile 3 fixed columns
+     force long signs like "Sagittarius" to break mid-word ("Sagit-tarius").
+     Stack them so each sign gets full width & reads cleanly. */
+  .snw-tri { grid-template-columns: 1fr; gap: 8px; }
+  .snw-tri-card { padding: 14px 12px; }
+  .snw-tri-value { font-size: 24px; }
 }
 
 /* Numerology Dasha current-state table — PDF-friendly combined view of
