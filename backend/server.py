@@ -1381,7 +1381,9 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
         f"Cover, with brief Markdown headings: (1) Core nature from Mulank, "
         f"(2) Life path & destiny from Bhagyank, (3) Public/professional vibration from "
         f"Naamank, (4) The current Mahadasha/Antardasha period and what it asks of you, "
-        f"(5) One practical remedial mantra/colour/day to harmonise these vibrations."
+        f"(5) One practical remedial mantra/colour/day to harmonise these vibrations. "
+        f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style "
+        f"farewell. End cleanly after the last section."
     )
     advice = await _ask_claude(system, user_msg, f"numerology-{user['id']}")
 
@@ -1594,7 +1596,8 @@ def _basic_prompts(body: "AstroIn", chart: dict):
         f"## Health & Vitality\n"
         f"## Spiritual Path\n"
         f"## Current Focus & Remedies\n\n"
-        f"End with a short closing blessing in Sanskrit with English translation."
+        f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style farewell. "
+        f"End cleanly after the last section."
     )
 
     summary = {
@@ -1817,7 +1820,8 @@ def _premium_prompts(body: "AstroIn", chart: dict):
         f"## Overall Personality\n## Career & Dharma\n## Wealth & Finances\n"
         f"## Relationships & Marriage\n## Health & Vitality\n## Spiritual Path\n"
         f"## Current Focus & Remedies\n\n"
-        f"End with a short closing blessing in Sanskrit with English translation."
+        f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style farewell. "
+        f"End cleanly after the last section."
     )
     return system, user_msg
 
