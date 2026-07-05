@@ -19,6 +19,45 @@ export default function GaneshaBanner() {
       }}
       data-testid="ganesha-banner"
     >
+      {/* Brand header — "Satish Numero World" */}
+      <div
+        style={{
+          width: "100%",
+          textAlign: "center",
+          borderTop: "1px solid #C9A227",
+          borderBottom: "1px solid #C9A227",
+          padding: "10px 0 12px 0",
+          marginBottom: "18px",
+          background: "linear-gradient(90deg, #FFF8E7 0%, #FFFCF2 50%, #FFF8E7 100%)",
+        }}
+        data-testid="brand-header"
+      >
+        <div
+          style={{
+            fontFamily: "'Cormorant Garamond', 'EB Garamond', Georgia, serif",
+            fontSize: "22pt",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            color: "#8B4513",
+            lineHeight: 1.1,
+          }}
+        >
+          Satish Numero World
+        </div>
+        <div
+          style={{
+            fontFamily: "'EB Garamond', Georgia, serif",
+            fontSize: "8pt",
+            letterSpacing: "0.32em",
+            textTransform: "uppercase",
+            color: "#B8860B",
+            marginTop: "4px",
+          }}
+        >
+          Numerology · Astrology · Tarot
+        </div>
+      </div>
+
       <img
         src={ganeshaImg}
         alt="Lord Ganesha"
