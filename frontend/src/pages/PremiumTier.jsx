@@ -261,7 +261,12 @@ export default function PremiumTier() {
             open={astroOpen}
             onToggle={() => setAstroOpen((v) => !v)}
           >
-          <ResultActions testIdPrefix="premium" />
+          <ResultActions
+            testIdPrefix="premium"
+            pdfType="premium-astro"
+            reading={result}
+            filename="Vedic-Astrology-Report"
+          />
 
           {/* On-screen result — also the PDF capture target. Matches the Basic
               tier layout: single outer premium-card, Ganesha invocation banner,
@@ -580,7 +585,12 @@ export default function PremiumTier() {
             open={numOpen}
             onToggle={() => setNumOpen((v) => !v)}
           >
-          <ResultActions testIdPrefix="premium-num" />
+          <ResultActions
+            testIdPrefix="premium-num"
+            pdfType="premium-numerology"
+            reading={result}
+            filename="Vedic-Numerology-Report"
+          />
           <div ref={numerologyRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="premium-numerology-report-result">
             <img src={snwLogo} alt="" className="print-watermark" />
 

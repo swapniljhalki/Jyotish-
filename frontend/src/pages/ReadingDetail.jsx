@@ -127,8 +127,13 @@ export default function ReadingDetail() {
           )}
         </div>
 
-        {/* Print button */}
-        <ResultActions testIdPrefix="reading-detail" />
+        {/* Print & PDF download — builder depends on the saved reading's tier */}
+        <ResultActions
+          testIdPrefix="reading-detail"
+          pdfType={r.tier === "premium" ? "premium-astro" : "basic"}
+          reading={r}
+          filename={`Reading-${r.tier}-${(r.summary?.ascendant || r.id).slice(0, 24)}`}
+        />
 
         {/* Reading content — capture target */}
         <div ref={resultRef} className="mt-4 printable-area" data-testid="reading-printable">
@@ -256,7 +261,12 @@ export default function ReadingDetail() {
         {/* Numerology Dasha — separate downloadable section, OUTSIDE the main printable area */}
         {r.tier === "premium" && r.chart?.numerology_dasha && (
           <div className="mt-10" data-testid="reading-dasha-block">
-            <ResultActions testIdPrefix="reading-dasha" />
+            <ResultActions
+              testIdPrefix="reading-dasha"
+              pdfType={r.tier === "premium" ? "premium-numerology" : null}
+              reading={r}
+              filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}`}
+            />
             {/* Printable: clean combined-table view */}
             <div ref={dashaRef} className="mt-4 printable-area" data-testid="reading-dasha-printable">
               <img src={snwLogo} alt="" className="print-watermark" />

@@ -1,13 +1,50 @@
-import { Printer } from "lucide-react";
+import { useState } from "react";
+import { Printer, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
+import { buildBasicPdf, buildPremiumAstroPdf, buildPremiumNumerologyPdf } from "../lib/pdfBuilders";
+
 /**
- * Print action for a reading result. Uses the browser's native `window.print()`
- * so the user can print the on-screen reading directly (or save as PDF via the
- * OS print dialog if they choose). No file-generation dependencies.
+ * Print + Download-PDF actions for any reading result.
+ *
+ * Props:
+ *   testIdPrefix — for data-testid on both buttons
+ *   pdfType      — "basic" | "premium-astro" | "premium-numerology"
+ *                  (when omitted the Download button is hidden — used on
+ *                  archive views where the reading model may be partial)
+ *   reading      — the raw reading object (chart + advice + inputs). The
+ *                  jsPDF builder pulls fields from here directly.
+ *   filename     — suggested download name (extension .pdf is appended if missing)
  */
-export default function ResultActions({ testIdPrefix }) {
+export default function ResultActions({ testIdPrefix, pdfType, reading, filename }) {
   const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+
+  const BUILDERS = {
+    "basic":               buildBasicPdf,
+    "premium-astro":       buildPremiumAstroPdf,
+    "premium-numerology":  buildPremiumNumerologyPdf,
+  };
+
+  const download = () => {
+    const builder = BUILDERS[pdfType];
+    if (!builder || !reading || busy) return;
+    setBusy(true);
+    try {
+      const doc = builder(reading);
+      const name = (filename || `Reading-${pdfType}`).toLowerCase().endsWith(".pdf")
+        ? (filename || `Reading-${pdfType}.pdf`)
+        : `${filename || `Reading-${pdfType}`}.pdf`;
+      doc.save(name);
+      toast.success("PDF ready.");
+    } catch (e) {
+      console.error("PDF build failed", e);
+      toast.error("Could not generate PDF. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const btn =
     "inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[rgba(160,110,40,0.45)] " +
@@ -20,6 +57,12 @@ export default function ResultActions({ testIdPrefix }) {
         <Printer className="w-4 h-4" aria-hidden="true" />
         {t("result.print")}
       </button>
+      {pdfType && reading && (
+        <button type="button" onClick={download} disabled={busy} className={btn} data-testid={`${testIdPrefix}-download-pdf-btn`}>
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Download className="w-4 h-4" aria-hidden="true" />}
+          {busy ? "Preparing…" : "Download PDF"}
+        </button>
+      )}
     </div>
   );
 }
