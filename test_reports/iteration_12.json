@@ -1,0 +1,55 @@
+{
+  "summary": "RETEST of the 4 PDF content bugs from iteration_11 — ALL FIXED. Downloaded and text-extracted all 3 PDFs (Basic Kundali, Premium Vedic Astrology, Premium Vedic Numerology) as basic.test@vedic.com and premium.test@vedic.com with subject Ravi Kumar / 1990-05-15 / 14:30 / Mumbai. Verified via pdftotext.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      { "screen": "Premium Numerology PDF · Numerology Overview table",
+        "issues": ["Naamank 'Name' column renders as 'Ketu (Ketu (South Node))' — the builder concatenates entry.planet + '(' + entry.planet_english + ')' but for Ketu both fields already contain the word 'Ketu', producing a redundant duplicate. Suggest either using only planet_english when planet is already a substring of it, or dropping the parenthetical when they overlap. Cosmetic only — the row is still readable and traits/essence render correctly. Sun/Moon/Venus/Jupiter etc are unaffected because their Sanskrit and English names differ."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/tmp/downloads/Kundali-Basic-Reading.pdf (94 KB, 4 pages)",
+    "/tmp/downloads/Vedic-Astrology-Report.pdf (119 KB, 6 pages)",
+    "/tmp/downloads/Vedic-Numerology-Report.pdf (106 KB, 4 pages)"
+  ],
+  "verification_results": {
+    "basic_pdf": {
+      "subject_header": "PASS — 'For: Ravi Kumar', 'Date of Birth: 1990-05-15 Time: 14:30', 'Place of Birth: Mumbai, Maharashtra, India' (dashes gone)",
+      "planetary_degree_column": "PASS — real values e.g. Sun 0.55°, Moon 1.89°, Mars 24.52°, Jupiter 15.79°",
+      "cover_page_1": "PASS — SNW gilded banner + Ganesha invocation + Shri Ganeshaya Namah caption",
+      "footer": "PASS — 'Satish Numero World  ·  Page X of 4' on every page",
+      "console_errors": "None from PDF flow (only unrelated 401 from initial auth check on login page)"
+    },
+    "premium_astro_pdf": {
+      "subject_header": "PASS — populated identically",
+      "planetary_degree_column": "PASS — same numeric degrees",
+      "vimshottari_mahadasha": "PASS — 9-row table with current Rahu highlighted",
+      "cover_page_1": "PASS", "footer": "PASS — Page X of 6"
+    },
+    "premium_numerology_pdf": {
+      "subject_header": "PASS — populated",
+      "numerology_overview_name_column": "PASS — 'Shukra (Venus)', 'Guru (Jupiter)', 'Ketu (Ketu (South Node))' (last one has cosmetic duplicate — see design_issues)",
+      "numerology_overview_essence_column": "PASS — 'Beauty, harmony, love, artistic refinement, luxury.', 'Wisdom, optimism, expansion, generosity, teaching.', 'Mystic depth, introspection, detachment, occult interest.'",
+      "ai_numerology_reading_section": "PASS — the section is now omitted entirely (PDF has 4 pages: cover · overview · Lo Shu+Vedic chart · Mahadasha). No astrology-advice bleed-through.",
+      "lo_shu_grid": "PASS — 3×3 grid with digit repetitions",
+      "vedic_planetary_chart": "PASS — grahas + counts + dominant strip",
+      "cover_page_1": "PASS", "footer": "PASS — Page X of 4"
+    }
+  },
+  "action_items": [
+    "Optional cosmetic polish in /app/frontend/src/lib/pdfBuilders.js drawNumerologyCore: when entry.planet is already contained inside entry.planet_english (case-insensitive substring), render just entry.planet_english to avoid 'Ketu (Ketu (South Node))'. E.g. `const planet = e.planet_english ? (e.planet && !e.planet_english.toLowerCase().includes(e.planet.toLowerCase()) ? \\`${e.planet} (${e.planet_english})\\` : e.planet_english) : (e.planet || '—');`"
+  ],
+  "critical_code_review_comments": [
+    "Consider adding a Jest snapshot / vitest test at /app/frontend/src/lib/__tests__/pdfBuilders.test.js that runs the 3 builders against a fixture reading and asserts key text strings (subject name, first planet degree, first numerology essence, no 'AI Numerology Reading' heading). That single test would have caught all 4 iteration-11 regressions plus the new Ketu cosmetic bug."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a", "frontend": "PDF content 100% for the 4 targeted fields; 1 cosmetic Ketu duplication in numerology name column remains" },
+  "test_credentials": "basic.test@vedic.com / Basic@2026 — OK; premium.test@vedic.com / Premium@2026 — OK",
+  "seed_data_creation": "None. Used existing accounts.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 4 iteration-11 bugs (subject header dashes, empty degree column, wrong Numerology Overview Name/Essence, numerology PDF echoing astrology advice) are resolved. Only remaining nit is Ketu name duplication — main agent can self-verify with a 1-line change. PDFs archived at /tmp/downloads/*.pdf for reference."
+}

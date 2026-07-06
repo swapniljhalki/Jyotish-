@@ -15,9 +15,14 @@ import { buildBasicPdf, buildPremiumAstroPdf, buildPremiumNumerologyPdf } from "
  *                  archive views where the reading model may be partial)
  *   reading      — the raw reading object (chart + advice + inputs). The
  *                  jsPDF builder pulls fields from here directly.
+ *   inputs       — the birth-details form state (full_name, date_of_birth,
+ *                  time_of_birth, place_of_birth). Optional but strongly
+ *                  recommended: the reading payload from the SSE stream /
+ *                  polling status doesn't always echo these back, so pass them
+ *                  explicitly so the PDF cover shows the subject's name & DOB.
  *   filename     — suggested download name (extension .pdf is appended if missing)
  */
-export default function ResultActions({ testIdPrefix, pdfType, reading, filename }) {
+export default function ResultActions({ testIdPrefix, pdfType, reading, inputs, filename }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
 
@@ -32,7 +37,7 @@ export default function ResultActions({ testIdPrefix, pdfType, reading, filename
     if (!builder || !reading || busy) return;
     setBusy(true);
     try {
-      const doc = builder(reading);
+      const doc = builder(reading, inputs);
       const name = (filename || `Reading-${pdfType}`).toLowerCase().endsWith(".pdf")
         ? (filename || `Reading-${pdfType}.pdf`)
         : `${filename || `Reading-${pdfType}`}.pdf`;

@@ -265,6 +265,7 @@ export default function PremiumTier() {
             testIdPrefix="premium"
             pdfType="premium-astro"
             reading={result}
+            inputs={inputs}
             filename="Vedic-Astrology-Report"
           />
 
@@ -589,6 +590,7 @@ export default function PremiumTier() {
             testIdPrefix="premium-num"
             pdfType="premium-numerology"
             reading={result}
+            inputs={inputs}
             filename="Vedic-Numerology-Report"
           />
           <div ref={numerologyRef} className="mt-4 premium-card p-8 md:p-12 printable-area" data-testid="premium-numerology-report-result">

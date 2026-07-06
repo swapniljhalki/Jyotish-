@@ -189,7 +189,7 @@ function drawFooter(doc) {
 
 // ---------- shared report sections ------------------------------------------
 
-function drawSubjectHeader(doc, r, subtitle, y) {
+function drawSubjectHeader(doc, r, subtitle, y, inputs) {
   const { margin, brand, fonts } = LAYOUT;
 
   // Report title
@@ -203,28 +203,32 @@ function drawSubjectHeader(doc, r, subtitle, y) {
   doc.setLineWidth(0.3);
   doc.line(LAYOUT.page.w / 2 - 30, y + 3, LAYOUT.page.w / 2 + 30, y + 3);
 
-  // Subject block
+  // Subject block. `inputs` is what the user typed into BirthForm and lives in
+  // React state on Basic/Premium pages; the reading object itself doesn't
+  // always echo it back (SSE payload + polling status omit it), so callers
+  // pass it in explicitly.
+  const src = inputs || r.inputs || {};
   y += 12;
   doc.setFont(fonts.body, "italic");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.body));
-  doc.text(`For: ${r.inputs?.full_name || r.summary?.name || "—"}`, margin.x, y);
+  doc.text(`For: ${src.full_name || r.summary?.name || "—"}`, margin.x, y);
 
   y += 6;
   doc.setFont(fonts.body, "normal");
   doc.setFontSize(9.5);
   doc.setTextColor(...hex(brand.subtle));
-  const dob = r.inputs?.date_of_birth || "—";
-  const tob = r.inputs?.time_of_birth || "—";
-  const pob = r.inputs?.place_of_birth || r.summary?.pob || "—";
+  const dob = src.date_of_birth || "—";
+  const tob = src.time_of_birth || "—";
+  const pob = src.place_of_birth || r.summary?.pob || "—";
   doc.text(`Date of Birth: ${dob}     Time: ${tob}`, margin.x, y);
   y += 5;
   doc.text(`Place of Birth: ${pob}`, margin.x, y);
 
   // Ascendant / Sun / Moon at a glance
-  const asc = r.chart?.ascendant_english || r.summary?.ascendant;
-  const sun = r.summary?.sun_sign;
-  const moon = r.summary?.moon_sign;
+  const asc = r.chart?.ascendant_english || r.ascendant || r.summary?.ascendant;
+  const sun = r.sun_sign  || r.summary?.sun_sign;
+  const moon = r.moon_sign || r.summary?.moon_sign;
   if (asc || sun || moon) {
     y += 8;
     doc.setFont(fonts.heading, "bold");
@@ -265,9 +269,16 @@ function drawPlanetaryPositions(doc, r, y) {
   const planets = r.chart?.planets;
   if (!planets) return y;
   y = drawSectionHeading(doc, "Planetary Positions", y + 4);
-  const rows = Object.entries(planets).map(([k, p]) => [
-    p.name || k, p.rashi || "—",
-    (p.deg_in_sign != null ? p.deg_in_sign.toFixed(2) + "°" : "—"),
+  // Backend planets can arrive as either an object keyed by planet code (older
+  // shape) or an array of {name, code, rashi_english, degree, nakshatra, ...}
+  // (current shape). Normalise to a list of rows.
+  const list = Array.isArray(planets) ? planets : Object.values(planets);
+  const rows = list.map((p) => [
+    p.name || p.code || "—",
+    p.rashi_english || p.rashi || "—",
+    p.degree != null
+      ? (typeof p.degree === "number" ? p.degree.toFixed(2) : p.degree) + "°"
+      : (p.deg_in_sign != null ? p.deg_in_sign.toFixed(2) + "°" : "—"),
     p.nakshatra || "—",
     String(p.house ?? "—"),
     p.retrograde ? "Retrograde" : "Direct",
@@ -310,7 +321,17 @@ function drawNumerologyCore(doc, num, y) {
   y = drawSectionHeading(doc, "Numerology Overview", y + 4);
   const rows = ["mulank", "bhagyank", "naamank"]
     .filter((k) => num[k]?.number)
-    .map((k) => [num[k].label, String(num[k].number), num[k].name || "—", num[k].essence || ""]);
+    .map((k) => {
+      const e = num[k];
+      // Backend fields: e.planet (Sanskrit), e.planet_english, e.traits.
+      // Older code called these "name" / "essence"; keep the fallback so any
+      // future refactor doesn't silently blank the column.
+      const planet = e.planet_english
+        ? `${e.planet || ""} (${e.planet_english})`.trim()
+        : (e.planet || e.name || "—");
+      const essence = e.traits || e.essence || "";
+      return [e.label, String(e.number), planet, essence];
+    });
   autoTable(doc, {
     startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
     head: [["Category", "#", "Name", "Essence"]],
@@ -362,13 +383,13 @@ function drawVedicPlanetChart(doc, vc, y) {
 
 // ---------- public builders -------------------------------------------------
 
-export function buildBasicPdf(reading) {
+export function buildBasicPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawCoverBanner(doc);
   doc.addPage();
 
   let y = LAYOUT.margin.y;
-  y = drawSubjectHeader(doc, reading, "Kundali Reading", y);
+  y = drawSubjectHeader(doc, reading, "Kundali Reading", y, inputs);
   y = drawNakshatraSection(doc, reading, y);
   doc.addPage(); y = LAYOUT.margin.y;
   y = drawPlanetaryPositions(doc, reading, y);
@@ -386,13 +407,13 @@ export function buildBasicPdf(reading) {
   return doc;
 }
 
-export function buildPremiumAstroPdf(reading) {
+export function buildPremiumAstroPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawCoverBanner(doc);
   doc.addPage();
 
   let y = LAYOUT.margin.y;
-  y = drawSubjectHeader(doc, reading, "Vedic Astrology Report", y);
+  y = drawSubjectHeader(doc, reading, "Vedic Astrology Report", y, inputs);
   y = drawNakshatraSection(doc, reading, y);
 
   doc.addPage(); y = LAYOUT.margin.y;
@@ -411,13 +432,13 @@ export function buildPremiumAstroPdf(reading) {
   return doc;
 }
 
-export function buildPremiumNumerologyPdf(reading) {
+export function buildPremiumNumerologyPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawCoverBanner(doc);
   doc.addPage();
 
   let y = LAYOUT.margin.y;
-  y = drawSubjectHeader(doc, reading, "Vedic Numerology Report", y);
+  y = drawSubjectHeader(doc, reading, "Vedic Numerology Report", y, inputs);
 
   const num = reading.chart?.numerology;
   y = drawNumerologyCore(doc, num, y);
@@ -448,10 +469,10 @@ export function buildPremiumNumerologyPdf(reading) {
     });
   }
 
-  if (reading.numerology_advice || reading.advice) {
+  if (reading.numerology_advice) {
     doc.addPage(); y = LAYOUT.margin.y;
     y = drawSectionHeading(doc, "AI Numerology Reading", y + 2);
-    drawMarkdown(doc, reading.numerology_advice || reading.advice, y);
+    drawMarkdown(doc, reading.numerology_advice, y);
   }
 
   drawFooter(doc);

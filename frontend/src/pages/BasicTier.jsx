@@ -227,6 +227,7 @@ export default function BasicTier() {
             testIdPrefix="basic"
             pdfType="basic"
             reading={result}
+            inputs={inputs}
             filename="Kundali-Basic-Reading"
           />
 
