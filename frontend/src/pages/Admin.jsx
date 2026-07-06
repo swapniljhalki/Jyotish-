@@ -7,9 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Button } from "../components/ui/button";
-import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays, Download, Loader2 } from "lucide-react";
+import { Trash2, Mail, Users as UsersIcon, BookOpen, CalendarDays } from "lucide-react";
 import SchedulerAdmin from "../components/SchedulerAdmin";
-import { downloadNodeAsDocx } from "../lib/exportDocx";
 import KundaliChart from "../components/KundaliChart";
 import AdviceMarkdown from "../components/AdviceMarkdown";
 import snwLogo from "../assets/snw-logo.jpg";
@@ -20,7 +19,6 @@ export default function Admin() {
   const [emails, setEmails] = useState([]);
   const [readings, setReadings] = useState([]);
   const [readingDetail, setReadingDetail] = useState(null);
-  const [downloadingDoc, setDownloadingDoc] = useState(false);
   const printableRef = useRef(null);
   const [err, setErr] = useState("");
 
@@ -47,23 +45,6 @@ export default function Admin() {
       const { data } = await api.get(`/admin/readings/${id}`);
       setReadingDetail(data);
     } catch (e) { toast.error(formatApiError(e.response?.data?.detail) || e.message); }
-  };
-
-  const downloadReadingDocx = async () => {
-    if (!printableRef.current || downloadingDoc || !readingDetail) return;
-    setDownloadingDoc(true);
-    try {
-      const userTag = (readingDetail.user_name || readingDetail.user_email || "user")
-        .replace(/[^a-zA-Z0-9]+/g, "-").slice(0, 40);
-      const filename = `Reading-${readingDetail.tier}-${userTag}.docx`;
-      await downloadNodeAsDocx(printableRef.current, filename);
-      toast.success("Word document downloaded");
-    } catch (e) {
-      console.error("Admin reading DOCX export failed", e);
-      toast.error("Could not generate Word doc. Please try again.");
-    } finally {
-      setDownloadingDoc(false);
-    }
   };
 
   useEffect(() => {
@@ -282,19 +263,6 @@ export default function Admin() {
             >
               {/* Action bar — not printed */}
               <div className="no-print sticky top-0 z-10 flex items-center justify-end gap-2 px-6 py-3 border-b border-[rgba(212,175,55,0.15)] bg-[#0F1320]">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={downloadReadingDocx}
-                  disabled={downloadingDoc}
-                  className="text-[#FF9933] hover:text-[#FFD700] hover:bg-transparent disabled:opacity-50"
-                  data-testid="admin-reading-download-word"
-                >
-                  {downloadingDoc
-                    ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                    : <Download className="w-4 h-4 mr-1.5" />}
-                  {downloadingDoc ? "Preparing..." : "Download Word"}
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"

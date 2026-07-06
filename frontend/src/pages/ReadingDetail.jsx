@@ -71,8 +71,6 @@ export default function ReadingDetail() {
     </div>
   );
 
-  const filename = `Reading-${r.tier}-${(r.summary?.ascendant || r.id).slice(0, 24)}.docx`;
-
   return (
     <div className="cosmic-bg min-h-[calc(100vh-64px)]">
       <div className="max-w-5xl mx-auto px-6 md:px-12 py-12">
@@ -129,8 +127,8 @@ export default function ReadingDetail() {
           )}
         </div>
 
-        {/* PDF download */}
-        <ResultActions targetRef={resultRef} filename={filename} testIdPrefix="reading-detail" />
+        {/* Print button */}
+        <ResultActions testIdPrefix="reading-detail" />
 
         {/* Reading content — capture target */}
         <div ref={resultRef} className="mt-4 printable-area" data-testid="reading-printable">
@@ -258,11 +256,7 @@ export default function ReadingDetail() {
         {/* Numerology Dasha — separate downloadable section, OUTSIDE the main printable area */}
         {r.tier === "premium" && r.chart?.numerology_dasha && (
           <div className="mt-10" data-testid="reading-dasha-block">
-            <ResultActions
-              targetRef={dashaRef}
-              filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}.docx`}
-              testIdPrefix="reading-dasha"
-            />
+            <ResultActions testIdPrefix="reading-dasha" />
             {/* Printable: clean combined-table view */}
             <div ref={dashaRef} className="mt-4 printable-area" data-testid="reading-dasha-printable">
               <img src={snwLogo} alt="" className="print-watermark" />

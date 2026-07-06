@@ -288,19 +288,12 @@
     "detailed_reading": "Detailed Reading",
     "open_archive": "Open in archive & share →",
     "print": "Print",
-    "download_pdf": "Download PDF",
-    "preparing": "Preparing…",
-    "pdf_done": "PDF downloaded",
-    "pdf_fail": "Could not generate the PDF. Please try again.",
     "name": "Name",
     "dob": "Date of Birth",
     "tob": "Time of Birth",
     "pob": "Place of Birth",
     "numdasha_title": "Numerology Dasha · 81-year ank cycle (Mulank {{mulank}})",
-    "numdasha_blurb": "Driven by your Mulank ({{mulank}}), this 81-year cycle of nine ank-mahadashas tracks the numerological vibration of your unfolding life.",
-    "download_word": "Download Word",
-    "docx_done": "Word document ready.",
-    "docx_fail": "Could not generate the Word document. Please try again."
+    "numdasha_blurb": "Driven by your Mulank ({{mulank}}), this 81-year cycle of nine ank-mahadashas tracks the numerological vibration of your unfolding life."
   },
   "testimonials": {
     "eyebrow": "Client Testimonials",

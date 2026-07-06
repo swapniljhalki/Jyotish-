@@ -1,30 +1,13 @@
-import { useState } from "react";
-import { Printer, Download, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { Printer } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { downloadNodeAsDocx } from "../lib/exportDocx";
 
 /**
- * Print & Download-as-Word action buttons for a reading result.
- * `targetRef` must point to the printable result container.
+ * Print action for a reading result. Uses the browser's native `window.print()`
+ * so the user can print the on-screen reading directly (or save as PDF via the
+ * OS print dialog if they choose). No file-generation dependencies.
  */
-export default function ResultActions({ targetRef, filename, testIdPrefix }) {
+export default function ResultActions({ testIdPrefix }) {
   const { t } = useTranslation();
-  const [busy, setBusy] = useState(false);
-
-  const download = async () => {
-    if (!targetRef.current || busy) return;
-    setBusy(true);
-    try {
-      await downloadNodeAsDocx(targetRef.current, filename);
-      toast.success(t("result.docx_done", "Word document ready."));
-    } catch (e) {
-      console.error("DOCX export failed", e);
-      toast.error(t("result.docx_fail", "Word export failed. Please try again."));
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const btn =
     "inline-flex items-center gap-2 px-4 py-2 rounded-md border border-[rgba(160,110,40,0.45)] " +
@@ -36,10 +19,6 @@ export default function ResultActions({ targetRef, filename, testIdPrefix }) {
       <button type="button" onClick={() => window.print()} className={btn} data-testid={`${testIdPrefix}-print-btn`}>
         <Printer className="w-4 h-4" aria-hidden="true" />
         {t("result.print")}
-      </button>
-      <button type="button" onClick={download} disabled={busy} className={btn} data-testid={`${testIdPrefix}-download-word-btn`}>
-        {busy ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Download className="w-4 h-4" aria-hidden="true" />}
-        {busy ? t("result.preparing") : t("result.download_word", "Download Word")}
       </button>
     </div>
   );
