@@ -1,0 +1,60 @@
+{
+  "summary": "Validated new text-based jsPDF implementation (pdfBuilders.js) for Basic + Premium tiers. All three PDFs (Basic Kundali, Premium Astrology, Premium Numerology) download successfully with no console errors, no image/CORS failures, real selectable text, multi-page A4 layout, footer 'Satish Numero World  ·  Page X of Y' on every page, SNW gilded banner + Ganesha image on page 1. However multiple CONTENT/FIELD-MAPPING BUGS in pdfBuilders.js cause subject header, degree column, numerology 'Name'/'Essence' columns, and premium-numerology AI reading to be wrong or missing. PDF generation itself is stable; content mapping needs main-agent fixes.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Basic + Premium PDF download",
+        "issue": "Subject header shows '—' for full_name, DOB, TOB, POB on every PDF. Root cause: pdfBuilders.drawSubjectHeader reads r.inputs?.full_name / r.summary?.name / r.summary?.pob, but the `reading` object passed from BasicTier/PremiumTier is just `result` (SSE payload / polling status) — it never contains `inputs` (that's a separate React state) and there is no `summary` field. The birth details the user typed are therefore lost in the PDF.",
+        "affected_selectors": ["basic-download-pdf-btn", "premium-download-pdf-btn", "premium-num-download-pdf-btn"]
+      },
+      {
+        "flow": "Planetary Positions table (all 3 PDFs)",
+        "issue": "'Degree' column is entirely '—'. Root cause: pdfBuilders.drawPlanetaryPositions reads `p.deg_in_sign.toFixed(2)`, but backend planet objects expose `p.degree` (already a string, e.g. '15.42'). Also uses `p.rashi` (works, since backend also exposes p.rashi), but the cleaner field is p.rashi_english (matches on-screen table).",
+        "affected_selectors": []
+      },
+      {
+        "flow": "Premium Numerology PDF — Numerology Overview table",
+        "issue": "'Name' column shows '—' and 'Essence' column is empty for Mulank / Bhagyank / Naamank. Root cause: builder does `num[k].name || '—'` and `num[k].essence || ''`, but backend entries expose `planet` (Hindi) + `planet_english` + `traits` — not `name`/`essence`.",
+        "affected_selectors": ["premium-num-download-pdf-btn"]
+      },
+      {
+        "flow": "Premium Numerology PDF — final 'AI Numerology Reading' section",
+        "issue": "Displays the ASTROLOGY reading verbatim (Vimshottari remedies, Rahu-Moon dasha analysis, etc.). Root cause: `reading.numerology_advice || reading.advice` — no numerology_advice field is produced by backend, so it falls back to the astrology `advice`. Should either omit the section or wire a real numerology_advice field.",
+        "affected_selectors": ["premium-num-download-pdf-btn"]
+      },
+      {
+        "flow": "Basic PDF — Vimshottari Mahadasha missing",
+        "issue": "Basic PDF is only 4 pages (Cover · Subject+Nakshatra · Planets · Advice). The 'Vimshottari Mahadasha · 120-Year Cycle' section is not emitted because the guard `reading.chart?.dasha?.mahadashas?.length` is false for basic-tier SSE payload (basic /astrology/basic/stream returns nakshatra_report + planets but no dasha.mahadashas array — the on-screen basic view also has no Mahadasha table). If the review requires Vimshottari in Basic PDF, backend basic reading must also compute + return dasha.mahadashas.",
+        "affected_selectors": ["basic-download-pdf-btn"]
+      }
+    ],
+    "design_issues": [
+      { "screen": "All PDFs", "issues": ["Cover page 1 is very sparse — just banner + Ganesha + invocation with the rest of the page blank; the report title (‘Kundali Reading’ / ‘Vedic Astrology Report’) is on page 2 instead of directly below the Ganesha invocation. Consider moving subject header onto page 1 to reduce page count and give a stronger cover."] }
+    ]
+  },
+  "test_report_links": [
+    "/tmp/downloads/basic.pdf (97 KB, 4 pages)",
+    "/tmp/downloads/premium-astro.pdf (121 KB, 6 pages)",
+    "/tmp/downloads/premium-numerology.pdf (123 KB, 6 pages)"
+  ],
+  "action_items": [
+    "pdfBuilders.drawSubjectHeader: accept `inputs` (or read from result.inputs after main agent merges) so name/DOB/TOB/POB are printed. Simplest fix: in ResultActions add a new `inputs` prop and pass it into the builder, then builder reads `inputs.full_name` etc.",
+    "pdfBuilders.drawPlanetaryPositions: use `p.degree` (with '°') instead of `p.deg_in_sign.toFixed(2)`; use `p.rashi_english || p.rashi` for consistency.",
+    "pdfBuilders.drawNumerologyCore: map `entry.planet` → Name column and `entry.traits` → Essence column (not entry.name / entry.essence).",
+    "buildPremiumNumerologyPdf: only render 'AI Numerology Reading' when `reading.numerology_advice` truly exists — do NOT fall back to `reading.advice` (that duplicates astrology text inside the numerology PDF).",
+    "Optional: extend Basic backend to expose `dasha.mahadashas` so the Basic PDF also contains the Vimshottari table promised in the review request."
+  ],
+  "critical_code_review_comments": [
+    "Field-name drift between backend reading model and pdfBuilders — this whole class of bugs would have been caught by a single snapshot test that runs the builders against a fixture reading; consider adding /app/frontend/src/lib/__tests__/pdfBuilders.test.js.",
+    "ResultActions swallows any error inside builder() via toast — good; but consider logging the caught error with reading-shape (Object.keys) to make future field-drift debuggable."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a", "frontend": "PDF generation 100% (all 3 downloads OK); content correctness ~60% (subject header, degrees, numerology names, num-advice all wrong)" },
+  "test_credentials": "basic.test@vedic.com / Basic@2026 — worked; premium.test@vedic.com / Premium@2026 — worked",
+  "seed_data_creation": "None. Used existing test accounts.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PDF download plumbing (jsPDF + jspdf-autotable + local Ganesha JPG) is confirmed working end-to-end on both tiers with no console/CORS errors. Focus next retest on: (1) subject-header values populated, (2) planet 'Degree' column non-empty, (3) Numerology Overview table columns show planet + traits, (4) Numerology PDF's AI section either shows numerology-specific text or is omitted, (5) optionally Basic PDF contains Vimshottari table."
+}
