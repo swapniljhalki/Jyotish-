@@ -327,7 +327,9 @@ function drawNumerologyCore(doc, num, y) {
       // Older code called these "name" / "essence"; keep the fallback so any
       // future refactor doesn't silently blank the column.
       const planet = e.planet_english
-        ? `${e.planet || ""} (${e.planet_english})`.trim()
+        ? (e.planet && !e.planet_english.toLowerCase().includes(e.planet.toLowerCase())
+            ? `${e.planet} (${e.planet_english})`
+            : e.planet_english)
         : (e.planet || e.name || "—");
       const essence = e.traits || e.essence || "";
       return [e.label, String(e.number), planet, essence];

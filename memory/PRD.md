@@ -438,3 +438,16 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - Premium tier still uses `/start` + polling — will migrate to streaming in a follow-up once we validate the UX on Basic.
 
 
+
+## Feb 28, 2026 — Text-based jsPDF exports fully verified (Basic + Premium tiers)
+- User request: "Please make pdf downloadable in each Basic and Premium tier."
+- Prior session had written `/app/frontend/src/lib/pdfBuilders.js` but never validated it. iteration_11 test surfaced 4 field-mapping bugs; iteration_12 confirms all fixed.
+- Fixes in `/app/frontend/src/lib/pdfBuilders.js`:
+  - `drawSubjectHeader(doc, r, subtitle, y, inputs)` now takes an `inputs` arg (form-state from BasicTier/PremiumTier). Previously fell back to `r.inputs`/`r.summary` which SSE/polling payloads don't echo → name/DOB/TOB/POB rendered as dashes. Fixed.
+  - `drawPlanetaryPositions()` now reads `p.degree` (backend's real field) with fallback to legacy `p.deg_in_sign`, and normalises planets shape (array **or** object). Previously the Degree column was universally "—".
+  - `drawNumerologyCore()` now maps `entry.planet` + `entry.planet_english` → Name column and `entry.traits` → Essence column (with substring-dedupe for Ketu to avoid "Ketu (Ketu (South Node))"). Previously showed dashes/blanks.
+  - `buildPremiumNumerologyPdf()` no longer falls back to `reading.advice` — it only emits the "AI Numerology Reading" section when a real `numerology_advice` field exists, so the Numerology PDF no longer duplicates the Astrology advice.
+- `/app/frontend/src/components/ResultActions.jsx`: new `inputs` prop, forwarded to `builder(reading, inputs)`.
+- `/app/frontend/src/pages/BasicTier.jsx` line 226 and `/app/frontend/src/pages/PremiumTier.jsx` lines 264 + 588 now pass `inputs={inputs}` from React state.
+- Verified end-to-end via testing_agent (iteration_12): Basic PDF 4 pages / 94KB, Premium Astrology 6 pages / 119KB, Premium Numerology 4 pages / 106KB. SNW gilded banner + Ganesha invocation on page 1 of every PDF; "Page X of Y" footer on every page. All previously-broken fields now populate correctly.
+
