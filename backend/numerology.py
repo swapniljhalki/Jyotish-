@@ -300,8 +300,99 @@ def compute_lo_shu_grid(dob: date) -> dict:
     }
 
 
+# --- Vedic Planetary Numerology Chart --------------------------------------- #
+# Classical Chaldean/Vedic association of the digits 1-9 to the nine grahas.
+# This is a *complementary* view to the Lo Shu grid — the same DOB digit
+# counts, but arranged so the user sees which planetary energies dominate
+# their chart at a glance.
+#
+# Grid layout (3×3, natural digit order — the traditional Vedic chart):
+#   1 | 2 | 3     Surya   | Chandra | Guru
+#   4 | 5 | 6     Rahu    | Budha   | Shukra
+#   7 | 8 | 9     Ketu    | Shani   | Mangala
+VEDIC_PLANET_MAP: dict[int, dict[str, str]] = {
+    1: {"graha": "Surya",    "english": "Sun",     "element": "Fire",   "day": "Sunday",    "color": "Deep Red",
+        "essence": "Authority, vitality, leadership, willpower."},
+    2: {"graha": "Chandra",  "english": "Moon",    "element": "Water",  "day": "Monday",    "color": "Silver / White",
+        "essence": "Emotion, intuition, imagination, adaptability."},
+    3: {"graha": "Guru",     "english": "Jupiter", "element": "Ether",  "day": "Thursday",  "color": "Yellow",
+        "essence": "Wisdom, expansion, teaching, dharma."},
+    4: {"graha": "Rahu",     "english": "Rahu",    "element": "Air",    "day": "Saturday",  "color": "Smoky Grey",
+        "essence": "Ambition, foreign lands, sudden shifts, obsession."},
+    5: {"graha": "Budha",    "english": "Mercury", "element": "Earth",  "day": "Wednesday", "color": "Green",
+        "essence": "Intellect, communication, trade, wit."},
+    6: {"graha": "Shukra",   "english": "Venus",   "element": "Water",  "day": "Friday",    "color": "White / Pink",
+        "essence": "Love, luxury, artistry, comforts."},
+    7: {"graha": "Ketu",     "english": "Ketu",    "element": "Fire",   "day": "Tuesday",   "color": "Multicolour",
+        "essence": "Detachment, moksha, mysticism, past karma."},
+    8: {"graha": "Shani",    "english": "Saturn",  "element": "Air",    "day": "Saturday",  "color": "Black / Blue",
+        "essence": "Discipline, karma, endurance, delayed rewards."},
+    9: {"graha": "Mangala",  "english": "Mars",    "element": "Fire",   "day": "Tuesday",   "color": "Red",
+        "essence": "Courage, action, siblings, energy, aggression."},
+}
+
+
+def compute_vedic_planet_chart(dob: date) -> dict:
+    """Vedic planetary (Chaldean) numerology chart.
+
+    Uses the same DOB-digit multiset as the Lo Shu grid, but arranges the
+    3×3 grid by *natural digit order* so each cell corresponds to a graha.
+    A cell is "present" if that digit appears at least once in the DOB.
+
+    Returns:
+        {
+          "grid":   [[cell, cell, cell], ...3 rows...],   # cell = { digit, count, graha, ... }
+          "counts": {1..9: n},
+          "dominant":  [ints, sorted by count desc, top 3 ],
+          "missing":   [ints not present in DOB],
+          "label":     "Vedic Planetary Numerology Chart"
+        }
+    """
+    digits = _lo_shu_digits(dob)
+    counts: dict[str, int] = {str(n): 0 for n in range(1, 10)}
+    for d in digits:
+        if 1 <= d <= 9:
+            counts[str(d)] += 1
+
+    grid: list[list[dict]] = []
+    for row_start in (1, 4, 7):
+        row = []
+        for offset in (0, 1, 2):
+            n = row_start + offset
+            planet = VEDIC_PLANET_MAP[n]
+            cnt = counts[str(n)]
+            row.append({
+                "digit":   n,
+                "count":   cnt,
+                "present": cnt > 0,
+                "graha":   planet["graha"],
+                "english": planet["english"],
+                "element": planet["element"],
+                "day":     planet["day"],
+                "color":   planet["color"],
+                "essence": planet["essence"],
+            })
+        grid.append(row)
+
+    # Dominant grahas — top 3 by count (excluding 0-count entries).
+    dominant = sorted(
+        (n for n in range(1, 10) if counts[str(n)] > 0),
+        key=lambda n: (-counts[str(n)], n),
+    )[:3]
+    missing = [n for n in range(1, 10) if counts[str(n)] == 0]
+
+    return {
+        "label":    "Vedic Planetary Numerology Chart",
+        "grid":     grid,
+        "counts":   counts,
+        "dominant": dominant,
+        "missing":  missing,
+    }
+
+
 def compute_numerology(dob: date, full_name: str) -> dict:
-    """Full Vedic numerology profile — three core numbers + Lo Shu grid."""
+    """Full Vedic numerology profile — three core numbers + Lo Shu grid +
+    Vedic planetary chart."""
     mulank = compute_mulank(dob)
     bhagyank = compute_bhagyank(dob)
     naamank_raw, naamank = compute_naamank(full_name)
@@ -338,5 +429,6 @@ def compute_numerology(dob: date, full_name: str) -> dict:
             ),
             **(NUMBER_PROFILE[naamank] if naamank else {}),
         },
-        "lo_shu": compute_lo_shu_grid(dob),
+        "lo_shu":       compute_lo_shu_grid(dob),
+        "vedic_chart":  compute_vedic_planet_chart(dob),
     }

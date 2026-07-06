@@ -683,13 +683,16 @@ export default function PremiumTier() {
                   empty cells are growth areas. Complete lines (&ldquo;arrows&rdquo;) reveal specific karmic gifts and lessons.
                 </p>
 
-                <div className="grid md:grid-cols-[auto,1fr] gap-8 items-start">
-                  {/* The 3×3 grid */}
+                <div className="grid md:grid-cols-2 gap-6 items-start" data-testid="premium-numerology-charts">
+                  {/* LEFT — Lo Shu magic-square grid ------------------------ */}
                   <div>
+                    <div className="font-accent text-[10px] uppercase tracking-widest mb-2 text-center" style={{ color: "#B85C00" }}>
+                      Lo Shu Grid · Jeevan Ank Yantra
+                    </div>
                     <div
-                      className="grid grid-cols-3 rounded-md overflow-hidden"
+                      className="grid grid-cols-3 rounded-md overflow-hidden mx-auto"
                       style={{
-                        width: 320,
+                        width: "min(280px, 100%)",
                         border: "2px solid #5C3A09",
                         background: "#FDFBF7",
                       }}
@@ -711,15 +714,13 @@ export default function PremiumTier() {
                             <div
                               className="font-heading"
                               style={{
-                                fontSize: filled ? "2.4rem" : "1.6rem",
+                                fontSize: filled ? "2rem" : "1.4rem",
                                 lineHeight: 1,
                                 color: filled ? "#B85C00" : "rgba(139,94,26,0.35)",
                                 fontWeight: filled ? 700 : 400,
                               }}
                             >
-                              {filled
-                                ? String(cell.digit).repeat(cell.count)
-                                : cell.digit}
+                              {filled ? String(cell.digit).repeat(cell.count) : cell.digit}
                             </div>
                             {filled && cell.count > 1 && (
                               <div
@@ -733,59 +734,155 @@ export default function PremiumTier() {
                         );
                       })}
                     </div>
-                    <div className="mt-3 text-[10.5px] font-body italic" style={{ color: "#5C3A09" }}>
-                      {result.chart.numerology.lo_shu.derivation}
+                    <p className="mt-3 text-[10.5px] font-body italic text-center" style={{ color: "#5C3A09" }}>
+                      3×3 magic square (every line sums to 15).
+                    </p>
+                  </div>
+
+                  {/* RIGHT — Vedic Planetary Chart (digits mapped to grahas) - */}
+                  {result.chart.numerology.vedic_chart && (
+                    <div data-testid="premium-vedic-planet-chart">
+                      <div className="font-accent text-[10px] uppercase tracking-widest mb-2 text-center" style={{ color: "#B85C00" }}>
+                        Vedic Planetary Chart · Grahas
+                      </div>
+                      <div
+                        className="grid grid-cols-3 rounded-md overflow-hidden mx-auto"
+                        style={{
+                          width: "min(280px, 100%)",
+                          border: "2px solid #5C3A09",
+                          background: "#FDFBF7",
+                        }}
+                      >
+                        {result.chart.numerology.vedic_chart.grid.flat().map((cell, idx) => {
+                          const filled = cell.present;
+                          return (
+                            <div
+                              key={cell.digit}
+                              data-testid={`vedic-chart-cell-${cell.digit}`}
+                              className="relative flex flex-col items-center justify-center px-1 py-2"
+                              style={{
+                                aspectRatio: "1 / 1",
+                                borderRight: idx % 3 !== 2 ? "1px solid rgba(139,94,26,0.4)" : "none",
+                                borderBottom: idx < 6 ? "1px solid rgba(139,94,26,0.4)" : "none",
+                                background: filled ? "rgba(212,175,55,0.15)" : "rgba(139,94,26,0.03)",
+                              }}
+                              title={`${cell.graha} (${cell.english}) — ${cell.essence}`}
+                            >
+                              <div
+                                className="font-heading leading-none"
+                                style={{
+                                  fontSize: "1.25rem",
+                                  color: filled ? "#B85C00" : "rgba(139,94,26,0.35)",
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {cell.digit}
+                              </div>
+                              <div
+                                className="font-accent text-[8.5px] mt-1 tracking-wider leading-tight text-center"
+                                style={{ color: filled ? "#5C3A09" : "rgba(139,94,26,0.4)" }}
+                              >
+                                {cell.graha}
+                              </div>
+                              {filled && cell.count > 1 && (
+                                <div
+                                  className="absolute top-1 right-2 font-accent text-[9px]"
+                                  style={{ color: "#B85C00" }}
+                                >
+                                  ×{cell.count}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-3 text-[10.5px] font-body italic text-center" style={{ color: "#5C3A09" }}>
+                        Same digits, arranged by their ruling graha.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Derivation line — spans the full width beneath both charts */}
+                <div className="mt-4 text-[10.5px] font-body italic text-center" style={{ color: "#5C3A09" }}>
+                  {result.chart.numerology.lo_shu.derivation}
+                </div>
+
+                {/* Dominant graha strip — surfaces the top 3 planetary energies */}
+                {result.chart.numerology.vedic_chart?.dominant?.length > 0 && (
+                  <div className="mt-5 rounded-md p-3" style={{ background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.35)" }} data-testid="premium-vedic-dominant-grahas">
+                    <div className="font-accent text-[10px] uppercase tracking-widest mb-2 text-center" style={{ color: "#B85C00" }}>
+                      Dominant Grahas in Your Chart
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {result.chart.numerology.vedic_chart.dominant.map((n) => {
+                        const c = result.chart.numerology.vedic_chart.grid.flat().find((x) => x.digit === n);
+                        if (!c) return null;
+                        return (
+                          <div key={n} className="text-center">
+                            <div className="font-heading text-sm" style={{ color: "#B85C00", fontWeight: 700 }}>
+                              {c.graha} <span style={{ color: "#5C3A09" }}>({c.english})</span>
+                            </div>
+                            <div className="font-accent text-[9px] uppercase tracking-wider" style={{ color: "#5C3A09" }}>
+                              Digit {c.digit} · ×{c.count} · {c.day}
+                            </div>
+                            <div className="font-body text-[10.5px] mt-1 leading-snug" style={{ color: "#2A1A05" }}>
+                              {c.essence}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Present + Missing interpretation lists (full-width) ------- */}
+                <div className="mt-6 grid md:grid-cols-2 gap-6">
+                  <div>
+                    <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#B85C00" }}>
+                      Present Numbers · Your Strengths
+                    </div>
+                    <div className="grid grid-cols-1 gap-1.5">
+                      {result.chart.numerology.lo_shu.present.map((n) => (
+                        <div key={n} className="flex items-baseline gap-2 text-[12px] font-body" style={{ color: "#2A1A05" }}>
+                          <span
+                            className="inline-flex items-center justify-center rounded-full font-heading text-[10px]"
+                            style={{ width: 22, height: 22, background: "rgba(212,175,55,0.25)", color: "#B85C00", fontWeight: 700 }}
+                          >
+                            {n}
+                          </span>
+                          <span>
+                            <strong style={{ color: "#5C3A09" }}>×{result.chart.numerology.lo_shu.counts[String(n)]} · </strong>
+                            {result.chart.numerology.lo_shu.grid.flat().find((c) => c.digit === n)?.meaning}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Interpretation column */}
-                  <div className="space-y-4">
+                  {result.chart.numerology.lo_shu.missing.length > 0 && (
                     <div>
-                      <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#B85C00" }}>
-                        Present Numbers · Your Strengths
+                      <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#5C3A09" }}>
+                        Missing Numbers · Growth Areas
                       </div>
                       <div className="grid grid-cols-1 gap-1.5">
-                        {result.chart.numerology.lo_shu.present.map((n) => (
+                        {result.chart.numerology.lo_shu.missing.map((n) => (
                           <div key={n} className="flex items-baseline gap-2 text-[12px] font-body" style={{ color: "#2A1A05" }}>
                             <span
                               className="inline-flex items-center justify-center rounded-full font-heading text-[10px]"
-                              style={{ width: 22, height: 22, background: "rgba(212,175,55,0.25)", color: "#B85C00", fontWeight: 700 }}
+                              style={{ width: 22, height: 22, background: "rgba(139,94,26,0.08)", color: "#5C3A09", border: "1px dashed rgba(139,94,26,0.4)", fontWeight: 500 }}
                             >
                               {n}
                             </span>
                             <span>
-                              <strong style={{ color: "#5C3A09" }}>×{result.chart.numerology.lo_shu.counts[String(n)]} · </strong>
+                              <strong style={{ color: "#5C3A09" }}>Cultivate: </strong>
                               {result.chart.numerology.lo_shu.grid.flat().find((c) => c.digit === n)?.meaning}
                             </span>
                           </div>
                         ))}
                       </div>
                     </div>
-
-                    {result.chart.numerology.lo_shu.missing.length > 0 && (
-                      <div>
-                        <div className="font-accent text-[10px] uppercase tracking-widest mb-2" style={{ color: "#5C3A09" }}>
-                          Missing Numbers · Growth Areas
-                        </div>
-                        <div className="grid grid-cols-1 gap-1.5">
-                          {result.chart.numerology.lo_shu.missing.map((n) => (
-                            <div key={n} className="flex items-baseline gap-2 text-[12px] font-body" style={{ color: "#2A1A05" }}>
-                              <span
-                                className="inline-flex items-center justify-center rounded-full font-heading text-[10px]"
-                                style={{ width: 22, height: 22, background: "rgba(139,94,26,0.08)", color: "#5C3A09", border: "1px dashed rgba(139,94,26,0.4)", fontWeight: 500 }}
-                              >
-                                {n}
-                              </span>
-                              <span>
-                                <strong style={{ color: "#5C3A09" }}>Cultivate: </strong>
-                                {result.chart.numerology.lo_shu.grid.flat().find((c) => c.digit === n)?.meaning}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {(result.chart.numerology.lo_shu.arrows_present.length > 0 ||
