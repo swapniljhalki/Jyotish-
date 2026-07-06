@@ -1,0 +1,33 @@
+{
+  "summary": "Verified new 'Vedic Kundali Charts' page in Basic and Premium-Astrology PDFs (frontend only, per E1 request). Downloaded PDFs via authenticated Playwright flow (basic.test/premium.test users, Ravi Kumar / 1990-05-15 / 14:30 / Mumbai), extracted text via pdftotext AND rendered page 3 to PNG via pdftoppm. All three acceptance criteria PASS: (a) new page 3 titled 'Vedic Kundali Charts' sits between Nakshatra Report (p2) and Planetary Positions (p4) on Basic (5 pages total) and Premium (8 pages total); (b) one large 'Lagna · D1 · Ascendant Chart' at top with caption 'Ascendant: Leo', two smaller charts side-by-side below labelled 'Chandra Rashi · Moon-sign Chart' (Ascendant: Capricorn) and 'Navamsha · D9 · Marriage & Dharma' (Ascendant: Sagittarius); (c) all 12 rashi numbers 1-12 visible in each chart, planet codes Su/Mo/Ma/Me/Ju/Ve/Sa/Ra/Ke plus Ur/Ne rendered, Asc pill correctly placed on House 1 of every chart; (d) no rendering errors, no blank pages, no page-error console messages. Numerology PDF (premium-num-download-pdf-btn) confirmed to have 4 pages and NO Kundali chart content (only a numerology 'Chandra' number reference — unrelated). Regression checks pass: subject headers show 'For: Ravi Kumar / Date of Birth: 1990-05-15 / Time: 14:30 / Place of Birth: Mumbai...', degree column shows values (0.55°, 1.89°, 24.52°, ...), numerology content intact.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Kundali Charts page — smaller 76mm charts (Chandra Rashi / Navamsha)", "issues": ["Cells with 3 planet codes (e.g. Chandra Rashi house 10 'Mo Sa Ra', Navamsha house 10 'Sa Mo Sa') are readable but tight; the house-number label and planet label sit very close together in corner triangles (e.g. house 11 with 'Ma', house 9 with 'Ur Ne'). No actual clipping observed at 100dpi render, but there is little safety margin — if a cell were to acquire a 4th planet the codes could overlap the cell boundary. Consider slightly smaller planet-code font in the D2 (76mm) charts, or truncate to 3 max with '…' overflow."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/pdfs/basic.pdf",
+    "/app/test_reports/pdfs/premium.pdf",
+    "/app/test_reports/pdfs/premium_num.pdf",
+    "/app/test_reports/pdfs/basic_p3-3.png",
+    "/app/test_reports/pdfs/premium_p3-3.png"
+  ],
+  "action_items": [
+    "(Optional / cosmetic only) Reduce planet-code font size or truncate at 3 planets max in the 76mm Chandra & Navamsha charts to guarantee no clipping if a cell contains 4+ planets."
+  ],
+  "critical_code_review_comments": [
+    "drawKundaliDiagram() called correctly from buildBasicPdf and buildPremiumAstroPdf only; buildPremiumNumerologyPdf untouched (verified — numerology PDF has no chart page). Good separation.",
+    "Vector primitives only (doc.rect/line/text/circle), so no CORS/image-tainting risk. Verified.",
+    "chart.house_signs and chart.houses shapes match kundali.py contract; Asc pill correctly anchored to house 1 (top-center diamond) of each chart in every render."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped per request)", "frontend": "100%" },
+  "test_credentials": "basic.test@vedic.com / Basic@2026 ; premium.test@vedic.com / Premium@2026 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Kundali chart PDFs verified end-to-end. If chart changes are made, re-run the Playwright download flow and render page 3 with `pdftoppm -f 3 -l 3 -r 100 <pdf> out -png`. Text extraction with `pdftotext -layout` confirms page ordering and chart labels."
+}

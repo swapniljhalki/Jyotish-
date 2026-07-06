@@ -383,6 +383,128 @@ function drawVedicPlanetChart(doc, vc, y) {
   return y;
 }
 
+// ---------- Kundali charts (North Indian diamond) --------------------------
+/** Draw a single North-Indian diamond Kundali as vector primitives at
+ *  (x, y) with the given `size` (mm). Mirrors the layout of
+ *  `/app/frontend/src/components/KundaliChart.jsx` (asc-marker, rashi number
+ *  at the top of each cell, planet codes below). Titles above chart are
+ *  drawn separately by the caller for tighter layout control. */
+function drawKundaliDiagram(doc, chart, x, y, size) {
+  const { brand, fonts } = LAYOUT;
+  if (!chart?.house_signs || !chart?.houses) return;
+  const s = size;
+
+  // Outer square + diamond (midpoint quad) + full diagonals
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.35);
+  doc.rect(x, y, s, s);
+  doc.line(x + s/2, y,       x + s,   y + s/2);
+  doc.line(x + s,   y + s/2, x + s/2, y + s);
+  doc.line(x + s/2, y + s,   x,       y + s/2);
+  doc.line(x,       y + s/2, x + s/2, y);
+  doc.line(x,       y,       x + s,   y + s);
+  doc.line(x + s,   y,       x,       y + s);
+
+  // North-Indian house centers (fractions of `s`, matches KundaliChart.jsx).
+  const centers = {
+    1:  [0.50, 0.25], 2:  [0.18, 0.12], 3:  [0.12, 0.22], 4:  [0.25, 0.50],
+    5:  [0.12, 0.78], 6:  [0.18, 0.88], 7:  [0.50, 0.75], 8:  [0.82, 0.88],
+    9:  [0.88, 0.78], 10: [0.75, 0.50], 11: [0.88, 0.22], 12: [0.82, 0.12],
+  };
+
+  // Font sizes scale gently with chart size so 80 mm and 110 mm both read well.
+  const rashiFs  = Math.max(7, Math.min(11, size * 0.10));
+  const planetFs = Math.max(6, Math.min(9,  size * 0.085));
+
+  for (let h = 1; h <= 12; h++) {
+    const cx = x + centers[h][0] * s;
+    const cy = y + centers[h][1] * s;
+    const signIdx = chart.house_signs[String(h)];
+    const planets = chart.houses[String(h)] || [];
+
+    // Rashi number (1..12)
+    doc.setFont(fonts.heading, "bold");
+    doc.setFontSize(rashiFs);
+    doc.setTextColor(...hex("#6B4308"));
+    doc.text(String(((signIdx ?? 0) % 12) + 1), cx, cy - size * 0.015, { align: "center" });
+
+    // Planet codes — wrap to 2 lines if more than 3 in the same house
+    if (planets.length) {
+      doc.setFont(fonts.body, "normal");
+      doc.setFontSize(planets.length > 3 ? planetFs - 0.5 : planetFs);
+      doc.setTextColor(...hex(brand.body));
+      const lineY = cy + size * 0.045;
+      if (planets.length <= 3) {
+        doc.text(planets.join(" "), cx, lineY, { align: "center" });
+      } else {
+        const mid = Math.ceil(planets.length / 2);
+        doc.text(planets.slice(0, mid).join(" "), cx, lineY,                  { align: "center" });
+        doc.text(planets.slice(mid).join(" "),    cx, lineY + size * 0.055,   { align: "center" });
+      }
+    }
+  }
+
+  // Ascendant tag — small saffron pill above house 1
+  const [ax, ay] = [x + centers[1][0] * s, y + centers[1][1] * s];
+  doc.setDrawColor(...hex("#FF9933"));
+  doc.setLineWidth(0.3);
+  doc.setFillColor(255, 240, 220);
+  doc.circle(ax, ay - size * 0.11, size * 0.032, "FD");
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(Math.max(5.5, size * 0.055));
+  doc.setTextColor(...hex("#9A3E00"));
+  doc.text("Asc", ax, ay - size * 0.098, { align: "center" });
+}
+
+/** Dedicated Kundali-Charts page: D1 Lagna centered on top, then Chandra +
+ *  Navamsha side-by-side below. Called by both Basic and Premium builders on
+ *  a fresh page so the diagrams never share space with tables or reading text. */
+function drawKundaliChartsPage(doc, reading) {
+  const { page, margin, brand, fonts } = LAYOUT;
+  doc.addPage();
+  let y = margin.y;
+
+  // Page title
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text("Vedic Kundali Charts", page.w / 2, y, { align: "center" });
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.3);
+  doc.line(page.w / 2 - 35, y + 3, page.w / 2 + 35, y + 3);
+  y += 12;
+
+  const drawLabelled = (title, chart, cx, cy, sz) => {
+    doc.setFont(fonts.heading, "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...hex(brand.ink));
+    doc.text(title, cx + sz / 2, cy - 3, { align: "center" });
+    drawKundaliDiagram(doc, chart, cx, cy, sz);
+    if (chart?.ascendant_english) {
+      doc.setFont(fonts.body, "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(...hex(brand.subtle));
+      doc.text(`Ascendant: ${chart.ascendant_english}`, cx + sz / 2, cy + sz + 5, { align: "center" });
+    }
+  };
+
+  // D1 Lagna — large, centred
+  const d1 = 100;
+  drawLabelled("Lagna · D1 · Ascendant Chart", reading.chart, (page.w - d1) / 2, y + 6, d1);
+  y += d1 + 22;
+
+  // Chandra + Navamsha side-by-side
+  const sm = 76;
+  const gap = 12;
+  const startX = (page.w - (sm * 2 + gap)) / 2;
+  if (reading.chart?.chandra) {
+    drawLabelled("Chandra Rashi · Moon-sign Chart", reading.chart.chandra, startX, y + 6, sm);
+  }
+  if (reading.chart?.navamsha) {
+    drawLabelled("Navamsha · D9 · Marriage & Dharma", reading.chart.navamsha, startX + sm + gap, y + 6, sm);
+  }
+}
+
 // ---------- public builders -------------------------------------------------
 
 export function buildBasicPdf(reading, inputs) {
@@ -393,6 +515,10 @@ export function buildBasicPdf(reading, inputs) {
   let y = LAYOUT.margin.y;
   y = drawSubjectHeader(doc, reading, "Kundali Reading", y, inputs);
   y = drawNakshatraSection(doc, reading, y);
+
+  // Kundali diagrams — Lagna, Chandra Rashi, Navamsha on one dedicated page.
+  if (reading.chart?.houses) drawKundaliChartsPage(doc, reading);
+
   doc.addPage(); y = LAYOUT.margin.y;
   y = drawPlanetaryPositions(doc, reading, y);
   if (reading.chart?.dasha?.mahadashas?.length) {
@@ -417,6 +543,9 @@ export function buildPremiumAstroPdf(reading, inputs) {
   let y = LAYOUT.margin.y;
   y = drawSubjectHeader(doc, reading, "Vedic Astrology Report", y, inputs);
   y = drawNakshatraSection(doc, reading, y);
+
+  // Kundali diagrams — Lagna, Chandra Rashi, Navamsha on one dedicated page.
+  if (reading.chart?.houses) drawKundaliChartsPage(doc, reading);
 
   doc.addPage(); y = LAYOUT.margin.y;
   y = drawPlanetaryPositions(doc, reading, y);
