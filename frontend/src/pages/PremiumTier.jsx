@@ -522,11 +522,12 @@ export default function PremiumTier() {
                     </TableBody>
                   </Table>
 
-                  {/* Planetary theme reference — companion context for the Vimshottari table */}
+                  {/* Planetary theme reference — companion context for the Vimshottari table.
+                      2-cols on mobile, 3-cols on tablet+, so cards stay ≥ 150px wide. */}
                   <div className="ornate-divider mt-8 mb-4">
                     <span className="font-accent text-xs text-[#B8860B]">Planetary Themes · What each period awakens</span>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {[
                       { lord: "Sun",     sans: "Surya",   yrs: "6 yrs",  theme: "Authority, self-realization, leadership, health of father & spine." },
                       { lord: "Moon",    sans: "Chandra", yrs: "10 yrs", theme: "Emotion, comfort, receptivity, mother, mind & memory." },
@@ -814,7 +815,8 @@ export default function PremiumTier() {
                     <div className="font-accent text-[10px] uppercase tracking-widest mb-2 text-center" style={{ color: "#B85C00" }}>
                       Dominant Grahas in Your Chart
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    {/* 1-col on mobile so each graha's essence fits comfortably; 3-col from sm+ */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-2">
                       {result.chart.numerology.vedic_chart.dominant.map((n) => {
                         const c = result.chart.numerology.vedic_chart.grid.flat().find((x) => x.digit === n);
                         if (!c) return null;
