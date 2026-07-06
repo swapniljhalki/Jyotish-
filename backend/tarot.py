@@ -1,7 +1,13 @@
-"""Tarot deck (22 Major Arcana) + card-drawing logic.
+"""Tarot deck (78-card Rider-Waite = 22 Major Arcana + 56 Minor Arcana)
++ card-drawing logic.
 
-Kept intentionally simple: single 3-card Past · Present · Future spread.
-Each drawn card is either upright or reversed with equal probability.
+Single 3-card Past · Present · Future spread. Each drawn card is either
+upright or reversed with equal probability.
+
+Callers can pick which arcana to draw from via the `deck` parameter:
+  • "full"  (default) — traditional 78-card mixed reading
+  • "major"           — only the 22 Major Arcana (life-lesson focus)
+  • "minor"           — only the 56 Minor Arcana (day-to-day focus)
 """
 from __future__ import annotations
 
@@ -9,7 +15,10 @@ import random
 import secrets
 from typing import Literal
 
+from tarot_minor import MINOR_ARCANA
+
 CardOrientation = Literal["upright", "reversed"]
+Deck = Literal["full", "major", "minor"]
 
 
 # Classical Rider-Waite Major Arcana with concise, well-known meanings.
@@ -45,36 +54,59 @@ POSITION_MEANINGS = {
 }
 
 
-def draw_three_card_spread(seed: int | None = None) -> list[dict]:
+# Tag the major arcana at module load so callers can always inspect
+# `card["arcana"]` regardless of which sub-deck it came from.
+for _c in MAJOR_ARCANA:
+    _c.setdefault("arcana", "major")
+    _c.setdefault("suit",   None)
+
+FULL_DECK: list[dict] = MAJOR_ARCANA + MINOR_ARCANA  # 22 + 56 = 78 cards
+
+
+def _pick_deck(deck: Deck) -> list[dict]:
+    if deck == "major":
+        return MAJOR_ARCANA
+    if deck == "minor":
+        return MINOR_ARCANA
+    return FULL_DECK
+
+
+def draw_three_card_spread(
+    seed: int | None = None,
+    deck: Deck = "full",
+) -> list[dict]:
     """Draw 3 unique cards, each independently upright or reversed.
 
-    Returns a list of 3 dicts in fixed positional order (past → present → future),
-    each containing the card details, orientation, its meaning in that orientation
-    and the position's meaning.
-
-    In production (seed=None) we use `secrets` for CSPRNG-quality randomness so
-    each user's reading is unpredictable and cannot be replayed. When a seed is
-    provided (tests / demos) we fall back to `random.Random(seed)` for reproducibility.
+    Args:
+        seed  — when provided (tests / demos) uses reproducible `random.Random`.
+                In production keep `None` so we use `secrets.SystemRandom` and
+                each user's reading is unpredictable & unreplayable.
+        deck  — "full" (default, all 78), "major" (22 Major Arcana),
+                or "minor" (56 Minor Arcana). Users pick this in the UI.
     """
+    source = _pick_deck(deck)
     if seed is None:
-        drawn = list(secrets.SystemRandom().sample(MAJOR_ARCANA, 3))
+        drawn = list(secrets.SystemRandom().sample(source, 3))
         pick_orientation = lambda: secrets.choice(("upright", "reversed"))  # noqa: E731
     else:
         rng = random.Random(seed)
-        drawn = rng.sample(MAJOR_ARCANA, 3)
+        drawn = rng.sample(source, 3)
         pick_orientation = lambda: rng.choice(("upright", "reversed"))  # noqa: E731
     positions = ("past", "present", "future")
 
     spread = []
     for pos, card in zip(positions, drawn):
         orientation: CardOrientation = pick_orientation()
-        spread.append({
+        entry = {
             "position": pos,
             "position_meaning": POSITION_MEANINGS[pos],
             "number":    card["number"],
             "name":      card["name"],
+            "arcana":    card.get("arcana", "major"),
+            "suit":      card.get("suit"),   # None for Major Arcana
             "orientation": orientation,
             "keywords":  card["keywords"],
             "meaning":   card[orientation],
-        })
+        }
+        spread.append(entry)
     return spread

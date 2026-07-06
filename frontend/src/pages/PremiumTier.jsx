@@ -95,6 +95,7 @@ export default function PremiumTier() {
 
   // Tarot Reading (3-card Past · Present · Future spread + AI interpretation)
   const [tarotQuestion, setTarotQuestion] = useState("");
+  const [tarotDeck, setTarotDeck] = useState("full");   // "full" | "major" | "minor"
   const [tarotResult, setTarotResult] = useState(null);
   const [tarotLoading, setTarotLoading] = useState(false);
   const [tarotErr, setTarotErr] = useState("");
@@ -189,6 +190,7 @@ export default function PremiumTier() {
       const { data } = await api.post("/astrology/tarot/reading", {
         question: tarotQuestion,
         language: i18n.resolvedLanguage,
+        deck: tarotDeck,
       });
       setTarotResult(data);
     } catch (e2) {
@@ -1134,13 +1136,15 @@ export default function PremiumTier() {
                         {/* Tarot Reading — 3-card Past · Present · Future spread + AI interpretation */}
         <div className="mt-20 fade-up" data-testid="tarot-section">
           <div className="mb-8">
-            <p className="font-accent text-xs text-[#B8860B] mb-3">Rider-Waite · Major Arcana</p>
+            <p className="font-accent text-xs text-[#B8860B] mb-3">Rider-Waite · 78-Card Deck</p>
             <h2 className="font-heading text-3xl md:text-4xl" style={{ color: "#14172B" }}>
               Tarot Reading — <span className="text-gold-gradient italic">Past · Present · Future</span>
             </h2>
             <p className="mt-3 font-body text-zinc-700 max-w-2xl leading-relaxed text-sm">
-              Draw three cards from the Major Arcana. Optionally, hold a specific question in mind — the AI
-              synthesises the spread into a warm, personal interpretation woven from the classical meanings.
+              Choose your deck — the full 78-card Rider-Waite, the 22 Major Arcana for
+              life-lesson archetypes, or the 56 Minor Arcana for day-to-day energies —
+              and draw three cards. Optionally hold a question in mind; the AI synthesises
+              the spread into a warm, personal interpretation woven from the classical meanings.
             </p>
           </div>
 
@@ -1149,6 +1153,50 @@ export default function PremiumTier() {
             className="glass-card p-6 md:p-8 grid grid-cols-1 gap-4"
             data-testid="tarot-form"
           >
+            {/* Deck picker — Full (78 cards) / Major (22) / Minor (56) */}
+            <div>
+              <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
+                Choose Your Deck
+              </label>
+              <div
+                className="grid grid-cols-3 gap-2 p-1 bg-[#FDFBF7] border border-[rgba(139,94,26,0.25)] rounded-md"
+                role="radiogroup"
+                aria-label="Tarot deck"
+                data-testid="tarot-deck-picker"
+              >
+                {[
+                  { key: "full",  label: "Full Deck", sub: "78 cards" },
+                  { key: "major", label: "Major Arcana", sub: "22 cards" },
+                  { key: "minor", label: "Minor Arcana", sub: "56 cards" },
+                ].map((opt) => {
+                  const active = tarotDeck === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setTarotDeck(opt.key)}
+                      data-testid={`tarot-deck-${opt.key}`}
+                      className={`flex flex-col items-center gap-0.5 py-2 px-2 rounded transition-colors ${
+                        active
+                          ? "bg-gradient-to-b from-[#FFE9C7] to-[#FFD98A] text-[#5C3A09] shadow-inner"
+                          : "text-[#5C3A09]/70 hover:bg-[rgba(255,153,51,0.06)]"
+                      }`}
+                    >
+                      <span className={`font-heading text-sm ${active ? "font-semibold" : "font-medium"}`}>{opt.label}</span>
+                      <span className="font-accent text-[9px] tracking-widest uppercase text-[#B8860B]">{opt.sub}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="font-accent text-[10px] text-[#8B5E1A]/70 mt-2 italic">
+                {tarotDeck === "major" && "Major Arcana = life-lesson archetypes. Best for big-picture guidance."}
+                {tarotDeck === "minor" && "Minor Arcana = day-to-day energies across four suits — Wands (action), Cups (emotion), Swords (thought), Pentacles (material)."}
+                {tarotDeck === "full"  && "The traditional 78-card Rider-Waite deck. A balanced blend of archetypes & practical energies."}
+              </p>
+            </div>
+
             <div>
               <label className="font-accent text-[10px] text-[#B8860B] block mb-2 tracking-widest uppercase">
                 Your Question (optional)
@@ -1215,7 +1263,18 @@ export default function PremiumTier() {
                         {c.name}
                       </div>
                       <div className="font-accent text-[9px] tracking-widest uppercase mb-3" style={{ color: reversed ? "#8B2500" : "#5C3A09" }}>
-                        {c.number} · {c.orientation}
+                        {/* Show suit ● element for Minor Arcana, otherwise just the card number */}
+                        {c.arcana === "minor" && c.suit ? (
+                          <>
+                            <span title={`${c.suit} — ${{Wands:"Fire",Cups:"Water",Swords:"Air",Pentacles:"Earth"}[c.suit]}`}>
+                              {c.suit}
+                            </span>
+                            <span className="mx-1.5">·</span>
+                          </>
+                        ) : (
+                          <>Major Arcana <span className="mx-1.5">·</span></>
+                        )}
+                        {c.orientation}
                       </div>
                       <div className="flex flex-wrap justify-center gap-1.5 mb-3">
                         {c.keywords.map((k) => (

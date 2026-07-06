@@ -15,7 +15,7 @@ import bcrypt
 import jwt
 import httpx
 from datetime import datetime, timezone, timedelta, date as date_type, time as time_type
-from typing import Optional
+from typing import Optional, Literal
 
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends, Header
 from fastapi.responses import StreamingResponse
@@ -1950,16 +1950,22 @@ def _public_reading(r: dict) -> dict:
 class TarotIn(BaseModel):
     question: Optional[str] = None
     language: Optional[str] = "en"
+    # Which arcana to draw from.
+    #   "full"  (default) — traditional 78-card Rider-Waite (Major + Minor)
+    #   "major"           — 22 Major Arcana only (life-lesson focus)
+    #   "minor"           — 56 Minor Arcana only (day-to-day focus)
+    deck: Literal["full", "major", "minor"] = "full"
 
 
 @api.post("/astrology/tarot/reading")
 async def astrology_tarot(body: TarotIn, user: dict = Depends(get_current_user)):
-    """Draw a 3-card Past · Present · Future spread from the Major Arcana and
-    generate a personalised interpretation via Claude. Premium tier only."""
+    """Draw a 3-card Past · Present · Future spread and generate a personalised
+    interpretation via Claude. Premium tier only. Deck can be Full (default),
+    Major-only or Minor-only per the user's preference."""
     require_tier(user, "premium")
     from tarot import draw_three_card_spread
 
-    spread = draw_three_card_spread()
+    spread = draw_three_card_spread(deck=body.deck)
     question = (body.question or "").strip()
 
     card_lines = "\n".join(
@@ -1967,13 +1973,19 @@ async def astrology_tarot(body: TarotIn, user: dict = Depends(get_current_user))
         f"{c['meaning']} · Keywords: {', '.join(c['keywords'])}"
         for c in spread
     )
+    deck_hint = {
+        "full":  "78-card Rider-Waite deck (both Major & Minor Arcana)",
+        "major": "22-card Major Arcana only — treat these as life-lesson archetypes",
+        "minor": "56-card Minor Arcana only — treat these as day-to-day energies with suit meanings (Wands=action, Cups=emotion, Swords=thought, Pentacles=material)",
+    }[body.deck]
     system = (
         "You are a wise, warm Vedic tarot reader trained in the Rider-Waite tradition. "
-        "Interpret a 3-card spread (Past · Present · Future) drawn from the Major Arcana. "
+        f"Interpret a 3-card spread (Past · Present · Future) drawn from the {deck_hint}. "
         "Speak directly to the seeker in second person. Weave the three cards into a single "
         "flowing narrative — the past feeding the present, the present shaping the future. "
-        "Honour reversed cards by naming their shadow lesson. Do NOT re-list the card meanings; "
-        "synthesise them. Close with a short, empowering line of guidance. "
+        "Honour reversed cards by naming their shadow lesson. When Minor Arcana appear, "
+        "acknowledge the suit's element in your interpretation. Do NOT re-list the card "
+        "meanings; synthesise them. Close with a short, empowering line of guidance. "
         "Use Markdown ## for the three section headings only. Keep total length under 320 words."
         + _lang_instruction(body.language)
     )
@@ -1987,6 +1999,7 @@ async def astrology_tarot(body: TarotIn, user: dict = Depends(get_current_user))
     return {
         "spread": spread,
         "question": question,
+        "deck": body.deck,
         "interpretation": interpretation,
     }
 
