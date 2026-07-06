@@ -451,3 +451,12 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - `/app/frontend/src/pages/BasicTier.jsx` line 226 and `/app/frontend/src/pages/PremiumTier.jsx` lines 264 + 588 now pass `inputs={inputs}` from React state.
 - Verified end-to-end via testing_agent (iteration_12): Basic PDF 4 pages / 94KB, Premium Astrology 6 pages / 119KB, Premium Numerology 4 pages / 106KB. SNW gilded banner + Ganesha invocation on page 1 of every PDF; "Page X of Y" footer on every page. All previously-broken fields now populate correctly.
 
+
+## Feb 28, 2026 — Kundali charts embedded in Basic + Premium Astrology PDFs
+- User request: "Please enhance the pdf by including kundali lagna chart, chandra rashi chart and navamsha chart."
+- New primitives in `/app/frontend/src/lib/pdfBuilders.js`:
+  - `drawKundaliDiagram(doc, chart, x, y, size)` — pure vector North-Indian diamond (jsPDF rect + lines + text + circle only, no image / html-to-image / DOM snapshot, zero CORS risk). Layout ratios match the on-screen `KundaliChart.jsx` component; asc pill anchored on house 1.
+  - `drawKundaliChartsPage(doc, reading)` — inserts a dedicated "Vedic Kundali Charts" page: D1 Lagna centred at 100 mm on top, then Chandra Rashi + Navamsha side-by-side at 76 mm below, each with a title + Ascendant caption.
+- Wired into `buildBasicPdf` and `buildPremiumAstroPdf` between the Nakshatra section and Planetary Positions. `buildPremiumNumerologyPdf` intentionally untouched (numerology-only report).
+- Verified end-to-end (iteration_13): Basic PDF now 5 pages, Premium Astrology now 8 pages. Rendered page 3 to PNG — all 12 rashi numbers, planet codes (Su/Mo/Ma/Me/Ju/Ve/Sa/Ra/Ke), and Asc marker visible on every chart. No clipping, no errors.
+
