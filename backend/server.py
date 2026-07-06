@@ -489,6 +489,9 @@ async def google_session(response: Response, x_session_id: str = Header(None)):
 
 
 # --- Subscription (self-service only for the free tier; paid tiers require Razorpay) ---
+TIER_RANK = {"free": 0, "basic": 1, "premium": 2}
+
+
 @api.post("/subscribe")
 async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
     if body.tier != "free":
@@ -496,6 +499,25 @@ async def subscribe(body: SubscribeIn, user: dict = Depends(get_current_user)):
             status_code=403,
             detail="Paid tiers require payment — use the Razorpay checkout.",
         )
+    # Reject downgrades — a Basic or Premium subscriber cannot go back to Free
+    # via a plain POST /subscribe. They already have access to every Free
+    # feature via `require_tier`'s rank comparison, so there is no legitimate
+    # reason to walk down the ladder. (Admins can still change tiers via
+    # PATCH /admin/users/{id} if a refund makes it necessary.)
+    current_rank   = TIER_RANK.get(user.get("tier", "free"), 0)
+    requested_rank = TIER_RANK[body.tier]
+    if requested_rank < current_rank:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Your {user.get('tier', 'free').capitalize()} plan already includes every "
+                f"{body.tier.capitalize()} feature. Please contact support if you need to change your plan."
+            ),
+        )
+    if requested_rank == current_rank:
+        # No-op — user is already on this tier; return current profile.
+        return public_user(user)
+
     await db.users.update_one({"id": user["id"]}, {"$set": {"tier": body.tier}})
     updated = await db.users.find_one({"id": user["id"]}, {"_id": 0, "password_hash": 0})
     return public_user(updated)
@@ -535,6 +557,19 @@ async def payments_config():
 async def payments_create_order(body: PaymentCreateIn, user: dict = Depends(get_current_user)):
     if body.tier not in RZP_PRICING:
         raise HTTPException(status_code=400, detail="Unknown tier")
+    # Reject same-tier & downgrade purchases — a Premium subscriber cannot
+    # pay for Basic, and a Basic subscriber cannot re-pay for Basic. All
+    # lower-tier features are already unlocked for them via `require_tier`.
+    current_rank   = TIER_RANK.get(user.get("tier", "free"), 0)
+    requested_rank = TIER_RANK[body.tier]
+    if requested_rank <= current_rank:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Your {user.get('tier', 'free').capitalize()} plan already includes every "
+                f"{body.tier.capitalize()} feature — no additional payment needed."
+            ),
+        )
     try:
         # Razorpay's SDK does a blocking HTTPS call — offload so the event
         # loop doesn't stall under concurrent checkout traffic.

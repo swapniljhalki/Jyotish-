@@ -51,6 +51,16 @@ export default function UpgradeButton({ tier = "premium", className = "", varian
   const label = price?.label || (tier === "premium" ? "Jyotishi" : "Sadhaka");
   const inr = price ? `₹${price.amount_inr.toLocaleString("en-IN")}` : "";
 
+  // Rank check — if the user already sits at this tier (or higher), hide the
+  // upgrade CTA entirely. A Premium subscriber shouldn't see "Unlock Basic"
+  // anywhere, and a Basic subscriber shouldn't see "Unlock Basic" twice.
+  // (Backend `/payments/create-order` also rejects same-tier / downgrade
+  // orders — this is UX polish so the button just doesn't render.)
+  const RANK = { free: 0, basic: 1, premium: 2 };
+  if (user && RANK[user.tier] >= RANK[tier]) {
+    return null;
+  }
+
   const openCheckout = async (contactNumber) => {
     setBusy(true);
     try {

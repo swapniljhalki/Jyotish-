@@ -93,6 +93,13 @@ export default function Pricing() {
             const isCurrent = user && user.tier === tier.key;
             const isRecommended = recommend === tier.key;
             const isDark = tier.variant === "dark";
+            // Rank comparison — a tier "below" the user's current plan is
+            // already unlocked for them via backend `require_tier` (which
+            // uses the same rank ordering). We show it as an included plan
+            // instead of offering a downgrade CTA that the API would reject.
+            const RANK = { free: 0, basic: 1, premium: 2 };
+            const isIncluded =
+              user && !isCurrent && RANK[tier.key] < RANK[user.tier];
             const cardCls = tier.variant === "minimal"
               ? "sb-card sb-card-hover"
               : isDark
@@ -131,6 +138,15 @@ export default function Pricing() {
                     data-testid={`tier-current-${tier.key}`}
                   >
                     {t("common.current_tier")}
+                  </button>
+                ) : isIncluded ? (
+                  <button
+                    disabled
+                    className="sb-btn-outline w-full opacity-70"
+                    data-testid={`tier-included-${tier.key}`}
+                    title={`Included in your ${user.tier.charAt(0).toUpperCase() + user.tier.slice(1)} plan`}
+                  >
+                    {t("pricing.included_in_your_plan", "Included in your plan")}
                   </button>
                 ) : user ? (
                   tier.key === "free" ? (
