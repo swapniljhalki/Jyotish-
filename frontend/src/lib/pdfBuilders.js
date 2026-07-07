@@ -413,8 +413,11 @@ function drawKundaliDiagram(doc, chart, x, y, size) {
   };
 
   // Font sizes scale gently with chart size so 80 mm and 110 mm both read well.
+  // At 76 mm (Chandra / Navamsha) the small triangular cells only comfortably
+  // fit ~3 two-letter codes on one line — shrink the planet font extra hard
+  // there so a rare 4+ planet cell can't overflow into a neighbour.
   const rashiFs  = Math.max(7, Math.min(11, size * 0.10));
-  const planetFs = Math.max(6, Math.min(9,  size * 0.085));
+  const basePlanetFs = Math.max(5.5, Math.min(9, size * 0.075));
 
   for (let h = 1; h <= 12; h++) {
     const cx = x + centers[h][0] * s;
@@ -428,18 +431,25 @@ function drawKundaliDiagram(doc, chart, x, y, size) {
     doc.setTextColor(...hex("#6B4308"));
     doc.text(String(((signIdx ?? 0) % 12) + 1), cx, cy - size * 0.015, { align: "center" });
 
-    // Planet codes — wrap to 2 lines if more than 3 in the same house
+    // Planet codes — wrap to 2 lines if more than 3 in the same house, and
+    // shrink progressively so even a rare 4-planet cell fits inside the
+    // triangular cell on the compact (76 mm) Chandra / Navamsha diagrams.
     if (planets.length) {
+      const shrink = planets.length <= 2 ? 0
+                   : planets.length === 3 ? 0.6
+                   : planets.length === 4 ? 1.2
+                   : 1.6;
+      const planetFs = Math.max(4.5, basePlanetFs - shrink);
       doc.setFont(fonts.body, "normal");
-      doc.setFontSize(planets.length > 3 ? planetFs - 0.5 : planetFs);
+      doc.setFontSize(planetFs);
       doc.setTextColor(...hex(brand.body));
       const lineY = cy + size * 0.045;
       if (planets.length <= 3) {
         doc.text(planets.join(" "), cx, lineY, { align: "center" });
       } else {
         const mid = Math.ceil(planets.length / 2);
-        doc.text(planets.slice(0, mid).join(" "), cx, lineY,                  { align: "center" });
-        doc.text(planets.slice(mid).join(" "),    cx, lineY + size * 0.055,   { align: "center" });
+        doc.text(planets.slice(0, mid).join(" "), cx, lineY,                { align: "center" });
+        doc.text(planets.slice(mid).join(" "),    cx, lineY + size * 0.048, { align: "center" });
       }
     }
   }
