@@ -460,3 +460,16 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - Wired into `buildBasicPdf` and `buildPremiumAstroPdf` between the Nakshatra section and Planetary Positions. `buildPremiumNumerologyPdf` intentionally untouched (numerology-only report).
 - Verified end-to-end (iteration_13): Basic PDF now 5 pages, Premium Astrology now 8 pages. Rendered page 3 to PNG — all 12 rashi numbers, planet codes (Su/Mo/Ma/Me/Ju/Ve/Sa/Ra/Ke), and Asc marker visible on every chart. No clipping, no errors.
 
+
+## Feb 28, 2026 — Hybrid PDFs: text-based body + on-screen chart snapshots
+- User request: "Can we ensure PDF is prepared as it is shown in all tiers" → user picked hybrid option (c).
+- Added `html-to-image ^1.11.13` dependency.
+- New helpers in `/app/frontend/src/lib/pdfBuilders.js`:
+  - `snapshotByTestId(testId)` — captures a DOM element by data-testid to a PNG data-URL at 2× pixel-ratio on parchment background. Uses html-to-image's `filter` option to strip any `.no-print` node (removes "Click to expand" hover hints from the captured cards). Returns null on failure.
+  - `drawSnapshot(doc, snap, x, y, maxW, maxH)` — scales+centres the PNG into a PDF bounding box preserving aspect ratio.
+  - `drawKundaliChartsFromScreen(doc, reading, [d1Id, chandraId, navamshaId])` — dedicated page: D1 raster full-width on top, Chandra + Navamsha raster side-by-side below. Falls back to the vector-diamond `drawKundaliChartsPage()` if all snapshots fail.
+  - `drawNumerologyGridsFromScreen(doc, num, y, containerTestId)` — raster snapshot of the on-screen Lo Shu + Vedic Planetary Chart pair. Falls back to vector `drawLoShu` + `drawVedicPlanetChart` autoTables if the container isn't on-screen.
+- All three public builders are now `async`; `ResultActions.jsx` awaits them. Tables, subject header, planetary positions, Vimshottari mahadasha, numerology overview, and AI reading remain pure jsPDF text (fully selectable).
+- Basic PDF ID triples: `basic-expand-kundali-{d1,chandra,navamsha}`. Premium Astrology: `expand-kundali-{d1,chandra,navamsha}`. Premium Numerology grids: `premium-numerology-charts`.
+- Verified end-to-end (iteration_14): PDFs on all three tiers now embed raster snapshots of the on-screen chart cards on the diagram pages while keeping all body text selectable. All acceptance criteria pass. Only cosmetic follow-up ("Click to expand" hint inside snapshots) resolved by adding a `filter` predicate that drops nodes with class `no-print`.
+

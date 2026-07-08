@@ -483,6 +483,13 @@ async function snapshotByTestId(testId, options = {}) {
       pixelRatio: 2,
       backgroundColor: "#FDFBF7",
       cacheBust: true,
+      // Skip any element already marked "no-print" (e.g. the "Click to expand"
+      // hover hint on the kundali cards) so the PDF snapshot matches the
+      // resting print state, not the interactive on-screen state.
+      filter: (node) => {
+        if (node.classList && node.classList.contains("no-print")) return false;
+        return true;
+      },
       // Neutralise the hover-lift transform + focus ring so the capture
       // looks like the resting state, not the mid-interaction state.
       style: { transform: "none", boxShadow: "none" },
