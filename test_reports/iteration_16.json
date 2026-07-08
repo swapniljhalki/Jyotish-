@@ -1,0 +1,59 @@
+{
+  "summary": "Retest of iteration_15's 5 concrete PDF formatting bugs on Vedic Astrology + Numerology PDFs after fixes in /app/frontend/src/lib/pdfBuilders.js. Logged in as basic.test / premium.test, generated Ravi Kumar/1990-05-15/14:30/Mumbai on /basic and /premium, downloaded all 3 PDFs (basic.pdf 3pp, premium.pdf 6pp, premium_num.pdf 4pp) and rendered every affected page to PNG via pdftoppm at 130 DPI. Compared visuals + pdftotext -layout against iteration_15's failing screenshots. ALL 5 BUGS ARE VISUALLY FIXED. Regression checks — SNW watermark still renders as subtle circular mark just above 'Page X of N' footer on all content pages (verified basic p2/p3, premium p5, premium_num p4); Planetary Positions table retains Navamsha column + States column with Direct/Vargottam/Retrograde/Exalted/Retrograde, Vargottam values; Chandra Rashi + Navamsha D9 stacked snapshots render on basic p3; Vimshottari intro + current-running line preserved on premium p4; Numerology cover shows '6 · Venus / 3 · Jupiter / 7 · Ketu (South Node)' with 'Beauty / Wisdom / Mystic depth' trait sub-labels; cover 3x2 meta grid intact.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "drawNumerologyCoverPage — Mulank/Bhagyank/Naamank box labels (pdfBuilders.js drawMetaBox / drawNumerologyCoverPage)",
+        "issue": "MINOR (not in retest scope but new observation): The three meta-grid box labels 'MULANK (ROOT NUMBER)', 'BHAGYANK (DESTINY NUMBER)', 'NAAMANK (NAME NUMBER)' overflow their box widths at charSpace ~1.2 and are visually clipped by the box border ('MULANK (ROOT NUMB', 'BHAGYANK (DESTINY N', 'NAAMANK (NAME NU|MBER)'). The value line (6 · Venus etc.) and trait sub-label render correctly. Same drawFittedTitle/splitTextToSize treatment applied to the astrology cover PADA line should be applied to these labels. Also the sub-tagline 'A VEDIC NUMEROLOGY JOURNEY · BASED ON JYOTISHA + CHALDEAN' shows 'CHALDEAN' truncated to 'CHALDEA' at right margin.",
+        "selector": "premium_num.pdf p1, Mulank/Bhagyank/Naamank meta boxes + sub-tagline",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "retest_results": {
+    "bug1_nakshatra_sanskrit_garble": "FIXED — Cover page 1 now renders only English 'Uttara Ashadha' for the nakshatra name. No Devanagari sub-line, no '$M$0>7>\"' artefacts.",
+    "bug2_pada_line_overflow": "FIXED — 'PADA 2 · Sagittarius 26°40 2–Capricorn 10°' fits entirely inside page width on one line; no right-edge clipping. splitTextToSize is applied.",
+    "bug3_reading_heading_truncation": "FIXED — 'DETAILED VEDIC KUNDALI READING FOR RAVI KUMAR' renders in full on premium.pdf p5 via drawFittedTitle(). No 'RAVI KUM' truncation. Verified in raster and pdftotext output. Basic.pdf currently has 3 pages (no reading section in this run — reading.advice likely absent from basic API response), so heading not present but drawFittedTitle path is identical and passes on premium.",
+    "bug4_numerology_ruler_column": "FIXED — Every row of the 81-Year Mahadasha table shows real planet names ('Sun (Surya)', 'Moon (Chandra)', 'Jupiter (Guru)', 'Rahu (North Node)', 'Mercury (Budha)', 'Venus (Shukra)', 'Ketu (South Node)', 'Saturn (Shani)', 'Mars (Mangal)') via NUMEROLOGY_RULERS[m.number] fallback. No '—' rows. '4 (current)' row correctly flagged.",
+    "bug5_markdown_h1_leak": "FIXED — Premium p5 body no longer begins with a literal '# Vedic Kundali Reading for Ravi Kumar'. Instead H1 renders as a subdued gold centered sub-heading ('Vedic Kundali Interpretation for Ravi Kumar'). H2/H3 subheadings (Overall Personality, Career & Dharma, Wealth & Finances, Relationships & Marriage) still render as bold underlined section headings — no regression."
+  },
+  "regression_checks": {
+    "snw_watermark_all_content_pages": "PASS — subtle circular SNW watermark above footer on basic p2/p3, premium p5, premium_num p4.",
+    "planetary_positions_navamsha_states": "PASS — Navamsha column populated (Capricorn/Taurus/Leo/Aquarius/Sagittarius/Gemini/Libra), States column shows Direct/Vargottam/Retrograde/Exalted/Retrograde,Vargottam correctly.",
+    "cover_3x2_meta_grid": "PASS on astrology cover (DoB/ToB/PoB + Ascendant/Sun/Moon boxes).",
+    "chandra_rashi_and_navamsha_page3": "PASS — both charts render on basic.pdf p3 with 'Chandra Lagna: Capricorn' and 'Navamsha Ascendant: Sagittarius' captions.",
+    "numerology_cover_grid": "PASS — '6 · Venus / 3 · Jupiter / 7 · Ketu (South Node)' with Beauty/Wisdom/Mystic depth traits. (Minor label-overflow noted above.)",
+    "vimshottari_intro_and_current_line": "PASS on premium.pdf (Rahu — Moon — Moon current-running line preserved)."
+  },
+  "test_report_links": [
+    "/app/test_reports/pdfs4/basic.pdf",
+    "/app/test_reports/pdfs4/premium.pdf",
+    "/app/test_reports/pdfs4/premium_num.pdf",
+    "/app/test_reports/pdfs4/premium-1.png",
+    "/app/test_reports/pdfs4/premium-5.png",
+    "/app/test_reports/pdfs4/premium_num-1.png",
+    "/app/test_reports/pdfs4/premium_num-4.png",
+    "/app/test_reports/pdfs4/basic-2.png",
+    "/app/test_reports/pdfs4/basic-3.png"
+  ],
+  "action_items": [
+    "OPTIONAL / LOW priority: apply the same splitTextToSize + charSpace-reduction treatment used for PADA line to the numerology cover's meta box labels ('MULANK (ROOT NUMBER)' etc.) and the sub-tagline 'A VEDIC NUMEROLOGY JOURNEY · BASED ON JYOTISHA + CHALDEAN' to prevent right-edge clipping. Not a blocker.",
+    "OPTIONAL: verify basic tier reading.advice presence — basic.pdf came back as 3 pages (no DETAILED VEDIC KUNDALI READING page). If basic tier is expected to include the reading page, investigate whether backend returned advice=null on this run or whether the conditional gate at pdfBuilders.js L1012 (`if (reading.advice)`) is correctly satisfied on the basic flow."
+  ],
+  "critical_code_review_comments": [
+    "drawFittedTitle() is the correct pattern for center-aligned charSpace text — it should also be used for the two long labels on the numerology cover to fully eliminate the remaining right-edge clipping.",
+    "NUMEROLOGY_RULERS lookup fallback (m.name || NUMEROLOGY_RULERS[m.number] || '—') at pdfBuilders.js L1111 is clean — preserves backend-provided names if ever added later while guaranteeing coverage today.",
+    "drawMarkdown now handles '# ' correctly (renders as subdued sub-heading) — matches the reference PDF visual language.",
+    "pdfBuilders.js has grown to 1142 lines — consider splitting into per-page draw helpers file (drawAstroCoverPage, drawPlanetaryPositions, drawNumerologyMahadasha etc.) in a follow-up refactor for maintainability. Not blocking."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped per request)", "frontend": "100% on the 5 retest items + all requested regression checks; 1 LOW-priority minor overflow on numerology cover labels remains (pre-existing, not part of this iteration's fix scope)." },
+  "test_credentials": "basic.test@vedic.com / Basic@2026 ; premium.test@vedic.com / Premium@2026",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "PDFs in /app/test_reports/pdfs4/. All 5 iteration_15 bugs are visually confirmed fixed. If the numerology cover label overflow is picked up as a follow-up fix, verify by re-downloading premium_num.pdf and checking p1 raster — the labels 'MULANK (ROOT NUMBER)', 'BHAGYANK (DESTINY NUMBER)', 'NAAMANK (NAME NUMBER)' should fit inside their box borders, and the sub-tagline '...JYOTISHA + CHALDEAN' should show the full word 'CHALDEAN'. Also, if basic tier is meant to have the DETAILED VEDIC KUNDALI READING page, verify basic.pdf has ≥4 pages after regeneration."
+}

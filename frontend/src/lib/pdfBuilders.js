@@ -52,6 +52,23 @@ const RASHI_SANSKRIT = {
   "Capricorn": "Makara", "Aquarius": "Kumbha", "Pisces": "Meena",
 };
 
+/** Ruler planet for each mulank-derived Numerology Mahadasha. Matches the
+ *  Vedic mapping used on-screen in the Premium Numerology card and in
+ *  `/app/backend/numerology.py` (VEDIC_PLANET_MAP). Backend's num_dasha.py
+ *  currently doesn't echo the planet name back per Mahadasha row, so we
+ *  derive it here from `m.number` (1..9). */
+const NUMEROLOGY_RULERS = {
+  1: "Sun (Surya)",
+  2: "Moon (Chandra)",
+  3: "Jupiter (Guru)",
+  4: "Rahu (North Node)",
+  5: "Mercury (Budha)",
+  6: "Venus (Shukra)",
+  7: "Ketu (South Node)",
+  8: "Saturn (Shani)",
+  9: "Mars (Mangal)",
+};
+
 /** Format a raw ISO-ish date-of-birth string into "5 February 1976". */
 const formatDob = (dob) => {
   if (!dob) return "—";
@@ -186,23 +203,26 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
     doc.text("NAKSHATRA REPORT  ·  MOON'S STAR", page.w / 2, y, { align: "center", charSpace: 1.4 });
     y += 6;
 
-    // Nakshatra name — English + Sanskrit
+    // Nakshatra name — English only. jsPDF's built-in Helvetica has no
+    // Devanagari glyphs, so we intentionally drop the Sanskrit unicode form
+    // here to avoid garbled output. (A future enhancement can addFont() a
+    // NotoSansDevanagari.ttf and render nak.sanskrit as a real sub-line.)
     doc.setFont(fonts.heading, "bold");
     doc.setFontSize(16);
     doc.setTextColor(...hex(brand.ink));
-    const nakLine = nak.sanskrit
-      ? `${nak.name}   ${nak.sanskrit}`
-      : (nak.name || "—");
-    doc.text(nakLine, page.w / 2, y, { align: "center" });
+    doc.text(nak.name || "—", page.w / 2, y, { align: "center" });
     y += 6;
 
-    // Pada + range
+    // Pada + range — measure & auto-wrap to guarantee no overflow.
     doc.setFont(fonts.body, "italic");
     doc.setFontSize(9);
     doc.setTextColor(...hex(brand.saffron));
     const padaLine = `PADA ${nak.pada ?? "—"}${nak.range ? "   ·   " + nak.range : ""}`;
-    doc.text(padaLine, page.w / 2, y, { align: "center", charSpace: 1.2 });
-    y += 5;
+    const padaLines = doc.splitTextToSize(padaLine, usable - 20);
+    padaLines.slice(0, 2).forEach((ln, i) => {
+      doc.text(ln, page.w / 2, y + i * 4.5, { align: "center" });
+    });
+    y += Math.min(2, padaLines.length) * 4.5 + 1;
 
     // Description
     if (nak.description) {
@@ -367,8 +387,36 @@ function drawParagraph(doc, text, y, opts = {}) {
   return y + 2;
 }
 
+/** Draw a center-aligned page heading that is guaranteed to fit within the
+ *  usable page width by shrinking either the char-spacing or the font size.
+ *  Prevents "RAVI KUM" style right-edge clipping we hit on long subject
+ *  names ("DETAILED VEDIC KUNDALI READING FOR <NAME>"). */
+function drawFittedTitle(doc, text, y, { size = 14, weight = "bold", color, maxCharSpace = 1.1 } = {}) {
+  const { page, margin, brand, fonts } = LAYOUT;
+  const maxW = page.w - margin.x * 2;
+  doc.setFont(fonts.heading, weight);
+  doc.setFontSize(size);
+  doc.setTextColor(...hex(color || brand.ink));
+
+  // First try: honour maxCharSpace. If overflows, drop char-spacing then font.
+  let charSpace = maxCharSpace;
+  const measure = () => doc.getTextWidth(text) + (text.length - 1) * charSpace;
+  if (measure() > maxW) { charSpace = 0.3; }
+  if (measure() > maxW) {
+    charSpace = 0;
+    // Shrink size until it fits (down to a floor of 9pt).
+    let s = size;
+    while (s > 9 && doc.getTextWidth(text) > maxW) {
+      s -= 0.5;
+      doc.setFontSize(s);
+    }
+  }
+  doc.text(text, page.w / 2, y, { align: "center", charSpace });
+  return y + Math.max(6, size * 0.55);
+}
+
 /** Convert Claude's Markdown reading into styled PDF blocks. Supports
- *  ##/### headings, blank-line paragraph breaks and inline **bold**. */
+ *  #/##/### headings, blank-line paragraph breaks and inline **bold**. */
 function drawMarkdown(doc, md, y) {
   const { margin, page, brand } = LAYOUT;
   if (!md) return y;
@@ -380,19 +428,34 @@ function drawMarkdown(doc, md, y) {
 
     if (y > page.h - margin.y - 15) { doc.addPage(); y = margin.y; }
 
-    // Headings
-    const h2 = block.match(/^##\s+(.+)/);
+    // Headings — order matters: ### before ## before # so the more-specific
+    // pattern wins. Previously we skipped H1 entirely, which leaked a literal
+    // "# " into the body when Claude opens the reading with a top-level title.
     const h3 = block.match(/^###\s+(.+)/);
-    if (h2) {
-      y = drawSectionHeading(doc, h2[1], y + 4);
-      continue;
-    }
+    const h2 = block.match(/^##\s+(.+)/);
+    const h1 = block.match(/^#\s+(.+)/);
     if (h3) {
       doc.setFont(LAYOUT.fonts.heading, "bold");
       doc.setFontSize(11);
       doc.setTextColor(...hex(brand.gold));
       doc.text(h3[1], margin.x, y);
       y += 6;
+      continue;
+    }
+    if (h2) {
+      y = drawSectionHeading(doc, h2[1], y + 4);
+      continue;
+    }
+    if (h1) {
+      // Backend often opens the AI reading with a top-level title ("# Vedic
+      // Kundali Reading for <name>") that duplicates the page heading. Render
+      // it as a subdued sub-heading so nothing leaks as literal "# ".
+      doc.setFont(LAYOUT.fonts.heading, "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(...hex(brand.saffron));
+      const wrapped = doc.splitTextToSize(h1[1], page.w - margin.x * 2);
+      wrapped.forEach((ln, i) => doc.text(ln, LAYOUT.page.w / 2, y + i * 5.5, { align: "center" }));
+      y += wrapped.length * 5.5 + 3;
       continue;
     }
 
@@ -949,15 +1012,12 @@ export async function buildBasicPdf(reading, inputs) {
   if (reading.advice) {
     doc.addPage();
     let y = LAYOUT.margin.y;
-    doc.setFont(LAYOUT.fonts.heading, "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(...hex(LAYOUT.brand.ink));
     const name = (inputs?.full_name || reading.summary?.name || "your reading").toUpperCase();
-    doc.text(`DETAILED VEDIC KUNDALI READING FOR ${name}`, LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.1 });
+    y = drawFittedTitle(doc, `DETAILED VEDIC KUNDALI READING FOR ${name}`, y, { size: 14 });
     doc.setDrawColor(...hex(LAYOUT.brand.gold));
     doc.setLineWidth(0.3);
-    doc.line(LAYOUT.margin.x + 20, y + 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y + 3);
-    y += 10;
+    doc.line(LAYOUT.margin.x + 20, y - 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y - 3);
+    y += 6;
     drawMarkdown(doc, reading.advice, y);
   }
 
@@ -1002,15 +1062,12 @@ export async function buildPremiumAstroPdf(reading, inputs) {
   if (reading.advice) {
     doc.addPage();
     let y = LAYOUT.margin.y;
-    doc.setFont(LAYOUT.fonts.heading, "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(...hex(LAYOUT.brand.ink));
     const name = (inputs?.full_name || reading.summary?.name || "you").toUpperCase();
-    doc.text(`DETAILED VEDIC KUNDALI READING FOR ${name}`, LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.1 });
+    y = drawFittedTitle(doc, `DETAILED VEDIC KUNDALI READING FOR ${name}`, y, { size: 14 });
     doc.setDrawColor(...hex(LAYOUT.brand.gold));
     doc.setLineWidth(0.3);
-    doc.line(LAYOUT.margin.x + 20, y + 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y + 3);
-    y += 8;
+    doc.line(LAYOUT.margin.x + 20, y - 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y - 3);
+    y += 4;
     doc.setFont(LAYOUT.fonts.heading, "bold");
     doc.setFontSize(10);
     doc.setTextColor(...hex(LAYOUT.brand.saffron));
@@ -1051,7 +1108,7 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
     const cur = dasha.current?.mahadasha;
     const rows = dasha.mahadashas.map((m) => [
       `${m.number}${m.number === cur ? "   (current)" : ""}`,
-      m.name || "—",
+      m.name || NUMEROLOGY_RULERS[m.number] || "—",
       new Date(m.start).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
       new Date(m.end).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
       String(m.years),
@@ -1071,15 +1128,12 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
   if (reading.numerology_advice) {
     doc.addPage();
     y = LAYOUT.margin.y;
-    doc.setFont(LAYOUT.fonts.heading, "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(...hex(LAYOUT.brand.ink));
     const name = (inputs?.full_name || reading.summary?.name || "you").toUpperCase();
-    doc.text(`DETAILED VEDIC NUMEROLOGY READING FOR ${name}`, LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.1 });
+    y = drawFittedTitle(doc, `DETAILED VEDIC NUMEROLOGY READING FOR ${name}`, y, { size: 14 });
     doc.setDrawColor(...hex(LAYOUT.brand.gold));
     doc.setLineWidth(0.3);
-    doc.line(LAYOUT.margin.x + 20, y + 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y + 3);
-    y += 10;
+    doc.line(LAYOUT.margin.x + 20, y - 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y - 3);
+    y += 6;
     drawMarkdown(doc, reading.numerology_advice, y);
   }
 
