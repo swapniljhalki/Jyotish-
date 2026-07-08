@@ -20,6 +20,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toPng } from "html-to-image";
 import ganeshaBanner from "../assets/ganesha-banner-pdf.jpg";
+import snwLogo from "../assets/snw-logo.jpg";
 
 // ---------- design tokens ---------------------------------------------------
 const LAYOUT = {
@@ -42,61 +43,292 @@ const hex = (h) => {
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
 };
 
-/** Add a bordered "Satish Numero World" title band + ganesha invocation to
- *  the current page. Called at the very start of every PDF so page 1 is
- *  consistent across all report types. */
-function drawCoverBanner(doc) {
-  const { page, margin, brand } = LAYOUT;
-  const w = page.w - margin.x * 2;
-  const bandY = margin.y;
-  const bandH = 22;
+// ---------- helpers for cover metadata boxes --------------------------------
 
-  // Top + bottom gilded rules
+const RASHI_SANSKRIT = {
+  "Aries": "Mesha", "Taurus": "Vrishabha", "Gemini": "Mithuna",
+  "Cancer": "Karka", "Leo": "Simha", "Virgo": "Kanya",
+  "Libra": "Tula", "Scorpio": "Vrishchika", "Sagittarius": "Dhanu",
+  "Capricorn": "Makara", "Aquarius": "Kumbha", "Pisces": "Meena",
+};
+
+/** Format a raw ISO-ish date-of-birth string into "5 February 1976". */
+const formatDob = (dob) => {
+  if (!dob) return "—";
+  const d = new Date(dob);
+  if (isNaN(d)) return dob;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+};
+
+/** Draw a single metadata box (top label + big value + optional sanskrit). */
+function drawMetaBox(doc, x, y, w, h, label, value, sub) {
+  const { brand, fonts } = LAYOUT;
   doc.setDrawColor(...hex(brand.gold));
   doc.setLineWidth(0.4);
-  doc.line(margin.x, bandY,          margin.x + w, bandY);
-  doc.line(margin.x, bandY + bandH,  margin.x + w, bandY + bandH);
+  doc.setFillColor(255, 251, 242);
+  doc.rect(x, y, w, h, "FD");
 
-  // Brand name — Cormorant/EB Garamond aren't embeddable easily via jsPDF's
-  // stock font set, so we use Helvetica-Bold with wide letter-spacing to
-  // approximate the elegant serif feel used on the web.
-  doc.setFont(LAYOUT.fonts.heading, "bold");
-  doc.setFontSize(22);
-  doc.setTextColor(...hex(brand.ink));
-  doc.text("SATISH NUMERO WORLD", page.w / 2, bandY + 12.5, {
-    align: "center",
-    charSpace: 1.4,
-  });
-
-  // Subtitle — small caps tagline
-  doc.setFont(LAYOUT.fonts.heading, "normal");
-  doc.setFontSize(8);
+  // Label — small caps
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(7.5);
   doc.setTextColor(...hex(brand.gold));
-  doc.text("NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", page.w / 2, bandY + 18.5, {
-    align: "center",
-    charSpace: 2.0,
-  });
+  doc.text((label || "").toUpperCase(), x + w / 2, y + 5, { align: "center", charSpace: 1.2 });
 
-  // Ganesha invocation image — centred beneath the band, sized to leave
-  // headroom for the report title below.
-  const gY = bandY + bandH + 8;
-  const gH = 78;
-  const gW = 78;                       // roughly square artwork
-  doc.addImage(ganeshaBanner, "JPEG", (page.w - gW) / 2, gY, gW, gH, undefined, "FAST");
-
-  // Sanskrit invocation caption
-  doc.setFont(LAYOUT.fonts.body, "italic");
+  // Value — main text
+  doc.setFont(fonts.body, "bold");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.ink));
-  doc.text("Shri Ganeshaya Namah", page.w / 2, gY + gH + 8, { align: "center" });
-  doc.setFontSize(9);
-  doc.setTextColor(...hex(brand.subtle));
-  doc.text("Vakratunda Mahakaya · Suryakoti Samaprabha", page.w / 2, gY + gH + 14, {
-    align: "center",
+  const val = value || "—";
+  const wrapped = doc.splitTextToSize(val, w - 6);
+  const valY = y + 5 + 6 + (wrapped.length === 1 ? 3 : 0);
+  wrapped.slice(0, 2).forEach((ln, i) => {
+    doc.text(ln, x + w / 2, valY + i * 4.6, { align: "center" });
   });
 
-  // Return the y-coordinate after the banner so callers can continue below.
-  return gY + gH + 22;
+  // Sanskrit / sub caption
+  if (sub) {
+    doc.setFont(fonts.body, "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(...hex(brand.subtle));
+    doc.text(sub, x + w / 2, y + h - 3, { align: "center" });
+  }
+}
+
+/** Cover page for the Astrology (Basic + Premium) PDFs. Matches the sample
+ *  reference PDF layout: brand + Ganesha + name + 3-box birth grid +
+ *  Nakshatra summary + SNW watermark. */
+function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
+  const { page, margin, brand, fonts } = LAYOUT;
+  const src = inputs || reading.inputs || {};
+
+  // 1) Brand band
+  const bandY = margin.y - 4;
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.4);
+  doc.line(margin.x, bandY,     page.w - margin.x, bandY);
+  doc.line(margin.x, bandY + 20, page.w - margin.x, bandY + 20);
+
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(22);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text("SATISH NUMERO WORLD", page.w / 2, bandY + 11, { align: "center", charSpace: 1.4 });
+  doc.setFont(fonts.heading, "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...hex(brand.gold));
+  doc.text("NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", page.w / 2, bandY + 17.5, { align: "center", charSpace: 2 });
+
+  // 2) Ganesha invocation
+  const gY = bandY + 26;
+  const gH = 44;
+  const gW = 44;
+  doc.addImage(ganeshaBanner, "JPEG", (page.w - gW) / 2, gY, gW, gH, undefined, "FAST");
+
+  doc.setFont(fonts.body, "italic");
+  doc.setFontSize(10);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text("Shri Ganeshaya Namah", page.w / 2, gY + gH + 5, { align: "center" });
+  doc.setFontSize(8);
+  doc.setTextColor(...hex(brand.subtle));
+  doc.text("Vakratunda Mahakaya  ·  Suryakoti Samaprabha", page.w / 2, gY + gH + 10, { align: "center" });
+
+  // 3) Report title + subject name
+  let y = gY + gH + 20;
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...hex(brand.gold));
+  doc.text((reportTitle || "VEDIC KUNDALI REPORT").toUpperCase(), page.w / 2, y, { align: "center", charSpace: 1.5 });
+
+  y += 8;
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text(src.full_name || reading.summary?.name || "—", page.w / 2, y, { align: "center" });
+
+  // Gold hairline under name
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.3);
+  doc.line(page.w / 2 - 40, y + 3, page.w / 2 + 40, y + 3);
+
+  // 4) Three-box birth grid
+  y += 12;
+  const usable = page.w - margin.x * 2;
+  const gap = 4;
+  const boxW = (usable - gap * 2) / 3;
+  const boxH = 26;
+
+  const asc = reading.chart?.ascendant_english || reading.summary?.ascendant || reading.ascendant;
+  const sun = reading.sun_sign || reading.summary?.sun_sign;
+  const moon = reading.moon_sign || reading.summary?.moon_sign;
+
+  drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH,
+    "Date of Birth", formatDob(src.date_of_birth));
+  drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH,
+    "Time of Birth", src.time_of_birth || "—");
+  drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH,
+    "Place of Birth", src.place_of_birth || reading.summary?.pob || "—");
+
+  y += boxH + gap;
+  drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH,
+    "Ascendant", asc || "—", asc && RASHI_SANSKRIT[asc] ? RASHI_SANSKRIT[asc] : null);
+  drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH,
+    "Sun Sign", sun || "—", sun && RASHI_SANSKRIT[sun] ? RASHI_SANSKRIT[sun] : null);
+  drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH,
+    "Moon Sign", moon || "—", moon && RASHI_SANSKRIT[moon] ? RASHI_SANSKRIT[moon] : null);
+
+  y += boxH + 10;
+
+  // 5) Nakshatra summary block
+  const nak = reading.chart?.nakshatra_report;
+  if (nak && y < page.h - 65) {
+    doc.setFont(fonts.heading, "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...hex(brand.gold));
+    doc.text("NAKSHATRA REPORT  ·  MOON'S STAR", page.w / 2, y, { align: "center", charSpace: 1.4 });
+    y += 6;
+
+    // Nakshatra name — English + Sanskrit
+    doc.setFont(fonts.heading, "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(...hex(brand.ink));
+    const nakLine = nak.sanskrit
+      ? `${nak.name}   ${nak.sanskrit}`
+      : (nak.name || "—");
+    doc.text(nakLine, page.w / 2, y, { align: "center" });
+    y += 6;
+
+    // Pada + range
+    doc.setFont(fonts.body, "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(...hex(brand.saffron));
+    const padaLine = `PADA ${nak.pada ?? "—"}${nak.range ? "   ·   " + nak.range : ""}`;
+    doc.text(padaLine, page.w / 2, y, { align: "center", charSpace: 1.2 });
+    y += 5;
+
+    // Description
+    if (nak.description) {
+      doc.setFont(fonts.body, "italic");
+      doc.setFontSize(9);
+      doc.setTextColor(...hex(brand.body));
+      const wrapped = doc.splitTextToSize(nak.description, usable - 20);
+      wrapped.slice(0, 2).forEach((ln, i) => {
+        doc.text(ln, page.w / 2, y + i * 4.5, { align: "center" });
+      });
+      y += Math.min(2, wrapped.length) * 4.5 + 2;
+    }
+
+    // Small attribute strip: Deity · Gana · Symbol · Quality · Ruler
+    const attrs = [
+      ["Deity",   nak.deity],   ["Gana",    nak.gana],
+      ["Symbol",  nak.symbol],  ["Quality", nak.quality],
+      ["Ruler",   nak.ruler],
+    ].filter(([, v]) => v);
+    if (attrs.length) {
+      y += 2;
+      const stripW = (usable - 10) / attrs.length;
+      attrs.forEach(([label, val], i) => {
+        const cx = margin.x + 5 + stripW * i + stripW / 2;
+        doc.setFont(fonts.heading, "bold");
+        doc.setFontSize(6.5);
+        doc.setTextColor(...hex(brand.gold));
+        doc.text(label.toUpperCase(), cx, y, { align: "center", charSpace: 1 });
+        doc.setFont(fonts.body, "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(...hex(brand.body));
+        doc.text(String(val), cx, y + 4, { align: "center" });
+      });
+    }
+  }
+}
+
+/** Cover page for the Numerology PDF. Same aesthetic as astrology cover but
+ *  the three-box grid + summary swap in numerology-specific numbers. */
+function drawNumerologyCoverPage(doc, reading, inputs) {
+  const { page, margin, brand, fonts } = LAYOUT;
+  const src = inputs || reading.inputs || {};
+  const num = reading.chart?.numerology;
+
+  // Brand band (same as astrology)
+  const bandY = margin.y - 4;
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.4);
+  doc.line(margin.x, bandY,     page.w - margin.x, bandY);
+  doc.line(margin.x, bandY + 20, page.w - margin.x, bandY + 20);
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(22);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text("SATISH NUMERO WORLD", page.w / 2, bandY + 11, { align: "center", charSpace: 1.4 });
+  doc.setFont(fonts.heading, "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...hex(brand.gold));
+  doc.text("NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", page.w / 2, bandY + 17.5, { align: "center", charSpace: 2 });
+
+  // Ganesha
+  const gY = bandY + 26;
+  const gH = 44, gW = 44;
+  doc.addImage(ganeshaBanner, "JPEG", (page.w - gW) / 2, gY, gW, gH, undefined, "FAST");
+  doc.setFont(fonts.body, "italic");
+  doc.setFontSize(10);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text("Shri Ganeshaya Namah", page.w / 2, gY + gH + 5, { align: "center" });
+  doc.setFontSize(8);
+  doc.setTextColor(...hex(brand.subtle));
+  doc.text("Vakratunda Mahakaya  ·  Suryakoti Samaprabha", page.w / 2, gY + gH + 10, { align: "center" });
+
+  // Report title + name
+  let y = gY + gH + 20;
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...hex(brand.gold));
+  doc.text("VEDIC NUMEROLOGY REPORT", page.w / 2, y, { align: "center", charSpace: 1.5 });
+  y += 8;
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(20);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text(src.full_name || reading.summary?.name || "—", page.w / 2, y, { align: "center" });
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.3);
+  doc.line(page.w / 2 - 40, y + 3, page.w / 2 + 40, y + 3);
+
+  // Three-box birth grid (row 1)
+  y += 12;
+  const usable = page.w - margin.x * 2;
+  const gap = 4;
+  const boxW = (usable - gap * 2) / 3;
+  const boxH = 26;
+  drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH, "Date of Birth", formatDob(src.date_of_birth));
+  drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH, "Time of Birth", src.time_of_birth || "—");
+  drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH, "Place of Birth", src.place_of_birth || reading.summary?.pob || "—");
+
+  // Row 2 — core numerology numbers
+  y += boxH + gap;
+  const numRow = (k, fallbackLabel) => {
+    const e = num?.[k];
+    return {
+      label: e?.label || fallbackLabel,
+      value: e ? `${e.number}  ·  ${e.planet_english || e.planet || ""}` : "—",
+      sub: e?.traits ? e.traits.split(",")[0] : null,
+    };
+  };
+  const mul = numRow("mulank",   "Mulank");
+  const bha = numRow("bhagyank", "Bhagyank");
+  const naa = numRow("naamank",  "Naamank");
+  drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH, mul.label, mul.value, mul.sub);
+  drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH, bha.label, bha.value, bha.sub);
+  drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH, naa.label, naa.value, naa.sub);
+
+  // Blessing footer strip
+  y += boxH + 12;
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(...hex(brand.gold));
+  doc.text("A VEDIC NUMEROLOGY JOURNEY  ·  BASED ON JYOTISHA + CHALDEAN + LO SHU TRADITIONS",
+    page.w / 2, y, { align: "center", charSpace: 1.2 });
+  y += 6;
+  doc.setFont(fonts.body, "italic");
+  doc.setFontSize(9.5);
+  doc.setTextColor(...hex(brand.body));
+  const blessing = "May the sacred sciences of numbers illuminate the path of your name and birth.";
+  doc.text(blessing, page.w / 2, y, { align: "center" });
 }
 
 /** Section heading with an accent underline. */
@@ -174,12 +406,32 @@ function drawMarkdown(doc, md, y) {
   return y;
 }
 
-/** Standard page footer — brand + page number. */
+/** Standard page footer — SNW watermark + brand + page number. Applied
+ *  to every page at build time (call at the end of the builder, after all
+ *  pages have been added, so total-page-count is correct). Page 1 (cover)
+ *  gets a smaller footer without the circular logo watermark. */
 function drawFooter(doc) {
   const { page, margin, brand } = LAYOUT;
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
+    // Circular SNW watermark — content pages only (skip cover).
+    if (i > 1) {
+      const wmSize = 22;
+      const wmX = (page.w - wmSize) / 2;
+      const wmY = page.h - wmSize - 14;
+      // jsPDF supports per-image GState opacity via the graphics state stack.
+      // The `snw-logo.jpg` is opaque; render at ~15% opacity for a subtle mark.
+      try {
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({ opacity: 0.14 }));
+        doc.addImage(snwLogo, "JPEG", wmX, wmY, wmSize, wmSize, undefined, "FAST");
+        doc.restoreGraphicsState();
+      } catch {
+        // Very old jsPDF fallback — draw without opacity control.
+        doc.addImage(snwLogo, "JPEG", wmX, wmY, wmSize, wmSize, undefined, "FAST");
+      }
+    }
     doc.setFont(LAYOUT.fonts.body, "italic");
     doc.setFontSize(8);
     doc.setTextColor(...hex(brand.subtle));
@@ -190,107 +442,48 @@ function drawFooter(doc) {
 
 // ---------- shared report sections ------------------------------------------
 
-function drawSubjectHeader(doc, r, subtitle, y, inputs) {
-  const { margin, brand, fonts } = LAYOUT;
-
-  // Report title
-  doc.setFont(fonts.heading, "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(...hex(brand.ink));
-  doc.text(subtitle, LAYOUT.page.w / 2, y, { align: "center" });
-
-  // Rule
-  doc.setDrawColor(...hex(brand.gold));
-  doc.setLineWidth(0.3);
-  doc.line(LAYOUT.page.w / 2 - 30, y + 3, LAYOUT.page.w / 2 + 30, y + 3);
-
-  // Subject block. `inputs` is what the user typed into BirthForm and lives in
-  // React state on Basic/Premium pages; the reading object itself doesn't
-  // always echo it back (SSE payload + polling status omit it), so callers
-  // pass it in explicitly.
-  const src = inputs || r.inputs || {};
-  y += 12;
-  doc.setFont(fonts.body, "italic");
-  doc.setFontSize(11);
-  doc.setTextColor(...hex(brand.body));
-  doc.text(`For: ${src.full_name || r.summary?.name || "—"}`, margin.x, y);
-
-  y += 6;
-  doc.setFont(fonts.body, "normal");
-  doc.setFontSize(9.5);
-  doc.setTextColor(...hex(brand.subtle));
-  const dob = src.date_of_birth || "—";
-  const tob = src.time_of_birth || "—";
-  const pob = src.place_of_birth || r.summary?.pob || "—";
-  doc.text(`Date of Birth: ${dob}     Time: ${tob}`, margin.x, y);
-  y += 5;
-  doc.text(`Place of Birth: ${pob}`, margin.x, y);
-
-  // Ascendant / Sun / Moon at a glance
-  const asc = r.chart?.ascendant_english || r.ascendant || r.summary?.ascendant;
-  const sun = r.sun_sign  || r.summary?.sun_sign;
-  const moon = r.moon_sign || r.summary?.moon_sign;
-  if (asc || sun || moon) {
-    y += 8;
-    doc.setFont(fonts.heading, "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(...hex(brand.saffron));
-    const parts = [];
-    if (asc)  parts.push(`Ascendant: ${asc}`);
-    if (sun)  parts.push(`Sun: ${sun}`);
-    if (moon) parts.push(`Moon: ${moon}`);
-    doc.text(parts.join("    ·    "), margin.x, y);
-  }
-  return y + 8;
-}
-
-function drawNakshatraSection(doc, r, y) {
-  const nak = r.chart?.nakshatra_report;
-  if (!nak) return y;
-  y = drawSectionHeading(doc, "Nakshatra Report", y + 4);
-  const rows = [
-    ["Moon Nakshatra",   nak.name || "—"],
-    ["Pada",             String(nak.pada ?? "—")],
-    ["Ruling Deity",     nak.deity || "—"],
-    ["Symbol",           nak.symbol || "—"],
-    ["Planetary Ruler",  nak.ruler || "—"],
-    ["Gana",             nak.gana || "—"],
-    ["Quality",          nak.quality || "—"],
-  ].filter(([, v]) => v && v !== "—");
-  autoTable(doc, {
-    startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
-    body: rows, theme: "plain",
-    styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: { top: 1.2, bottom: 1.2, left: 0, right: 4 }, textColor: hex(LAYOUT.brand.body) },
-    columnStyles: { 0: { fontStyle: "bold", textColor: hex(LAYOUT.brand.subtle), cellWidth: 45 } },
-  });
-  return doc.lastAutoTable.finalY + 4;
-}
-
 function drawPlanetaryPositions(doc, r, y) {
   const planets = r.chart?.planets;
   if (!planets) return y;
   y = drawSectionHeading(doc, "Planetary Positions", y + 4);
   // Backend planets can arrive as either an object keyed by planet code (older
-  // shape) or an array of {name, code, rashi_english, degree, nakshatra, ...}
-  // (current shape). Normalise to a list of rows.
+  // shape) or an array of {name, code, rashi_english, degree, nakshatra,
+  // navamsha_sign_english, states, retrograde ...}. Normalise to rows.
   const list = Array.isArray(planets) ? planets : Object.values(planets);
-  const rows = list.map((p) => [
-    p.name || p.code || "—",
-    p.rashi_english || p.rashi || "—",
-    p.degree != null
-      ? (typeof p.degree === "number" ? p.degree.toFixed(2) : p.degree) + "°"
-      : (p.deg_in_sign != null ? p.deg_in_sign.toFixed(2) + "°" : "—"),
-    p.nakshatra || "—",
-    String(p.house ?? "—"),
-    p.retrograde ? "Retrograde" : "Direct",
-  ]);
+  const rows = list.map((p) => {
+    const stateBits = [];
+    // `states` is the authoritative source (Retrograde, Vargottam, Exalted,
+    // Debilitated). Fall back to the legacy retrograde bool for older payloads.
+    if (Array.isArray(p.states) && p.states.length) {
+      stateBits.push(...p.states);
+    } else if (p.retrograde) {
+      stateBits.push("Retrograde");
+    }
+    const state = stateBits.length ? stateBits.join(", ") : "Direct";
+    return [
+      p.name || p.code || "—",
+      p.rashi_english || p.rashi || "—",
+      p.degree != null
+        ? (typeof p.degree === "number" ? p.degree.toFixed(2) : p.degree) + "°"
+        : (p.deg_in_sign != null ? p.deg_in_sign.toFixed(2) + "°" : "—"),
+      String(p.house ?? "—"),
+      p.navamsha_sign_english || p.navamsha_sign || "—",
+      state,
+    ];
+  });
   autoTable(doc, {
     startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
-    head: [["Graha", "Rashi", "Degree", "Nakshatra", "House", "State"]],
+    head: [["Graha", "Rashi", "Degree", "House", "Navamsha", "States"]],
     body: rows, theme: "grid",
-    styles: { font: LAYOUT.fonts.body, fontSize: 9, cellPadding: 1.5, textColor: hex(LAYOUT.brand.body) },
-    headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], font: LAYOUT.fonts.heading, fontStyle: "bold", fontSize: 9 },
+    styles: { font: LAYOUT.fonts.body, fontSize: 9, cellPadding: 1.8, textColor: hex(LAYOUT.brand.body) },
+    headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], font: LAYOUT.fonts.heading, fontStyle: "bold", fontSize: 9, halign: "center" },
     alternateRowStyles: { fillColor: [253, 250, 240] },
+    columnStyles: {
+      0: { fontStyle: "bold" },
+      2: { halign: "right" },
+      3: { halign: "center" },
+      5: { textColor: hex(LAYOUT.brand.saffron), fontStyle: "italic" },
+    },
   });
   return doc.lastAutoTable.finalY + 4;
 }
@@ -298,10 +491,26 @@ function drawPlanetaryPositions(doc, r, y) {
 function drawVimshottariMahadasha(doc, r, y) {
   const md = r.chart?.dasha?.mahadashas;
   if (!md?.length) return y;
-  y = drawSectionHeading(doc, "Vimshottari Mahadasha · 120-Year Cycle", y + 4);
-  const cur = r.chart?.dasha?.current?.mahadasha;
+  y = drawSectionHeading(doc, "Vimshottari Mahadasha  ·  120-Year Cycle", y + 4);
+
+  // Intro copy (mirrors the reference PDF's paragraph above the table).
+  const cur = r.chart?.dasha?.current;
+  const curLord   = cur?.mahadasha;
+  const curAntar  = cur?.antardasha;
+  const curPratya = cur?.pratyantardasha;
+  const intro = "Vimshottari Mahadasha is the primary Vedic timing system spanning 120 years. Each planet rules for a set period, colouring the events, opportunities and lessons of that phase of life.";
+  y = drawParagraph(doc, intro, y, { size: 9.5, leading: 5, color: LAYOUT.brand.body });
+  if (curLord) {
+    doc.setFont(LAYOUT.fonts.heading, "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...hex(LAYOUT.brand.saffron));
+    const chain = [curLord, curAntar, curPratya].filter(Boolean).join(" — ");
+    doc.text(`Currently running:  ${chain}`, LAYOUT.margin.x, y);
+    y += 6;
+  }
+
   const rows = md.map((m) => [
-    m.lord + (m.lord === cur ? "  (current)" : ""),
+    m.lord + (m.lord === curLord ? "   (current)" : ""),
     new Date(m.start).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
     new Date(m.end).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
     String(m.years),
@@ -311,8 +520,9 @@ function drawVimshottariMahadasha(doc, r, y) {
     head: [["Mahadasha Lord", "Starts", "Ends", "Years"]],
     body: rows, theme: "striped",
     styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 2, textColor: hex(LAYOUT.brand.body) },
-    headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold" },
+    headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
     alternateRowStyles: { fillColor: [253, 250, 240] },
+    columnStyles: { 0: { fontStyle: "bold" }, 3: { halign: "right" } },
   });
   return doc.lastAutoTable.finalY + 4;
 }
@@ -516,54 +726,108 @@ function drawSnapshot(doc, snap, x, y, maxW, maxH) {
   return { w, h };
 }
 
-/** Snapshot-driven Kundali-Charts page. Falls back to vector diamonds if any
- *  snapshot fails (element not on-screen, tainted canvas, etc.). Called by
- *  buildBasicPdf and buildPremiumAstroPdf with the *page-specific* set of
- *  data-testids because Basic and Premium prefix them differently. */
-async function drawKundaliChartsFromScreen(doc, reading, testIds) {
+/** Snapshot-driven Kundali charts. In the reference reference PDF the
+ *  D1 Lagna chart sits ABOVE the Planetary Positions table on the same page
+ *  (page 2), while Chandra Rashi and Navamsha D9 share page 3. We build the
+ *  pages accordingly here — the caller supplies the target page layout via
+ *  the `layout` option: "d1" (just D1, medium size), "chandra+navamsha"
+ *  (both stacked), or "all" (legacy behaviour). Falls back to vector diamonds
+ *  if the DOM elements are missing.  */
+async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all") {
   const { page, margin, brand, fonts } = LAYOUT;
   const [d1Id, chandraId, navamshaId] = testIds;
 
+  const wantD1       = layout === "d1"  || layout === "all";
+  const wantChandra  = layout === "chandra+navamsha" || layout === "all";
+  const wantNavamsha = layout === "chandra+navamsha" || layout === "all";
+
   const [d1Snap, chSnap, navSnap] = await Promise.all([
-    snapshotByTestId(d1Id),
-    snapshotByTestId(chandraId),
-    snapshotByTestId(navamshaId),
+    wantD1       ? snapshotByTestId(d1Id)       : Promise.resolve(null),
+    wantChandra  ? snapshotByTestId(chandraId)  : Promise.resolve(null),
+    wantNavamsha ? snapshotByTestId(navamshaId) : Promise.resolve(null),
   ]);
 
-  // If nothing captured (e.g. running from ReadingDetail where the on-screen
-  // chart uses a different id), fall back to the pure-vector rendering.
+  // If NOTHING captured (e.g. running from ReadingDetail where the on-screen
+  // chart uses a different id), fall back to the pure-vector rendering — but
+  // only for the "all" layout. For the reference-PDF layout ("d1" or
+  // "chandra+navamsha") the caller already advanced to the target page, so
+  // silently return null and let the caller handle empty space.
   if (!d1Snap && !chSnap && !navSnap) {
-    drawKundaliChartsPage(doc, reading);
+    if (layout === "all") drawKundaliChartsPage(doc, reading);
+    return null;
+  }
+
+  const asc      = reading.chart?.ascendant_english      || "—";
+  const chandLag = reading.chart?.chandra?.ascendant_english  || "—";
+  const navAsc   = reading.chart?.navamsha?.ascendant_english || "—";
+  const usableW  = page.w - margin.x * 2;
+
+  const heading = (text, y, saffron = false) => {
+    doc.setFont(fonts.heading, "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...hex(saffron ? brand.saffron : brand.ink));
+    doc.text(text, page.w / 2, y, { align: "center", charSpace: 1.4 });
+    doc.setDrawColor(...hex(brand.gold));
+    doc.setLineWidth(0.3);
+    doc.line(page.w / 2 - 32, y + 2, page.w / 2 + 32, y + 2);
+    return y + 6;
+  };
+
+  const caption = (label, value, y) => {
+    doc.setFont(fonts.heading, "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(...hex(brand.gold));
+    doc.text(label, page.w / 2, y, { align: "center", charSpace: 1.5 });
+    doc.setFont(fonts.body, "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...hex(brand.ink));
+    doc.text(value, page.w / 2, y + 5, { align: "center" });
+    return y + 8;
+  };
+
+  if (layout === "d1" && d1Snap) {
+    // Page 2 layout: D1 chart + caption, followed by planetary positions
+    // rendered by the caller below. Chart occupies the top ~110 mm.
+    let y = margin.y;
+    y = heading("KUNDALI LAGNA CHART  ·  D1", y + 2);
+    const { h } = drawSnapshot(doc, d1Snap, margin.x, y, usableW, 100);
+    y += h + 2;
+    caption("ASCENDANT (LAGNA)", asc, y);
+    // Return so caller can continue with planetary positions on same page.
+    return y + 10;
+  }
+
+  if (layout === "chandra+navamsha") {
+    // Page 3 layout: Chandra Rashi (top half) + Navamsha D9 (bottom half).
+    let y = margin.y;
+    if (chSnap) {
+      y = heading("CHANDRA RASHI CHART", y + 2);
+      const { h } = drawSnapshot(doc, chSnap, margin.x, y, usableW, 95);
+      y += h + 2;
+      y = caption("CHANDRA LAGNA", chandLag, y);
+      y += 6;
+    }
+    if (navSnap) {
+      y = heading("NAVAMSHA CHART  ·  D9", y + 2);
+      const { h } = drawSnapshot(doc, navSnap, margin.x, y, usableW, 95);
+      y += h + 2;
+      caption("NAVAMSHA ASCENDANT", navAsc, y);
+    }
     return;
   }
 
+  // Legacy "all" layout — kept for backward compatibility with ReadingDetail.
   doc.addPage();
   let y = margin.y;
-
-  // Page title
-  doc.setFont(fonts.heading, "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(...hex(brand.ink));
-  doc.text("Vedic Kundali Charts", page.w / 2, y, { align: "center" });
-  doc.setDrawColor(...hex(brand.gold));
-  doc.setLineWidth(0.3);
-  doc.line(page.w / 2 - 35, y + 3, page.w / 2 + 35, y + 3);
-  y += 10;
-
-  const usableW = page.w - margin.x * 2;
-
-  // D1 Lagna — full width top, capped at 110 mm tall.
+  y = heading("VEDIC KUNDALI CHARTS", y + 2);
+  y += 6;
   if (d1Snap) {
-    const { h } = drawSnapshot(doc, d1Snap, margin.x, y, usableW, 110);
+    const { h } = drawSnapshot(doc, d1Snap, margin.x, y, usableW, 100);
     y += h + 8;
   }
-
-  // Chandra + Navamsha side-by-side.
-  const remaining = page.h - margin.y - y - margin.y;
   const halfW = (usableW - 6) / 2;
-  const halfMaxH = Math.min(remaining, 105);
-  if (chSnap)  drawSnapshot(doc, chSnap,  margin.x,             y, halfW, halfMaxH);
-  if (navSnap) drawSnapshot(doc, navSnap, margin.x + halfW + 6, y, halfW, halfMaxH);
+  if (chSnap)  drawSnapshot(doc, chSnap,  margin.x,             y, halfW, 90);
+  if (navSnap) drawSnapshot(doc, navSnap, margin.x + halfW + 6, y, halfW, 90);
 }
 
 /** Snapshot the on-screen Lo Shu Grid + Vedic Planetary Chart into the
@@ -639,36 +903,61 @@ function drawKundaliChartsPage(doc, reading) {
 // ---------- public builders -------------------------------------------------
 // Builders are async because they may await DOM snapshots (html-to-image).
 // ResultActions awaits them and calls doc.save() with the returned jsPDF.
+//
+// Layout matches the reference PDF Vedic-Astrology-Report.pdf (Feb 2026 spec):
+//   Page 1 → Cover (SNW brand, Ganesha, name, 3×2 birth grid, Nakshatra summary)
+//   Page 2 → KUNDALI LAGNA CHART · D1  +  PLANETARY POSITIONS table
+//   Page 3 → CHANDRA RASHI CHART  +  NAVAMSHA CHART · D9
+//   Page 4 → VIMSHOTTARI MAHADASHA · 120-YEAR CYCLE
+//   Page 5+→ DETAILED VEDIC KUNDALI READING FOR <NAME>  +  AI advice
+// The Basic builder uses the same skeleton without the AI-driven detail depth.
 
 export async function buildBasicPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawCoverBanner(doc);
+  drawAstroCoverPage(doc, reading, inputs, "Vedic Kundali Report");
+
+  // Page 2: D1 chart on top, Planetary Positions table below
   doc.addPage();
-
-  let y = LAYOUT.margin.y;
-  y = drawSubjectHeader(doc, reading, "Kundali Reading", y, inputs);
-  y = drawNakshatraSection(doc, reading, y);
-
-  // Kundali diagrams — snapshot the on-screen cards so the PDF visually
-  // matches what the user sees on-screen (colored cells + ornate labels).
-  // Falls back to vector diamonds if the DOM elements aren't present.
+  let y2 = null;
   if (reading.chart?.houses) {
+    y2 = await drawKundaliChartsFromScreen(doc, reading, [
+      "basic-expand-kundali-d1",
+      "basic-expand-kundali-chandra",
+      "basic-expand-kundali-navamsha",
+    ], "d1");
+  }
+  if (y2 == null) y2 = LAYOUT.margin.y;
+  drawPlanetaryPositions(doc, reading, y2);
+
+  // Page 3: Chandra Rashi + Navamsha D9
+  if (reading.chart?.chandra || reading.chart?.navamsha) {
+    doc.addPage();
     await drawKundaliChartsFromScreen(doc, reading, [
       "basic-expand-kundali-d1",
       "basic-expand-kundali-chandra",
       "basic-expand-kundali-navamsha",
-    ]);
+    ], "chandra+navamsha");
   }
 
-  doc.addPage(); y = LAYOUT.margin.y;
-  y = drawPlanetaryPositions(doc, reading, y);
+  // Page 4: Vimshottari Mahadasha
   if (reading.chart?.dasha?.mahadashas?.length) {
-    doc.addPage(); y = LAYOUT.margin.y;
-    y = drawVimshottariMahadasha(doc, reading, y);
+    doc.addPage();
+    drawVimshottariMahadasha(doc, reading, LAYOUT.margin.y);
   }
+
+  // Page 5+: AI reading
   if (reading.advice) {
-    doc.addPage(); y = LAYOUT.margin.y;
-    y = drawSectionHeading(doc, "Detailed Reading", y + 2);
+    doc.addPage();
+    let y = LAYOUT.margin.y;
+    doc.setFont(LAYOUT.fonts.heading, "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...hex(LAYOUT.brand.ink));
+    const name = (inputs?.full_name || reading.summary?.name || "your reading").toUpperCase();
+    doc.text(`DETAILED VEDIC KUNDALI READING FOR ${name}`, LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.1 });
+    doc.setDrawColor(...hex(LAYOUT.brand.gold));
+    doc.setLineWidth(0.3);
+    doc.line(LAYOUT.margin.x + 20, y + 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y + 3);
+    y += 10;
     drawMarkdown(doc, reading.advice, y);
   }
 
@@ -678,32 +967,55 @@ export async function buildBasicPdf(reading, inputs) {
 
 export async function buildPremiumAstroPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawCoverBanner(doc);
+  drawAstroCoverPage(doc, reading, inputs, "Vedic Kundali Report");
+
+  // Page 2: D1 Lagna Chart + Planetary Positions
   doc.addPage();
-
-  let y = LAYOUT.margin.y;
-  y = drawSubjectHeader(doc, reading, "Vedic Astrology Report", y, inputs);
-  y = drawNakshatraSection(doc, reading, y);
-
-  // Kundali diagrams — snapshot the on-screen cards (Premium testids differ
-  // from Basic — no "basic-" prefix).
+  let y2 = null;
   if (reading.chart?.houses) {
+    y2 = await drawKundaliChartsFromScreen(doc, reading, [
+      "expand-kundali-d1",
+      "expand-kundali-chandra",
+      "expand-kundali-navamsha",
+    ], "d1");
+  }
+  if (y2 == null) y2 = LAYOUT.margin.y;
+  drawPlanetaryPositions(doc, reading, y2);
+
+  // Page 3: Chandra Rashi + Navamsha D9
+  if (reading.chart?.chandra || reading.chart?.navamsha) {
+    doc.addPage();
     await drawKundaliChartsFromScreen(doc, reading, [
       "expand-kundali-d1",
       "expand-kundali-chandra",
       "expand-kundali-navamsha",
-    ]);
+    ], "chandra+navamsha");
   }
 
-  doc.addPage(); y = LAYOUT.margin.y;
-  y = drawPlanetaryPositions(doc, reading, y);
+  // Page 4: Vimshottari Mahadasha
+  if (reading.chart?.dasha?.mahadashas?.length) {
+    doc.addPage();
+    drawVimshottariMahadasha(doc, reading, LAYOUT.margin.y);
+  }
 
-  doc.addPage(); y = LAYOUT.margin.y;
-  y = drawVimshottariMahadasha(doc, reading, y);
-
+  // Page 5+: Detailed AI reading
   if (reading.advice) {
-    doc.addPage(); y = LAYOUT.margin.y;
-    y = drawSectionHeading(doc, "Detailed Planetary Reading", y + 2);
+    doc.addPage();
+    let y = LAYOUT.margin.y;
+    doc.setFont(LAYOUT.fonts.heading, "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...hex(LAYOUT.brand.ink));
+    const name = (inputs?.full_name || reading.summary?.name || "you").toUpperCase();
+    doc.text(`DETAILED VEDIC KUNDALI READING FOR ${name}`, LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.1 });
+    doc.setDrawColor(...hex(LAYOUT.brand.gold));
+    doc.setLineWidth(0.3);
+    doc.line(LAYOUT.margin.x + 20, y + 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y + 3);
+    y += 8;
+    doc.setFont(LAYOUT.fonts.heading, "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...hex(LAYOUT.brand.saffron));
+    doc.text("DETAILED PLANETARY READING", LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.5 });
+    y += 8;
     drawMarkdown(doc, reading.advice, y);
   }
 
@@ -713,27 +1025,32 @@ export async function buildPremiumAstroPdf(reading, inputs) {
 
 export async function buildPremiumNumerologyPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawCoverBanner(doc);
-  doc.addPage();
-
-  let y = LAYOUT.margin.y;
-  y = drawSubjectHeader(doc, reading, "Vedic Numerology Report", y, inputs);
+  drawNumerologyCoverPage(doc, reading, inputs);
 
   const num = reading.chart?.numerology;
+
+  // Page 2: Numerology Overview (core numbers table)
+  doc.addPage();
+  let y = LAYOUT.margin.y;
   y = drawNumerologyCore(doc, num, y);
 
-  doc.addPage(); y = LAYOUT.margin.y;
-  // Snapshot the on-screen Lo Shu + Vedic Planetary grid pair. Falls back to
-  // vector tables if the container isn't in the DOM.
+  // Page 3: Lo Shu Grid + Vedic Planetary Chart (raster snapshot of on-screen)
+  doc.addPage();
+  y = LAYOUT.margin.y;
   y = await drawNumerologyGridsFromScreen(doc, num, y, "premium-numerology-charts");
 
+  // Page 4: Numerology Mahadasha (81-Year Cycle)
   const dasha = reading.chart?.numerology_dasha;
   if (dasha?.mahadashas?.length) {
-    doc.addPage(); y = LAYOUT.margin.y;
+    doc.addPage();
+    y = LAYOUT.margin.y;
     y = drawSectionHeading(doc, "Vedic Numerology Mahadasha  ·  81-Year Cycle", y + 2);
+    // Intro copy
+    const intro = "The Vedic Numerology Mahadasha divides life into nine 9-year cycles governed by planetary rulers derived from your Mulank. Each Mahadasha awakens themes that shape work, relationships, and inner growth.";
+    y = drawParagraph(doc, intro, y, { size: 9.5, leading: 5 });
     const cur = dasha.current?.mahadasha;
     const rows = dasha.mahadashas.map((m) => [
-      `${m.number}${m.number === cur ? " (current)" : ""}`,
+      `${m.number}${m.number === cur ? "   (current)" : ""}`,
       m.name || "—",
       new Date(m.start).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
       new Date(m.end).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
@@ -743,15 +1060,26 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
       startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
       head: [["#", "Ruler", "Starts", "Ends", "Years"]],
       body: rows, theme: "striped",
-      styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 2 },
-      headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold" },
+      styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 2, textColor: hex(LAYOUT.brand.body) },
+      headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
       alternateRowStyles: { fillColor: [253, 250, 240] },
+      columnStyles: { 0: { halign: "center", fontStyle: "bold" }, 4: { halign: "right" } },
     });
   }
 
+  // Page 5+: Numerology AI reading (only if backend returns one)
   if (reading.numerology_advice) {
-    doc.addPage(); y = LAYOUT.margin.y;
-    y = drawSectionHeading(doc, "AI Numerology Reading", y + 2);
+    doc.addPage();
+    y = LAYOUT.margin.y;
+    doc.setFont(LAYOUT.fonts.heading, "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(...hex(LAYOUT.brand.ink));
+    const name = (inputs?.full_name || reading.summary?.name || "you").toUpperCase();
+    doc.text(`DETAILED VEDIC NUMEROLOGY READING FOR ${name}`, LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.1 });
+    doc.setDrawColor(...hex(LAYOUT.brand.gold));
+    doc.setLineWidth(0.3);
+    doc.line(LAYOUT.margin.x + 20, y + 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y + 3);
+    y += 10;
     drawMarkdown(doc, reading.numerology_advice, y);
   }
 

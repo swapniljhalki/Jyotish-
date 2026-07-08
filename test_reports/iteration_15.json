@@ -1,0 +1,81 @@
+{
+  "summary": "Verified restructured Vedic-Astrology + Numerology PDF builders against the reference PDF layout. Logged in as basic.test / premium.test, submitted Ravi Kumar / 1990-05-15 / 14:30 / Mumbai on /basic and /premium, and downloaded all three PDFs (basic.pdf 4pp, premium.pdf 7pp, premium_num.pdf 4pp). Rendered each PDF to PNG via pdftoppm and extracted layout text via `pdftotext -layout`. RESULT — the new page skeleton matches the reference: cover (SATISH NUMERO WORLD band + Ganesha + Sanskrit invocation + subject name + 3x2 meta grid), D1 Lagna page (chart snapshot + ASCENDANT (LAGNA) <sign> caption + Planetary Positions table WITH new Navamsha column and state strings 'Retrograde', 'Vargottam', 'Exalted', 'Retrograde, Vargottam' - all correct), Chandra Rashi + Navamsha D9 stacked page, Vimshottari Mahadasha (120-yr) page with intro paragraph and 'Currently running: Rahu — Moon — Moon' current-chain line, DETAILED VEDIC KUNDALI READING FOR RAVI KUMAR page + AI markdown. The SNW circular watermark is visible near the footer of every content page (verified on page 2, 3, 5 raster renders — soft 14% opacity circle just above the 'Page X of N' strip). Cover page has NO 'For:' line and NO 'Nakshatra Report' autoTable (regressions clean). Body text is fully selectable — pdftotext extracts subject name, degrees (0.55°/1.89°/24.52°), and full AI reading markdown. Numerology PDF has correct cover-grid ('6 · Venus', '3 · Jupiter', '7 · Ketu (South Node)' with traits sub-label), Numerology Overview table, Lo Shu Grid + Vedic Planetary Chart raster snapshot, and 81-Year Mahadasha table with intro paragraph. NO 'AI Numerology Reading' page — regression check passed (no fallback to reading.advice). However 5 real formatting bugs were found that block a full match to the reference PDF.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "drawAstroCoverPage — Nakshatra Sanskrit line (pdfBuilders.js ~L193-196)",
+        "issue": "Cover page renders the nakshatra Sanskrit string as garbled ASCII ('Uttara Ashadha  $M$0>7>\"$'). The default jsPDF Helvetica font has no Devanagari glyphs, so backend-returned Devanagari (उत्तर आषाढ़ा) collapses into escape-sequence artefacts. Either drop the sanskrit field on the cover or embed a Devanagari-capable font (e.g. NotoSansDevanagari.ttf via doc.addFont) and setFont to it for the sanskrit line only.",
+        "selector": "cover page 1, Nakshatra block",
+        "priority": "HIGH"
+      },
+      {
+        "component": "drawAstroCoverPage — PADA / range line (pdfBuilders.js ~L200-205)",
+        "issue": "PADA line 'PADA 2  ·  Sagittarius 26°40 2–Capr' is TRUNCATED at the right edge because charSpace=1.2 on a 9pt text of ~55 chars overflows the page width. Full range string is 'Sagittarius 26°40'2\" – Capricorn 0°00'0\"'. Reduce charSpace, or splitTextToSize the padaLine, or shrink font when line width > usable-20.",
+        "selector": "cover page 1, PADA line",
+        "priority": "HIGH"
+      },
+      {
+        "component": "buildBasicPdf / buildPremiumAstroPdf — Reading page title (pdfBuilders.js L956 & L1009)",
+        "issue": "'DETAILED VEDIC KUNDALI READING FOR RAVI KUMAR' is rendered with fontSize=14, bold, center-aligned, charSpace=1.1 — the final 'AR' is clipped past the right margin (visible truncation to 'RAVI KUM' on page 5 of premium.pdf and page 4 of basic.pdf). Fix: measure with doc.getTextWidth() and reduce charSpace to 0.5 (or drop to fontSize 11-12) when the rendered width exceeds page.w - 2*margin.x.",
+        "selector": "premium.pdf p5, basic.pdf p4 reading heading",
+        "priority": "HIGH"
+      },
+      {
+        "component": "buildPremiumNumerologyPdf — 81-Year Mahadasha table (pdfBuilders.js L1054)",
+        "issue": "Ruler column for every row is '—'. Backend num_dasha.py returns mahadashas as {number, start, end, years, antardashas} — there is NO `name` field, so `m.name || '—'` always falls back. The PDF must derive the planet name from `m.number` (e.g. via a NUMEROLOGY_RULERS = {1:'Sun', 2:'Moon', 3:'Jupiter', 4:'Rahu', 5:'Mercury', 6:'Venus', 7:'Ketu', 8:'Saturn', 9:'Mars'} map). Currently the whole Ruler column is useless.",
+        "selector": "premium_num.pdf page 4, Ruler column",
+        "priority": "HIGH"
+      },
+      {
+        "component": "drawMarkdown — H1 handling (pdfBuilders.js drawMarkdown ~L372-412)",
+        "issue": "Backend AI advice begins with '# Vedic Kundali Reading for Ravi Kumar' and drawMarkdown emits the literal '# ' prefix to the PDF (visible on premium.pdf page 5 body). Since the page already has a Cinzel section heading above, drawMarkdown should either (a) strip leading '# ' (h1 marker) since the section is redundant, or (b) actually restyle the H1 as a heading. Also worth checking that ##/### are rendered as styled headings — H2/H3 look OK on page 5 (Overall Personality, Career & Dharma etc. render as bold underlined) so it's just the H1 lookup that leaks the '#'.",
+        "selector": "premium.pdf page 5 body, first line",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "SNW watermark (all content pages)",
+        "issues": ["Watermark renders at ~14% opacity as a subtle circular mark just above the 'Page X of N' footer — visually confirmed on premium.pdf p2, p5 and premium_num.pdf p3. Working per spec — recording here only as visual confirmation."]
+      },
+      {
+        "screen": "Cover page name block",
+        "issues": ["Subject name centering + gold hairline under name + 3x2 meta grid all match the reference PDF's layout precisely. Sanskrit sub-labels (Simha / Vrishabha / Makara) render correctly with Helvetica (Latin script), unlike the Devanagari nakshatra bug above."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/pdfs3/basic.pdf",
+    "/app/test_reports/pdfs3/premium.pdf",
+    "/app/test_reports/pdfs3/premium_num.pdf",
+    "/app/test_reports/pdfs3/b1-1.png",
+    "/app/test_reports/pdfs3/p2-2.png",
+    "/app/test_reports/pdfs3/p5-5.png",
+    "/app/test_reports/pdfs3/pn3-3.png"
+  ],
+  "action_items": [
+    "Fix nakshatra Sanskrit rendering on cover — either drop the sanskrit field or addFont() a Devanagari-capable TTF (NotoSansDevanagari) and setFont to it for that one line. Current output shows literal '$M$0>7>\"' artefacts.",
+    "Fix PADA/range line overflow on cover — either splitTextToSize the padaLine (page.w - 2*margin.x - 10) and stack the range on a 2nd centered line, or reduce charSpace from 1.2 to ~0.6 for this line.",
+    "Fix 'DETAILED VEDIC KUNDALI READING FOR <NAME>' page-heading right-edge truncation — measure width, drop charSpace or fontSize when exceeded, or split into 'DETAILED VEDIC KUNDALI READING' + subline '<Name>'.",
+    "Fix Premium Numerology Mahadasha Ruler column — replace `m.name || '—'` with a lookup NUMEROLOGY_RULERS[m.number] so every row shows Sun/Moon/Jupiter/... instead of '—'. This bug affects EVERY row of the 81-year table.",
+    "Fix leading '# ' leaking through drawMarkdown — strip the H1 prefix from AI reading (or render it as a top heading). H2/H3 rendering is fine so only the '#' case is buggy."
+  ],
+  "critical_code_review_comments": [
+    "New drawAstroCoverPage / drawNumerologyCoverPage are well-structured and reuse LAYOUT constants — clean separation from body pages.",
+    "drawFooter with per-page watermark loop is correct (skips i==1 cover). GState/opacity fallback try/catch is defensively coded.",
+    "drawPlanetaryPositions correctly normalises both dict and array shape from backend and derives multi-state string ('Retrograde, Vargottam') from p.states array — verified in table output.",
+    "buildPremiumNumerologyPdf correctly gates the AI reading page on `reading.numerology_advice` (not `reading.advice`) — regression from prior iteration fixed and confirmed.",
+    "Reading-page title width overflow (bug #3 above) is a common jsPDF pitfall — always measure with getTextWidth() when applying charSpace on center-aligned text.",
+    "Numerology mahadasha table Ruler bug (#4) — the frontend derives no planet name from `m.number`; a NUMEROLOGY_RULERS constant already exists elsewhere in the codebase (in the on-screen numerology card) — should be reused in pdfBuilders.js instead of re-implementing."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped per request)", "frontend": "70% — page skeleton + watermark + Navamsha column + Mahadasha intro/current-chain + numerology cover-grid all pass; 4 content bugs (Sanskrit garble, PADA overflow, reading-title truncation, Ruler '—') and 1 markdown H1 leak block full acceptance." },
+  "test_credentials": "basic.test@vedic.com / Basic@2026 ; premium.test@vedic.com / Premium@2026",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Re-verify by rerunning the same flow (login → /basic or /premium → fill Ravi Kumar/1990-05-15/14:30/Mumbai (use `basic-pob-option-0`/`premium-pob-option-0` from the POB dropdown) → wait for `basic-download-pdf-btn`/`premium-download-pdf-btn` → click). For numerology PDF, the `vedic-numerology-report` collapsible is ALREADY OPEN by default on the premium page — button `premium-num-download-pdf-btn` is visible without extra clicks. Verify: (a) cover page nakshatra Sanskrit renders as real Devanagari (or is dropped), (b) PADA line fits within page width, (c) 'DETAILED VEDIC KUNDALI READING FOR RAVI KUMAR' full string fits on page 5, (d) premium_num.pdf page 4 Ruler column shows Sun/Moon/Jupiter/... rather than '—', (e) reading body no longer starts with a stray '# '. Watermark, table columns (Navamsha added, States correct), and Mahadasha intro/current-chain are already working — do not regress.",
+  "rca of the issue": "Bug#1 (Sanskrit garble) — jsPDF's built-in Helvetica is Latin-only; Devanagari code points get mapped to raw glyph placeholders. Bug#2/#3 (line overflow) — charSpace multiplier on center-aligned text with no post-render width check. Bug#4 (Ruler '—') — code assumes m.name but backend schema in /app/backend/num_dasha.py only returns {number, start, end, years, antardashas}. Bug#5 (H1 leak) — drawMarkdown likely only handles '## '/'### ' prefixes."
+}
