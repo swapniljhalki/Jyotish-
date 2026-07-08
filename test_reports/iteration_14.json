@@ -1,0 +1,38 @@
+{
+  "summary": "Verified hybrid PDF (text + on-screen snapshots) end-to-end for Basic, Premium-Astrology, and Premium-Numerology builders. Logged in as basic.test/premium.test users, generated Ravi Kumar / 1990-05-15 / 14:30 / Mumbai readings, downloaded each PDF via the corresponding data-testid button and inspected pages with pdftotext + pdftoppm. RESULT: all three PDFs correctly embed RASTER-IMAGE snapshots of the on-screen chart cards on the diagram page while keeping tables/reading text SELECTABLE. Basic.pdf (5 pages): page 3 'Vedic Kundali Charts' is now a screenshot of the on-screen glass-card D1 Lagna (parchment fill, gold border, ornate 'KUNDALI LAGHA CHART · D1' title, saffron Asc pill, 'ASCENDANT (LAGNA) Leo' caption) + two smaller cards Chandra Rashi (Capricorn) and Navamsha D9 (Sagittarius). Text extraction confirms page 3 has NO text (pure raster). Page 2 has selectable subject header + Nakshatra table, page 4 has selectable Planetary Positions table with correct 0.55°/1.89°/24.52° etc degree values, page 5 has selectable AI reading markdown. Premium.pdf (7 pages) is identical for the Kundali page — same raster snapshot from expand-kundali-d1/-chandra/-navamsha testids. Premium_num.pdf (4 pages) page 3 'Lo Shu Grid & Vedic Planetary Chart' is a raster snapshot of the on-screen two-column grid — coloured cells with '99, 55, 11, 6, 3' filled numbers in orange, missing numbers (4, 2, 7, 8) faded, and the Vedic Planetary Chart 3×3 with planet names SURYA/CHANDRA/GURU/RAHU/BUDHA/SHUKRA/KETU/SHANI/MANGALA matches on-screen exactly. Numerology overview table (page 2) and Mahadasha table (page 3) remain selectable text. Fonts render correctly (Cinzel headings, Lora body). All acceptance criteria PASS.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Kundali chart snapshots inside PDF (all 3 builders)", "issues": ["The 'CLICK TO EXPAND' helper text (from the on-screen expandable-card affordance) is visible inside each raster snapshot on the PDF's Kundali page. Cosmetic — recommend hiding this label during snapshot capture (e.g. add a `.no-snapshot` class on the hint span or pass a `filter` option to html-to-image that skips elements matching `[data-hide-in-pdf]`)."]},
+      {"screen": "Premium-Numerology Lo Shu snapshot", "issues": ["The Lo Shu grid on the PDF (raster) does not include the on-screen 'DOMINANT GRAHAS'/'PRESENT NUMBERS'/'MISSING NUMBERS' annotations because they live outside the [data-testid=premium-numerology-charts] container. Not a bug (per spec the snapshot is just the two-grid pair), but users might expect a fuller capture — worth confirming with product."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/pdfs2/basic.pdf",
+    "/app/test_reports/pdfs2/premium.pdf",
+    "/app/test_reports/pdfs2/premium_num.pdf",
+    "/app/test_reports/pdfs2/basic_p3-3.png",
+    "/app/test_reports/pdfs2/premium_p3-3.png",
+    "/app/test_reports/pdfs2/premium_num_p3-3.png"
+  ],
+  "action_items": [
+    "(Optional / cosmetic) Suppress the 'CLICK TO EXPAND' hint span inside the on-screen Kundali cards during html-to-image capture. Simplest fix: give the hint span a class like `no-snapshot` and pass `filter: (n) => !n.classList?.contains('no-snapshot')` to toPng(). This is currently visible in every kundali card in every PDF.",
+    "(Optional / not blocking) The many console.error lines from html-to-image trying to inline cross-origin Google-Fonts stylesheets (`SecurityError: Failed to read the 'cssRules' property from 'CSSStyleSheet'`) are non-fatal — html-to-image catches them internally and continues. Consider either (a) self-hosting the Cinzel/Lora/EB Garamond/Noto Serif WOFF2 files so they resolve as same-origin (removes console noise) or (b) silently swallow the warning by passing a `skipFonts: true` option to toPng() if the fonts are already loaded on-page (they are, so the rendered PNG still uses them via the browser's paint pipeline)."
+  ],
+  "critical_code_review_comments": [
+    "snapshotByTestId in pdfBuilders.js correctly handles missing DOM elements (returns null) and wraps toPng in try/catch → good defensive coding for the fallback path.",
+    "drawKundaliChartsFromScreen falls back to drawKundaliChartsPage (vector diamonds) only if ALL three snapshots fail. Consider per-chart fallback: if only chandra fails, the D1 and navamsha snapshots would still render, but the chandra slot would be blank. Current 'all-or-nothing' is safer but could leave a hole if 1/3 fails.",
+    "buildPremiumAstroPdf and buildBasicPdf are now async and correctly awaited by ResultActions.jsx. buildPremiumNumerologyPdf is also async and awaits drawNumerologyGridsFromScreen. Chain is consistent.",
+    "html-to-image dep pinned to ^1.11.13 in package.json — verified installed. jsPDF ^4.2.1 supports addImage PNG dataURL flow used here.",
+    "The `pixelRatio: 2` in snapshotByTestId gives ~186 dpi at A4 print — sharp on screen and print. `backgroundColor: '#FDFBF7'` matches the parchment brand — no visible seam between snapshot and PDF page background."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped per request)", "frontend": "100%" },
+  "test_credentials": "basic.test@vedic.com / Basic@2026 ; premium.test@vedic.com / Premium@2026 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Hybrid PDF (text + on-screen visuals) is fully wired. To re-verify after changes: log in via /login, submit birth form on /basic or /premium, wait for [data-testid=basic-download-pdf-btn]/[premium-download-pdf-btn]/[premium-num-download-pdf-btn], use page.expect_download to save the PDF, then `pdftoppm -f 3 -l 3 -r 90 <pdf> out -png` to render the Kundali page and `pdftotext -layout` to confirm text pages. Snapshots are captured from testids basic-expand-kundali-{d1,chandra,navamsha} / expand-kundali-{d1,chandra,navamsha} / premium-numerology-charts respectively. Only cosmetic issue is the 'CLICK TO EXPAND' hint being visible inside each captured card."
+}

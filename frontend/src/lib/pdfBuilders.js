@@ -18,6 +18,7 @@
  */
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { toPng } from "html-to-image";
 import ganeshaBanner from "../assets/ganesha-banner-pdf.jpg";
 
 // ---------- design tokens ---------------------------------------------------
@@ -466,6 +467,119 @@ function drawKundaliDiagram(doc, chart, x, y, size) {
   doc.text("Asc", ax, ay - size * 0.098, { align: "center" });
 }
 
+// ---------- snapshot helpers (hybrid text + on-screen visuals) --------------
+/** Snapshot a DOM element by data-testid into a PNG data-url plus its natural
+ *  pixel dimensions. Returns null if the element isn't in the DOM or
+ *  html-to-image throws (e.g. tainted canvas). Callers must handle null and
+ *  fall back to vector-drawn primitives. */
+async function snapshotByTestId(testId, options = {}) {
+  if (typeof document === "undefined") return null;
+  const el = document.querySelector(`[data-testid="${testId}"]`);
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return null;
+  try {
+    const dataUrl = await toPng(el, {
+      pixelRatio: 2,
+      backgroundColor: "#FDFBF7",
+      cacheBust: true,
+      // Neutralise the hover-lift transform + focus ring so the capture
+      // looks like the resting state, not the mid-interaction state.
+      style: { transform: "none", boxShadow: "none" },
+      ...options,
+    });
+    return { dataUrl, w: rect.width, h: rect.height };
+  } catch (e) {
+    console.warn(`[pdfBuilders] snapshot failed for [data-testid="${testId}"]`, e);
+    return null;
+  }
+}
+
+/** Draw a captured PNG snapshot into the PDF, scaled to fit inside
+ *  (maxW × maxH) preserving aspect ratio and horizontally centred inside the
+ *  bounding box. Returns the actual rendered {w, h}. */
+function drawSnapshot(doc, snap, x, y, maxW, maxH) {
+  if (!snap) return { w: 0, h: 0 };
+  const ratio = snap.h / snap.w;
+  let w = maxW;
+  let h = w * ratio;
+  if (h > maxH) { h = maxH; w = h / ratio; }
+  const cx = x + (maxW - w) / 2;
+  doc.addImage(snap.dataUrl, "PNG", cx, y, w, h, undefined, "FAST");
+  return { w, h };
+}
+
+/** Snapshot-driven Kundali-Charts page. Falls back to vector diamonds if any
+ *  snapshot fails (element not on-screen, tainted canvas, etc.). Called by
+ *  buildBasicPdf and buildPremiumAstroPdf with the *page-specific* set of
+ *  data-testids because Basic and Premium prefix them differently. */
+async function drawKundaliChartsFromScreen(doc, reading, testIds) {
+  const { page, margin, brand, fonts } = LAYOUT;
+  const [d1Id, chandraId, navamshaId] = testIds;
+
+  const [d1Snap, chSnap, navSnap] = await Promise.all([
+    snapshotByTestId(d1Id),
+    snapshotByTestId(chandraId),
+    snapshotByTestId(navamshaId),
+  ]);
+
+  // If nothing captured (e.g. running from ReadingDetail where the on-screen
+  // chart uses a different id), fall back to the pure-vector rendering.
+  if (!d1Snap && !chSnap && !navSnap) {
+    drawKundaliChartsPage(doc, reading);
+    return;
+  }
+
+  doc.addPage();
+  let y = margin.y;
+
+  // Page title
+  doc.setFont(fonts.heading, "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(...hex(brand.ink));
+  doc.text("Vedic Kundali Charts", page.w / 2, y, { align: "center" });
+  doc.setDrawColor(...hex(brand.gold));
+  doc.setLineWidth(0.3);
+  doc.line(page.w / 2 - 35, y + 3, page.w / 2 + 35, y + 3);
+  y += 10;
+
+  const usableW = page.w - margin.x * 2;
+
+  // D1 Lagna — full width top, capped at 110 mm tall.
+  if (d1Snap) {
+    const { h } = drawSnapshot(doc, d1Snap, margin.x, y, usableW, 110);
+    y += h + 8;
+  }
+
+  // Chandra + Navamsha side-by-side.
+  const remaining = page.h - margin.y - y - margin.y;
+  const halfW = (usableW - 6) / 2;
+  const halfMaxH = Math.min(remaining, 105);
+  if (chSnap)  drawSnapshot(doc, chSnap,  margin.x,             y, halfW, halfMaxH);
+  if (navSnap) drawSnapshot(doc, navSnap, margin.x + halfW + 6, y, halfW, halfMaxH);
+}
+
+/** Snapshot the on-screen Lo Shu Grid + Vedic Planetary Chart into the
+ *  Premium Numerology PDF so the coloured cells match what the user sees.
+ *  Falls back to the vector tables if the on-screen container isn't found. */
+async function drawNumerologyGridsFromScreen(doc, num, y, containerTestId) {
+  const { page, margin, brand, fonts } = LAYOUT;
+  const snap = await snapshotByTestId(containerTestId);
+  if (!snap) {
+    // Vector fallback
+    y = drawLoShu(doc, num?.lo_shu, y);
+    y = drawVedicPlanetChart(doc, num?.vedic_chart, y);
+    return y;
+  }
+
+  y = drawSectionHeading(doc, "Lo Shu Grid  &  Vedic Planetary Chart", y + 4);
+  const usableW = page.w - margin.x * 2;
+  const remaining = page.h - margin.y - y - 6;
+  const { h } = drawSnapshot(doc, snap, margin.x, y, usableW, remaining);
+  return y + h + 4;
+}
+
+
 /** Dedicated Kundali-Charts page: D1 Lagna centered on top, then Chandra +
  *  Navamsha side-by-side below. Called by both Basic and Premium builders on
  *  a fresh page so the diagrams never share space with tables or reading text. */
@@ -516,8 +630,10 @@ function drawKundaliChartsPage(doc, reading) {
 }
 
 // ---------- public builders -------------------------------------------------
+// Builders are async because they may await DOM snapshots (html-to-image).
+// ResultActions awaits them and calls doc.save() with the returned jsPDF.
 
-export function buildBasicPdf(reading, inputs) {
+export async function buildBasicPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawCoverBanner(doc);
   doc.addPage();
@@ -526,8 +642,16 @@ export function buildBasicPdf(reading, inputs) {
   y = drawSubjectHeader(doc, reading, "Kundali Reading", y, inputs);
   y = drawNakshatraSection(doc, reading, y);
 
-  // Kundali diagrams — Lagna, Chandra Rashi, Navamsha on one dedicated page.
-  if (reading.chart?.houses) drawKundaliChartsPage(doc, reading);
+  // Kundali diagrams — snapshot the on-screen cards so the PDF visually
+  // matches what the user sees on-screen (colored cells + ornate labels).
+  // Falls back to vector diamonds if the DOM elements aren't present.
+  if (reading.chart?.houses) {
+    await drawKundaliChartsFromScreen(doc, reading, [
+      "basic-expand-kundali-d1",
+      "basic-expand-kundali-chandra",
+      "basic-expand-kundali-navamsha",
+    ]);
+  }
 
   doc.addPage(); y = LAYOUT.margin.y;
   y = drawPlanetaryPositions(doc, reading, y);
@@ -545,7 +669,7 @@ export function buildBasicPdf(reading, inputs) {
   return doc;
 }
 
-export function buildPremiumAstroPdf(reading, inputs) {
+export async function buildPremiumAstroPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawCoverBanner(doc);
   doc.addPage();
@@ -554,8 +678,15 @@ export function buildPremiumAstroPdf(reading, inputs) {
   y = drawSubjectHeader(doc, reading, "Vedic Astrology Report", y, inputs);
   y = drawNakshatraSection(doc, reading, y);
 
-  // Kundali diagrams — Lagna, Chandra Rashi, Navamsha on one dedicated page.
-  if (reading.chart?.houses) drawKundaliChartsPage(doc, reading);
+  // Kundali diagrams — snapshot the on-screen cards (Premium testids differ
+  // from Basic — no "basic-" prefix).
+  if (reading.chart?.houses) {
+    await drawKundaliChartsFromScreen(doc, reading, [
+      "expand-kundali-d1",
+      "expand-kundali-chandra",
+      "expand-kundali-navamsha",
+    ]);
+  }
 
   doc.addPage(); y = LAYOUT.margin.y;
   y = drawPlanetaryPositions(doc, reading, y);
@@ -573,7 +704,7 @@ export function buildPremiumAstroPdf(reading, inputs) {
   return doc;
 }
 
-export function buildPremiumNumerologyPdf(reading, inputs) {
+export async function buildPremiumNumerologyPdf(reading, inputs) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawCoverBanner(doc);
   doc.addPage();
@@ -585,8 +716,9 @@ export function buildPremiumNumerologyPdf(reading, inputs) {
   y = drawNumerologyCore(doc, num, y);
 
   doc.addPage(); y = LAYOUT.margin.y;
-  y = drawLoShu(doc, num?.lo_shu, y);
-  y = drawVedicPlanetChart(doc, num?.vedic_chart, y);
+  // Snapshot the on-screen Lo Shu + Vedic Planetary grid pair. Falls back to
+  // vector tables if the container isn't in the DOM.
+  y = await drawNumerologyGridsFromScreen(doc, num, y, "premium-numerology-charts");
 
   const dasha = reading.chart?.numerology_dasha;
   if (dasha?.mahadashas?.length) {

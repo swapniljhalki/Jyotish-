@@ -32,12 +32,12 @@ export default function ResultActions({ testIdPrefix, pdfType, reading, inputs, 
     "premium-numerology":  buildPremiumNumerologyPdf,
   };
 
-  const download = () => {
+  const download = async () => {
     const builder = BUILDERS[pdfType];
     if (!builder || !reading || busy) return;
     setBusy(true);
     try {
-      const doc = builder(reading, inputs);
+      const doc = await builder(reading, inputs);
       const name = (filename || `Reading-${pdfType}`).toLowerCase().endsWith(".pdf")
         ? (filename || `Reading-${pdfType}.pdf`)
         : `${filename || `Reading-${pdfType}`}.pdf`;
