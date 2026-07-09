@@ -43,6 +43,18 @@ const hex = (h) => {
   return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
 };
 
+/** jsPDF's built-in `align: "center"` measures text width WITHOUT accounting
+ *  for `charSpace`, so any centred text with letter-spacing ends up visually
+ *  shifted a little to the left. This helper recomputes the true rendered
+ *  width (glyph width + inter-character spacing) and positions the text so
+ *  it is truly centred on the page's vertical axis. All the `text-align:
+ *  center` cover / section headings route through this helper. */
+function drawCenteredText(doc, text, y, { charSpace = 0 } = {}) {
+  const { page } = LAYOUT;
+  const w = doc.getTextWidth(text) + Math.max(0, text.length - 1) * charSpace;
+  doc.text(text, (page.w - w) / 2, y, { charSpace });
+}
+
 // ---------- helpers for cover metadata boxes --------------------------------
 
 const RASHI_SANSKRIT = {
@@ -140,11 +152,11 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(22);
   doc.setTextColor(...hex(brand.ink));
-  doc.text("SATISH NUMERO WORLD", page.w / 2, bandY + 11, { align: "center", charSpace: 1.4 });
+  drawCenteredText(doc, "SATISH NUMERO WORLD", bandY + 11, { charSpace: 1.4 });
   doc.setFont(fonts.heading, "normal");
   doc.setFontSize(8);
   doc.setTextColor(...hex(brand.gold));
-  doc.text("NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", page.w / 2, bandY + 17.5, { align: "center", charSpace: 2 });
+  drawCenteredText(doc, "NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", bandY + 17.5, { charSpace: 2 });
 
   // 2) Ganesha invocation
   const gY = bandY + 26;
@@ -165,7 +177,7 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.gold));
-  doc.text((reportTitle || "VEDIC KUNDALI REPORT").toUpperCase(), page.w / 2, y, { align: "center", charSpace: 1.5 });
+  drawCenteredText(doc, (reportTitle || "VEDIC KUNDALI REPORT").toUpperCase(), y, { charSpace: 1.5 });
 
   y += 8;
   doc.setFont(fonts.heading, "bold");
@@ -212,7 +224,7 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
     doc.setFont(fonts.heading, "bold");
     doc.setFontSize(9);
     doc.setTextColor(...hex(brand.gold));
-    doc.text("NAKSHATRA REPORT  ·  MOON'S STAR", page.w / 2, y, { align: "center", charSpace: 1.4 });
+    drawCenteredText(doc, "NAKSHATRA REPORT  ·  MOON'S STAR", y, { charSpace: 1.4 });
     y += 6;
 
     // Nakshatra name — English only. jsPDF's built-in Helvetica has no
@@ -288,11 +300,11 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(22);
   doc.setTextColor(...hex(brand.ink));
-  doc.text("SATISH NUMERO WORLD", page.w / 2, bandY + 11, { align: "center", charSpace: 1.4 });
+  drawCenteredText(doc, "SATISH NUMERO WORLD", bandY + 11, { charSpace: 1.4 });
   doc.setFont(fonts.heading, "normal");
   doc.setFontSize(8);
   doc.setTextColor(...hex(brand.gold));
-  doc.text("NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", page.w / 2, bandY + 17.5, { align: "center", charSpace: 2 });
+  drawCenteredText(doc, "NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", bandY + 17.5, { charSpace: 2 });
 
   // Ganesha
   const gY = bandY + 26;
@@ -311,7 +323,7 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.gold));
-  doc.text("VEDIC NUMEROLOGY REPORT", page.w / 2, y, { align: "center", charSpace: 1.5 });
+  drawCenteredText(doc, "VEDIC NUMEROLOGY REPORT", y, { charSpace: 1.5 });
   y += 8;
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(20);
@@ -420,7 +432,10 @@ function drawFittedTitle(doc, text, y, { size = 14, weight = "bold", color, maxC
       doc.setFontSize(s);
     }
   }
-  doc.text(text, page.w / 2, y, { align: "center", charSpace });
+  // Route through drawCenteredText so the final position accounts for
+  // charSpace — jsPDF's align:"center" measures width without letter-spacing.
+  const trueWidth = doc.getTextWidth(text) + Math.max(0, text.length - 1) * charSpace;
+  doc.text(text, (page.w - trueWidth) / 2, y, { charSpace });
   return y + Math.max(6, size * 0.55);
 }
 
@@ -478,29 +493,31 @@ function drawMarkdown(doc, md, y) {
   return y;
 }
 
-/** Standard page footer — SNW watermark + brand + page number. Applied
- *  to every page at build time (call at the end of the builder, after all
- *  pages have been added, so total-page-count is correct). Page 1 (cover)
- *  gets a smaller footer without the circular logo watermark. */
+/** Standard page footer — big SNW watermark background stamp + brand + page
+ *  number. Applied to every page at build time (call at the end of the
+ *  builder, after all pages have been added, so total-page-count is correct).
+ *  Page 1 (cover) gets the footer text but skips the watermark so the brand
+ *  cover isn't overshadowed. Watermark size and opacity are picked so the
+ *  logo reads clearly as a background stamp but doesn't drown surrounding
+ *  copy (tables and reading text render on top and remain fully legible). */
 function drawFooter(doc) {
   const { page, margin, brand } = LAYOUT;
   const total = doc.internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
-    // Circular SNW watermark — content pages only (skip cover).
+    // Bold background SNW logo watermark — content pages only (skip cover).
     if (i > 1) {
-      const wmSize = 22;
-      const wmX = (page.w - wmSize) / 2;
-      const wmY = page.h - wmSize - 14;
-      // jsPDF supports per-image GState opacity via the graphics state stack.
-      // The `snw-logo.jpg` is opaque; render at ~15% opacity for a subtle mark.
+      const wmSize = 60;                              // was 22 mm — now a proper background stamp
+      const wmX = (page.w - wmSize) / 2;              // horizontally centred
+      const wmY = page.h - wmSize - 30;               // above the footer text, roughly page-lower-third
       try {
         doc.saveGraphicsState();
-        doc.setGState(new doc.GState({ opacity: 0.14 }));
+        // Higher opacity (0.22 vs 0.14) so the mark reads as bolder, but still
+        // low enough that overlaid tables / reading text remain fully legible.
+        doc.setGState(new doc.GState({ opacity: 0.22 }));
         doc.addImage(snwLogo, "JPEG", wmX, wmY, wmSize, wmSize, undefined, "FAST");
         doc.restoreGraphicsState();
       } catch {
-        // Very old jsPDF fallback — draw without opacity control.
         doc.addImage(snwLogo, "JPEG", wmX, wmY, wmSize, wmSize, undefined, "FAST");
       }
     }
@@ -838,7 +855,7 @@ async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all"
     doc.setFont(fonts.heading, "bold");
     doc.setFontSize(12);
     doc.setTextColor(...hex(saffron ? brand.saffron : brand.ink));
-    doc.text(text, page.w / 2, y, { align: "center", charSpace: 1.4 });
+    drawCenteredText(doc, text, y, { charSpace: 1.4 });
     doc.setDrawColor(...hex(brand.gold));
     doc.setLineWidth(0.3);
     doc.line(page.w / 2 - 32, y + 2, page.w / 2 + 32, y + 2);
@@ -849,7 +866,7 @@ async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all"
     doc.setFont(fonts.heading, "bold");
     doc.setFontSize(8);
     doc.setTextColor(...hex(brand.gold));
-    doc.text(label, page.w / 2, y, { align: "center", charSpace: 1.5 });
+    drawCenteredText(doc, label, y, { charSpace: 1.5 });
     doc.setFont(fonts.body, "bold");
     doc.setFontSize(11);
     doc.setTextColor(...hex(brand.ink));
@@ -1080,7 +1097,7 @@ export async function buildPremiumAstroPdf(reading, inputs) {
     doc.setFont(LAYOUT.fonts.heading, "bold");
     doc.setFontSize(10);
     doc.setTextColor(...hex(LAYOUT.brand.saffron));
-    doc.text("DETAILED PLANETARY READING", LAYOUT.page.w / 2, y, { align: "center", charSpace: 1.5 });
+    drawCenteredText(doc, "DETAILED PLANETARY READING", y, { charSpace: 1.5 });
     y += 8;
     drawMarkdown(doc, reading.advice, y);
   }

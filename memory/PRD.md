@@ -498,3 +498,16 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - **Self-test verification (via screenshot tool)**: Premium Numerology PDF successfully downloaded — 6 pages, cover renders SATISH NUMERO WORLD band + Ganesha + "VEDIC NUMEROLOGY REPORT" title + subject name + all six meta-boxes (DOB/TOB/POB + MULANK 6 · Venus / BHAGYANK 3 · Jupiter / NAAMANK 7 · Ketu with trait sub-labels) + "A VEDIC NUMEROLOGY JOURNEY · BASED ON JYOTISHA + CHALDEAN + LO SHU TRADITIONS" tagline fully inside page margins.
 - **Operational note**: During the retest the Emergent Universal LLM key hit its `15.001` budget cap. Both AI calls were correctly caught via `return_exceptions=True` and persisted as empty strings without crashing the reading. When the key is topped up (Profile → Universal Key → Add Balance / enable Auto Top-up) both readings resume generating in ~30 s each in parallel.
 
+
+## Feb 28, 2026 (later) — Centered heading fix + bolder background watermark
+- **True centering fix**: jsPDF's `align: "center"` measures glyph width WITHOUT accounting for `charSpace`, so any centred heading with letter-spacing ended up visually shifted a few mm to the left. New `drawCenteredText(doc, text, y, {charSpace})` helper computes the true rendered width (glyph + inter-char spacing) and positions the text at `(page.w - width) / 2`. Applied to all four flagged headings and any other charSpace-centred text on the covers:
+  - "SATISH NUMERO WORLD" band (astro + numerology covers)
+  - "NUMEROLOGY · ASTROLOGY · TAROT" tagline
+  - "VEDIC KUNDALI REPORT" / "VEDIC NUMEROLOGY REPORT" titles
+  - "NAKSHATRA REPORT · MOON'S STAR" section title
+  - Kundali chart page heading + caption labels
+  - "DETAILED PLANETARY READING" sub-title
+  - `drawFittedTitle` now also uses the same true-width math.
+- **Bolder background watermark**: SNW logo watermark now **60 mm** (was 22 mm) at **22 % opacity** (was 14 %), still positioned bottom-centre above the "Page X of N" footer. Visible as a clear background stamp on every content page while surrounding tables + reading text remain fully legible on top. Cover (page 1) skips the watermark so the SNW brand band on the cover isn't visually competing with a duplicate mark.
+- Self-tested by regenerating a premium reading via ReadingDetail and rendering page 1 + page 2 to PNG — all 4 centred texts now sit exactly on the page's vertical axis; the enlarged 60 mm watermark appears clearly on content pages.
+
