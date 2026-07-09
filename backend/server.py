@@ -1869,18 +1869,86 @@ def _premium_summary(chart: dict) -> dict:
     }
 
 
+def _premium_numerology_prompts(body: "AstroIn", chart: dict):
+    """Companion Claude prompt for the Numerology PDF's page-5 detailed reading.
+
+    Mirrors the astrology _premium_prompts structure so the two reports feel
+    like a matched set. Uses the numerology profile already stored under
+    chart["numerology"] plus the numerology_dasha under chart["numerology_dasha"].
+    """
+    num = chart.get("numerology") or {}
+    mul = num.get("mulank") or {}
+    bha = num.get("bhagyank") or {}
+    naa = num.get("naamank") or {}
+    lo_shu_present = ", ".join(str(d) for d in (num.get("lo_shu") or {}).get("present", [])) or "—"
+    lo_shu_missing = ", ".join(str(d) for d in (num.get("lo_shu") or {}).get("missing", [])) or "—"
+
+    dasha = chart.get("numerology_dasha") or {}
+    cur_md_num = (dasha.get("current") or {}).get("mahadasha")
+    cur_md = None
+    for md in (dasha.get("mahadashas") or []):
+        if md.get("number") == cur_md_num:
+            cur_md = md
+            break
+    dasha_line = ""
+    if cur_md:
+        dasha_line = (
+            f"Current Numerology Mahadasha: {cur_md.get('number','—')} "
+            f"({cur_md.get('name','—')}), years {cur_md.get('start','?')}–{cur_md.get('end','?')}."
+        )
+
+    system = (
+        "You are a senior Vedic numerologist grounded in Jyotisha, Chaldean and Lo Shu "
+        "traditions. Write a detailed premium numerology reading tying together the "
+        "Mulank (root number), Bhagyank (destiny), Naamank (name expression), the Lo Shu "
+        "grid presence/gaps, and the current Vedic Numerology Mahadasha. Use each planet's "
+        "traits as a lens on personality, career, wealth, relationships and remedial "
+        "actions. Aim for ~550–700 words with clear Markdown-style headings. Use warm, "
+        "specific and practical language. Do NOT end with a Sanskrit blessing or 'Om…' "
+        "farewell — finish cleanly after the last section."
+        + _lang_instruction(body.lang)
+    )
+    user_msg = (
+        f"Generate a DETAILED Vedic numerology interpretation.\n\n"
+        f"Native: {body.full_name or 'Seeker'}\n"
+        f"DOB: {body.date_of_birth}\n\n"
+        f"Core numbers:\n"
+        f"- Mulank (Root): {mul.get('number','—')} · {mul.get('planet_english','—')} "
+        f"— traits: {mul.get('traits','—')}\n"
+        f"- Bhagyank (Destiny): {bha.get('number','—')} · {bha.get('planet_english','—')} "
+        f"— traits: {bha.get('traits','—')}\n"
+        f"- Naamank (Name): {naa.get('number','—')} · {naa.get('planet_english','—')} "
+        f"— traits: {naa.get('traits','—')}\n\n"
+        f"Lo Shu grid — numbers PRESENT in DOB: {lo_shu_present}\n"
+        f"Lo Shu grid — numbers MISSING (karmic gaps): {lo_shu_missing}\n\n"
+        f"{dasha_line}\n\n"
+        f"Write the reading with these sections, each 2–4 sentences:\n"
+        f"## Numerology Blueprint\n## Personality & Inner Nature\n## Career & Purpose\n"
+        f"## Wealth & Prosperity\n## Relationships & Bonds\n## Health & Vitality\n"
+        f"## Current Dasha Focus & Remedies\n\n"
+        f"End cleanly after the last section — no closing blessing."
+    )
+    return system, user_msg
+
+
 @api.post("/astrology/premium")
 async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user)):
     require_tier(user, "premium")
     chart = await _build_chart(body)
     chart["nakshatra_report"] = _compute_nakshatra_report(chart)
-    system, user_msg = _premium_prompts(body, chart)
-    advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
+    astro_sys, astro_msg = _premium_prompts(body, chart)
+    num_sys,   num_msg   = _premium_numerology_prompts(body, chart)
+    astro_task = asyncio.create_task(_ask_claude(astro_sys, astro_msg, f"premium-{user['id']}"))
+    num_task   = asyncio.create_task(_ask_claude(num_sys,  num_msg,  f"premium-num-{user['id']}"))
+    results = await asyncio.gather(astro_task, num_task, return_exceptions=True)
+    advice = results[0] if isinstance(results[0], str) else ""
+    numerology_advice = results[1] if isinstance(results[1], str) else ""
     reading_id = str(uuid.uuid4())
     summary = _premium_summary(chart)
     await db.readings.insert_one({
         "id": reading_id, "user_id": user["id"], "tier": "premium",
-        "inputs": body.model_dump(), "chart": chart, "advice": advice,
+        "inputs": body.model_dump(), "chart": chart,
+        "advice": advice, "numerology_advice": numerology_advice,
         "summary": summary,
         "is_shared": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -1889,6 +1957,7 @@ async def astrology_premium(body: AstroIn, user: dict = Depends(get_current_user
         "id": reading_id,
         "chart": chart,
         "advice": advice,
+        "numerology_advice": numerology_advice,
         "ascendant": chart["ascendant_english"],
         "ascendant_sanskrit": chart["ascendant"],
         "sun_sign": summary["sun_sign"],
@@ -1915,10 +1984,28 @@ async def astrology_premium_start(body: AstroIn, user: dict = Depends(get_curren
 
     async def _generate():
         try:
-            system, user_msg = _premium_prompts(body, chart)
-            advice = await _ask_claude(system, user_msg, f"premium-{user['id']}")
+            # Generate astrology advice + numerology advice concurrently so
+            # premium subscribers get a matched pair of AI readings without
+            # doubling the wait time. If either sub-call fails we still
+            # persist the other and mark the reading done.
+            astro_sys,  astro_msg  = _premium_prompts(body, chart)
+            num_sys,    num_msg    = _premium_numerology_prompts(body, chart)
+            astro_task = asyncio.create_task(_ask_claude(astro_sys, astro_msg, f"premium-{user['id']}"))
+            num_task   = asyncio.create_task(_ask_claude(num_sys,  num_msg,  f"premium-num-{user['id']}"))
+            results = await asyncio.gather(astro_task, num_task, return_exceptions=True)
+            advice = results[0] if isinstance(results[0], str) else ""
+            numerology_advice = results[1] if isinstance(results[1], str) else ""
+            if isinstance(results[0], BaseException):
+                logging.exception("Premium astrology reading failed", exc_info=results[0])
+            if isinstance(results[1], BaseException):
+                logging.exception("Premium numerology reading failed", exc_info=results[1])
             await db.readings.update_one(
-                {"id": reading_id}, {"$set": {"advice": advice, "status": "done"}}
+                {"id": reading_id},
+                {"$set": {
+                    "advice": advice,
+                    "numerology_advice": numerology_advice,
+                    "status": "done",
+                }},
             )
         except Exception as e:
             logging.exception("Premium reading generation failed")
@@ -1951,6 +2038,7 @@ async def astrology_premium_status(reading_id: str, user: dict = Depends(get_cur
         "status": r.get("status", "done"),
         "chart": chart,
         "advice": r.get("advice"),
+        "numerology_advice": r.get("numerology_advice"),
         "ascendant": chart.get("ascendant_english") or summary.get("ascendant"),
         "ascendant_sanskrit": chart.get("ascendant"),
         "sun_sign": summary.get("sun_sign"),

@@ -473,3 +473,28 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - Basic PDF ID triples: `basic-expand-kundali-{d1,chandra,navamsha}`. Premium Astrology: `expand-kundali-{d1,chandra,navamsha}`. Premium Numerology grids: `premium-numerology-charts`.
 - Verified end-to-end (iteration_14): PDFs on all three tiers now embed raster snapshots of the on-screen chart cards on the diagram pages while keeping all body text selectable. All acceptance criteria pass. Only cosmetic follow-up ("Click to expand" hint inside snapshots) resolved by adding a `filter` predicate that drops nodes with class `no-print`.
 
+
+## Feb 28, 2026 — PDFs formatted to match the user's reference sample
+- User uploaded a reference PDF (`Vedic-Astrology-Report (1).pdf`) and asked to format the Vedic Astrology + Numerology reports to match its layout.
+- Complete restructure of `/app/frontend/src/lib/pdfBuilders.js`:
+  - **New cover page** (`drawAstroCoverPage`, `drawNumerologyCoverPage`): SNW brand band, Ganesha invocation, subject name, 3×2 metadata grid (DoB/ToB/PoB + Ascendant/Sun/Moon for astrology; + Mulank/Bhagyank/Naamank for numerology), Nakshatra summary block with English-only nakshatra name + PADA + attribute strip.
+  - **New helpers**: `drawMetaBox` (auto-fits label size + charSpace so long labels like "BHAGYANK (DESTINY NUMBER)" don't clip), `drawFittedTitle` (measures text width and progressively drops charSpace then font size), `NUMEROLOGY_RULERS` map, `RASHI_SANSKRIT` map, `formatDob`.
+  - **Page sequence** now mirrors reference: Page 1 = cover; Page 2 = KUNDALI LAGNA CHART · D1 + Planetary Positions autoTable; Page 3 = CHANDRA RASHI CHART + NAVAMSHA CHART · D9; Page 4 = VIMSHOTTARI MAHADASHA · 120-Year Cycle (intro paragraph + current-running line); Page 5+ = DETAILED VEDIC KUNDALI READING FOR <NAME> heading + AI advice.
+  - **Planetary Positions table** now includes a NAVAMSHA column and a STATES column that lists all planetary states (Retrograde, Vargottam, Exalted, Debilitated) — pulled from backend `p.states` array.
+  - **Vimshottari section** gains an intro paragraph and a "Currently running: X — Y — Z" line above the table.
+  - **Numerology Mahadasha** now shows real planet-name Rulers derived from `m.number` via `NUMEROLOGY_RULERS` (previously showed em-dashes because backend doesn't echo the planet name per row).
+  - **Markdown H1** (`# ...`) now renders as a subdued centered gold sub-heading; previously leaked as literal `# ` into the reading body.
+  - **`drawKundaliChartsFromScreen`** now accepts a `layout` option (`"d1"` / `"chandra+navamsha"` / `"all"`) so a single helper serves both the page-2 (D1 + planetary table) and page-3 (Chandra + Navamsha stacked) layouts of the reference PDF.
+  - **`drawFooter`** now stamps a subtle 14%-opacity SNW logo circular watermark on every content page (not the cover). Uses `doc.GState({opacity})` from jsPDF's graphics-state stack.
+- Removed dead code: `drawCoverBanner`, `drawSubjectHeader`, `drawNakshatraSection` (all subsumed by the new cover flow).
+- Added `snw-logo.jpg` import as the watermark source.
+- Verified via testing agent (iteration_15 + iteration_16): all 5 bugs found in iteration_15 are fixed in iteration_16 with 100% pass on the retest scope and all requested regression checks. One remaining LOW cosmetic (long numerology cover labels + sub-tagline auto-fitting) subsequently addressed via `drawMetaBox` auto-shrink + `drawFittedTitle` on the tagline.
+
+
+## Feb 28, 2026 (later) — Numerology-advice backend + cover overflow polish
+- **Backend (`/app/backend/server.py`)**: Added `_premium_numerology_prompts(body, chart)` — a Claude prompt tuned for Jyotisha + Chaldean + Lo Shu numerology. Generates a ~600-word reading with sections `## Numerology Blueprint / Personality & Inner Nature / Career & Purpose / Wealth & Prosperity / Relationships & Bonds / Health & Vitality / Current Dasha Focus & Remedies`. Both `/astrology/premium` (sync) and `/astrology/premium/start` (async) now fire the astrology + numerology Claude calls **concurrently via `asyncio.gather(..., return_exceptions=True)`** — total wait time is unchanged (bounded by whichever call is slower). Reading document now stores `numerology_advice`; status endpoint echoes it back.
+- **Frontend (`/app/frontend/src/lib/pdfBuilders.js`)**: No wiring change needed — `buildPremiumNumerologyPdf` already conditionally renders the "AI Numerology Reading" section from `reading.numerology_advice`. Now that the backend actually populates it, the Premium Numerology PDF grows from 4 → 6 pages.
+- **Cover-page polish**: Tightened `drawMetaBox` label auto-fit threshold from `w-4` mm to `w-6` mm (with a slightly lower minimum font floor of 5.2 pt). Long labels like "BHAGYANK (DESTINY NUMBER)" now sit ~3 mm inside the box border on both sides instead of visually clipping the right edge.
+- **Self-test verification (via screenshot tool)**: Premium Numerology PDF successfully downloaded — 6 pages, cover renders SATISH NUMERO WORLD band + Ganesha + "VEDIC NUMEROLOGY REPORT" title + subject name + all six meta-boxes (DOB/TOB/POB + MULANK 6 · Venus / BHAGYANK 3 · Jupiter / NAAMANK 7 · Ketu with trait sub-labels) + "A VEDIC NUMEROLOGY JOURNEY · BASED ON JYOTISHA + CHALDEAN + LO SHU TRADITIONS" tagline fully inside page margins.
+- **Operational note**: During the retest the Emergent Universal LLM key hit its `15.001` budget cap. Both AI calls were correctly caught via `return_exceptions=True` and persisted as empty strings without crashing the reading. When the key is topped up (Profile → Universal Key → Add Balance / enable Auto Top-up) both readings resume generating in ~30 s each in parallel.
+

@@ -77,7 +77,10 @@ const formatDob = (dob) => {
   return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 };
 
-/** Draw a single metadata box (top label + big value + optional sanskrit). */
+/** Draw a single metadata box (top label + big value + optional sanskrit).
+ *  The label auto-shrinks (fontSize + charSpace) to guarantee it fits inside
+ *  the box width — long labels like "BHAGYANK (DESTINY NUMBER)" would
+ *  otherwise clip the right border. */
 function drawMetaBox(doc, x, y, w, h, label, value, sub) {
   const { brand, fonts } = LAYOUT;
   doc.setDrawColor(...hex(brand.gold));
@@ -85,11 +88,20 @@ function drawMetaBox(doc, x, y, w, h, label, value, sub) {
   doc.setFillColor(255, 251, 242);
   doc.rect(x, y, w, h, "FD");
 
-  // Label — small caps
+  // Label — small caps, auto-fit inside the box with a comfortable 3 mm
+  // inset from each vertical border. Long labels like "BHAGYANK (DESTINY
+  // NUMBER)" would otherwise sit right on the border line.
+  const labelText = (label || "").toUpperCase();
   doc.setFont(fonts.heading, "bold");
-  doc.setFontSize(7.5);
   doc.setTextColor(...hex(brand.gold));
-  doc.text((label || "").toUpperCase(), x + w / 2, y + 5, { align: "center", charSpace: 1.2 });
+  let labelSize = 7.5;
+  let labelSpace = 1.2;
+  const fits = () => doc.getTextWidth(labelText) + Math.max(0, labelText.length - 1) * labelSpace <= w - 6;
+  doc.setFontSize(labelSize);
+  if (!fits()) { labelSpace = 0.4; }
+  if (!fits()) { labelSpace = 0; }
+  while (!fits() && labelSize > 5.2) { labelSize -= 0.25; doc.setFontSize(labelSize); }
+  doc.text(labelText, x + w / 2, y + 5, { align: "center", charSpace: labelSpace });
 
   // Value — main text
   doc.setFont(fonts.body, "bold");
@@ -338,12 +350,9 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
 
   // Blessing footer strip
   y += boxH + 12;
-  doc.setFont(fonts.heading, "bold");
-  doc.setFontSize(9);
-  doc.setTextColor(...hex(brand.gold));
-  doc.text("A VEDIC NUMEROLOGY JOURNEY  ·  BASED ON JYOTISHA + CHALDEAN + LO SHU TRADITIONS",
-    page.w / 2, y, { align: "center", charSpace: 1.2 });
-  y += 6;
+  y = drawFittedTitle(doc,
+    "A VEDIC NUMEROLOGY JOURNEY  ·  BASED ON JYOTISHA + CHALDEAN + LO SHU TRADITIONS",
+    y, { size: 9, color: brand.gold, maxCharSpace: 1.2 });
   doc.setFont(fonts.body, "italic");
   doc.setFontSize(9.5);
   doc.setTextColor(...hex(brand.body));
