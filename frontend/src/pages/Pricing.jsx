@@ -34,7 +34,16 @@ export default function Pricing() {
       key: "basic",
       name: t("pricing.tier_sadhaka.name"),
       price: t("pricing.tier_sadhaka.price"),
-      features: [t("pricing.tier_sadhaka.f1"), t("pricing.tier_sadhaka.f2")],
+      features: [
+        t("pricing.tier_sadhaka.f1"),
+        t("pricing.tier_sadhaka.f2"),
+        t("pricing.tier_sadhaka.f3"),
+        t("pricing.tier_sadhaka.f4"),
+        t("pricing.tier_sadhaka.f5"),
+        t("pricing.tier_sadhaka.f6"),
+        t("pricing.tier_sadhaka.f7"),
+        t("pricing.tier_sadhaka.f8"),
+      ],
       variant: "default",
     },
     {

@@ -507,9 +507,9 @@ function drawFooter(doc) {
     doc.setPage(i);
     // Bold background SNW logo watermark — content pages only (skip cover).
     if (i > 1) {
-      const wmSize = 60;                              // was 22 mm — now a proper background stamp
+      const wmSize = 90;                              // 60 → 90 mm (1.5×) per user request
       const wmX = (page.w - wmSize) / 2;              // horizontally centred
-      const wmY = page.h - wmSize - 30;               // above the footer text, roughly page-lower-third
+      const wmY = page.h - wmSize - 22;               // above the footer text
       try {
         doc.saveGraphicsState();
         // Higher opacity (0.22 vs 0.14) so the mark reads as bolder, but still

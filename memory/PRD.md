@@ -511,3 +511,8 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - **Bolder background watermark**: SNW logo watermark now **60 mm** (was 22 mm) at **22 % opacity** (was 14 %), still positioned bottom-centre above the "Page X of N" footer. Visible as a clear background stamp on every content page while surrounding tables + reading text remain fully legible on top. Cover (page 1) skips the watermark so the SNW brand band on the cover isn't visually competing with a duplicate mark.
 - Self-tested by regenerating a premium reading via ReadingDetail and rendering page 1 + page 2 to PNG — all 4 centred texts now sit exactly on the page's vertical axis; the enlarged 60 mm watermark appears clearly on content pages.
 
+
+## Feb 28, 2026 (later) — Pricing page + bigger PDF watermark
+- **Pricing page Sadhaka tier expanded**: added six new bullets under the existing 2 so the tier accurately reflects what it delivers — Nakshatra Report, Chandra Rashi Chart, Navamsha Chart, Basic Personal Reading, Chaldean Name Numerology, Mobile Number Numerology. English + Hindi i18n updated (`pricing.tier_sadhaka.f3` – `.f8` in `/app/frontend/src/i18n/locales/en.json` + `hi.json`). Rendered by `/app/frontend/src/pages/Pricing.jsx`. Verified live on preview.
+- **PDF watermark 1.5×**: `drawFooter` watermark size **60 → 90 mm** and vertical position adjusted (`page.h - wmSize - 22`) so the enlarged stamp still fits comfortably above the "Page X of N" footer. Visually verified on page 2 of a downloaded reading — reads as a proper bold brand watermark on every content page while tables + reading text on top remain fully legible.
+

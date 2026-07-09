@@ -100,7 +100,13 @@
       "name": "Sadhaka",
       "price": "₹199",
       "f1": "Everything in Seeker",
-      "f2": "Basic Vedic Kundali (Birth Chart)"
+      "f2": "Basic Vedic Kundali (Birth Chart)",
+      "f3": "Nakshatra Report",
+      "f4": "Chandra Rashi Chart",
+      "f5": "Navamsha Chart",
+      "f6": "Basic Personal Reading",
+      "f7": "Chaldean Name Numerology",
+      "f8": "Mobile Number Numerology"
     },
     "tier_jyotishi": {
       "name": "Jyotishi",
