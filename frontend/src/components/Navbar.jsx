@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { LogOut, Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
+import LanguagePicker from "./LanguagePicker";
 
 // Dropdown grouping for "Know the Basics"
 const KNOW_BASICS_ITEMS = [
@@ -166,6 +167,10 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Language switcher — visible on ≥md, and in the mobile drawer below */}
+          <div className="hidden md:block">
+            <LanguagePicker variant="navbar" />
+          </div>
           {user ? (
             <div className="hidden md:flex items-center gap-3">
               <span className="text-[11px] font-medium tracking-wider uppercase text-[#5C3A09]" data-testid="nav-user-tier">
@@ -268,6 +273,10 @@ export default function Navbar() {
             ))}
 
             <div className="mt-4 pt-4 border-t border-[rgba(92,58,9,0.08)] flex flex-col gap-2">
+              {/* Language switcher on mobile */}
+              <div className="px-1">
+                <LanguagePicker variant="mobile" />
+              </div>
               {user ? (
                 <>
                   {user.role === "admin" && (

@@ -516,3 +516,23 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - **Pricing page Sadhaka tier expanded**: added six new bullets under the existing 2 so the tier accurately reflects what it delivers — Nakshatra Report, Chandra Rashi Chart, Navamsha Chart, Basic Personal Reading, Chaldean Name Numerology, Mobile Number Numerology. English + Hindi i18n updated (`pricing.tier_sadhaka.f3` – `.f8` in `/app/frontend/src/i18n/locales/en.json` + `hi.json`). Rendered by `/app/frontend/src/pages/Pricing.jsx`. Verified live on preview.
 - **PDF watermark 1.5×**: `drawFooter` watermark size **60 → 90 mm** and vertical position adjusted (`page.h - wmSize - 22`) so the enlarged stamp still fits comfortably above the "Page X of N" footer. Visually verified on page 2 of a downloaded reading — reads as a proper bold brand watermark on every content page while tables + reading text on top remain fully legible.
 
+
+## Feb 28, 2026 (later) — Multi-language: English, Hindi, Telugu
+- **i18n re-enabled** in `/app/frontend/src/i18n/index.js`: three languages (en/hi/te) with browser-language-detector + localStorage persistence under key `snw_lang`. `LANGUAGES` constant exported.
+- **LanguagePicker** mounted in `/app/frontend/src/components/Navbar.jsx` — visible on md+ (top-right dropdown) and in the mobile drawer.
+- **Locale coverage**: en.json / hi.json / te.json all cover 271 shared UI keys + 61 new `pdf.*` keys added this iteration for PDF label translation.
+- **PDF translation** in `/app/frontend/src/lib/pdfBuilders.js`:
+  - New `pickPdfLang(inputs, reading)` — prefers the reading's stored lang (so historical readings export in the language they were generated in), falls back to current UI language for pre-i18n / English readings.
+  - New `bindLang(lang)` sets module-level translator `T = i18n.getFixedT(lang, "translation", "pdf")`. All hardcoded English strings replaced with `T(...)` calls (61 keys).
+  - **Devanagari + Telugu font embedding**: Bundled `NotoSansDevanagari-Regular.ttf` (219 KB) + `NotoSansTelugu-Regular.ttf` (197 KB) under `/app/frontend/public/fonts/`. `activateScriptFontForLang(doc, lang)` lazy-fetches the TTF, base64-encodes it, registers via `doc.addFileToVFS` + `doc.addFont`. `FONT_CACHE` keeps the base64 across downloads.
+  - **Per-string script detection**: Noto Sans Devanagari/Telugu TTFs from Google's static hosting have zero Latin coverage (verified via fonttools). So we keep `LAYOUT.fonts.body = "helvetica"` as default and use a `pickFontForText(text)` helper (regex on Unicode script ranges) at every draw site to switch the family only for strings that contain Devanagari/Telugu codepoints. Latin dynamic values (names, dates, place names, planet signs) keep helvetica so they render correctly.
+  - **autoTable hook**: `tableFontHook(data)` attached via `didParseCell` on all 6 autoTable calls — automatically picks the right font per cell content so Hindi/Telugu column values render correctly next to Latin ones (e.g. "मार्गी" in the States column and "Leo" in the Rashi column of the same row).
+  - Mid-dot separator (`·`, U+00B7) swapped for pipe (`|`) in every Hi/Te `pdf.*` string — the Noto Sans script subsets omit U+00B7 which was silently truncating tagline strings.
+- **charSpace only for Latin**: Indic scripts have natural inter-glyph rhythm; the Latin-tuned charSpace values we use for uppercase headings distorted Devanagari. `drawCenteredText` and `drawFittedTitle` now zero out charSpace when the target script is Indic.
+- **Self-tested**: Downloaded PDF from a saved reading in HI + TE. Every cover label, meta box, nakshatra block, section heading, table header (Graha/Rashi/etc.), Vimshottari intro paragraph, mahadasha table columns, page footer ("पृष्ठ 1 / 6" / "పేజీ 1 / 6") renders in the target script. Latin values (Ravi Kumar / 15 May 1990 / Mumbai / Leo etc.) remain crisp.
+
+### Known non-goals for this iteration
+- Sanskrit / Devanagari original nakshatra names on the cover (e.g. Uttara Ashadha's "उत्तर आषाढ़ा" from the backend `nak.sanskrit` field) are still dropped — backend sends the transliteration and we render only the English name. Fixable later by teaching `drawAstroCoverPage` to draw `nak.sanskrit` as a second line with the Devanagari font active.
+- Chart planet codes (Su/Mo/Ma etc.) inside the kundali diamond snapshots stay English — they're baked into the on-screen React SVG that gets html-to-image snapshotted.
+- AI advice text (`reading.advice`) — when the reading was originally generated in Hindi/Telugu by Claude, jsPDF now renders it correctly (via Noto Sans). Older English readings display English advice regardless of PDF language setting.
+

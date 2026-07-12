@@ -19,8 +19,133 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toPng } from "html-to-image";
+import i18n from "../i18n";
 import ganeshaBanner from "../assets/ganesha-banner-pdf.jpg";
 import snwLogo from "../assets/snw-logo.jpg";
+
+/** Get a bound `t()` function for the reading's language. The PDF is
+ *  generated after `i18n` initialisation, so `getFixedT(lang)` returns a
+ *  language-locked translator. `inputs.lang` is set by the frontend when
+ *  starting the reading and persisted on the reading document, so an old
+ *  reading always exports in the language it was requested in — even if
+ *  the user has since switched their site language. Falls back to 'en'. */
+function makeT(lang) {
+  const target = (lang || "en").toLowerCase();
+  const supported = ["en", "hi", "te"];
+  return i18n.getFixedT(supported.includes(target) ? target : "en", "translation", "pdf");
+}
+
+// Module-level translator ref. Each builder sets this at the top so all
+// helper functions can pick it up without having to thread `t` through
+// every function signature. PDF generation is single-flight per doc, so
+// there's no race between concurrent builds.
+let T = (k) => k;
+function bindLang(lang) { T = makeT(lang); return T; }
+
+// ---------- non-Latin font registration --------------------------------------
+// jsPDF's built-in Helvetica has no Devanagari / Telugu glyphs — Hindi and
+// Telugu text prints as random ASCII punctuation. We lazy-load the Noto Sans
+// TTF for the target script the first time a non-English PDF is built,
+// register it in the doc's virtual file-system, then swap the module-level
+// `fonts.body` + `fonts.heading` to that family. Cached across the tab
+// lifetime so subsequent downloads incur zero network cost.
+const FONT_URLS = {
+  hi: { name: "NotoSansDevanagari", url: "/fonts/NotoSansDevanagari-Regular.ttf" },
+  te: { name: "NotoSansTelugu",     url: "/fonts/NotoSansTelugu-Regular.ttf" },
+};
+const FONT_CACHE = {}; // { hi: <base64 string>, te: <base64 string> }
+
+async function loadFontB64(lang) {
+  if (FONT_CACHE[lang]) return FONT_CACHE[lang];
+  const spec = FONT_URLS[lang];
+  if (!spec) return null;
+  const res = await fetch(spec.url);
+  if (!res.ok) return null;
+  const buf = await res.arrayBuffer();
+  // Convert to base64 without stack-blowing on large buffers.
+  let bin = "";
+  const bytes = new Uint8Array(buf);
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  const b64 = btoa(bin);
+  FONT_CACHE[lang] = b64;
+  return b64;
+}
+
+/** Register the Noto Sans font for the target language on the supplied
+ *  jsPDF instance so subsequent `doc.setFont("NotoSansDevanagari"|"NotoSansTelugu", …)`
+ *  calls resolve to real glyphs. Use `pickFontForText(text)` at each draw
+ *  site to switch to the Noto font ONLY for strings that contain that
+ *  script — Latin dynamic values (names, dates, planet names) keep
+ *  helvetica because Noto's script subsets omit Latin glyphs entirely. */
+async function activateScriptFontForLang(doc, lang) {
+  if (!lang || lang === "en") return;
+  const spec = FONT_URLS[lang];
+  if (!spec) return;
+  const b64 = await loadFontB64(lang);
+  if (!b64) return;
+  const filename = `${spec.name}-Regular.ttf`;
+  doc.addFileToVFS(filename, b64);
+  doc.addFont(filename, spec.name, "normal");
+  doc.addFont(filename, spec.name, "bold");
+  doc.addFont(filename, spec.name, "italic");
+  // NOTE: we do NOT mutate LAYOUT.fonts here — Noto Sans Devanagari/Telugu
+  // TTFs from Google's static hosting ship WITHOUT Latin glyphs, so making
+  // them the default would blank out every Latin dynamic value (names,
+  // dates, planet signs). Instead pickFontForText() switches per-string.
+}
+
+function restoreFonts() { /* nothing to restore now that we don't mutate LAYOUT */ }
+
+/** Detect the dominant script of a piece of text and return the jsPDF font
+ *  family that renders it correctly. Devanagari and Telugu strings pick up
+ *  their respective Noto Sans; everything else stays on helvetica (which
+ *  is guaranteed available and has full Latin coverage). */
+function pickFontForText(text) {
+  if (!text) return "helvetica";
+  const s = String(text);
+  if (/[\u0900-\u097F]/.test(s)) return "NotoSansDevanagari";
+  if (/[\u0C00-\u0C7F]/.test(s)) return "NotoSansTelugu";
+  return "helvetica";
+}
+
+/** Wrapper around doc.setFont that auto-picks the right family for the
+ *  given text. Callers should invoke this immediately before any doc.text
+ *  call that might render Hindi or Telugu. */
+function setFontForText(doc, text, weight = "normal") {
+  const family = pickFontForText(text);
+  // Noto Sans Devanagari/Telugu were registered with normal/bold/italic
+  // sub-styles that all point at the same TTF — so any weight is safe.
+  doc.setFont(family, weight);
+}
+
+/** Shared jsPDF-autotable `didParseCell` hook — inspects each cell's raw
+ *  text and forces the cell font family to whichever registered font
+ *  actually contains the glyphs. Prevents Hindi/Telugu column values from
+ *  rendering as random Latin punctuation. */
+function tableFontHook(data) {
+  const raw = data.cell.raw;
+  const s = typeof raw === "string" ? raw : (raw != null ? String(raw) : "");
+  data.cell.styles.font = pickFontForText(s);
+}
+
+/** Pick the language for the PDF. Priority:
+ *  1. `inputs.lang`     — the language the reading was generated in
+ *  2. `i18n.language`   — the user's current UI language
+ *  3. "en"              — fallback
+ *
+ *  If the AI advice text was already generated in a specific language
+ *  (stored on the reading), keep that. Otherwise honour what the user is
+ *  browsing in — covers older readings pre-i18n and the "switch site
+ *  language then re-download" flow. */
+function pickPdfLang(inputs, reading) {
+  const readingLang = inputs?.lang || reading?.inputs?.lang;
+  if (readingLang && readingLang !== "en") return readingLang;
+  const uiLang = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase();
+  return uiLang || "en";
+}
 
 // ---------- design tokens ---------------------------------------------------
 const LAYOUT = {
@@ -51,8 +176,21 @@ const hex = (h) => {
  *  center` cover / section headings route through this helper. */
 function drawCenteredText(doc, text, y, { charSpace = 0 } = {}) {
   const { page } = LAYOUT;
-  const w = doc.getTextWidth(text) + Math.max(0, text.length - 1) * charSpace;
-  doc.text(text, (page.w - w) / 2, y, { charSpace });
+  // Devanagari/Telugu strings must render in the registered Noto font — the
+  // default helvetica has no glyphs for these scripts. jsPDF preserves the
+  // caller's font weight/size, only the family changes.
+  const currentSize = doc.getFontSize();
+  const currentState = doc.internal.getFont();
+  const family = pickFontForText(text);
+  if (family !== currentState.fontName) {
+    doc.setFont(family, currentState.fontStyle || "normal");
+    doc.setFontSize(currentSize);
+  }
+  // Devanagari/Telugu scripts already have natural inter-glyph rhythm — the
+  // charSpace we tune for Latin caps looks jarring on Indic text, so damp it.
+  const cs = family === "helvetica" ? charSpace : 0;
+  const w = doc.getTextWidth(text) + Math.max(0, text.length - 1) * cs;
+  doc.text(text, (page.w - w) / 2, y, cs ? { charSpace: cs } : undefined);
 }
 
 // ---------- helpers for cover metadata boxes --------------------------------
@@ -94,7 +232,7 @@ const formatDob = (dob) => {
  *  the box width — long labels like "BHAGYANK (DESTINY NUMBER)" would
  *  otherwise clip the right border. */
 function drawMetaBox(doc, x, y, w, h, label, value, sub) {
-  const { brand, fonts } = LAYOUT;
+  const { brand } = LAYOUT;
   doc.setDrawColor(...hex(brand.gold));
   doc.setLineWidth(0.4);
   doc.setFillColor(255, 251, 242);
@@ -104,31 +242,33 @@ function drawMetaBox(doc, x, y, w, h, label, value, sub) {
   // inset from each vertical border. Long labels like "BHAGYANK (DESTINY
   // NUMBER)" would otherwise sit right on the border line.
   const labelText = (label || "").toUpperCase();
-  doc.setFont(fonts.heading, "bold");
+  setFontForText(doc, labelText, "bold");
   doc.setTextColor(...hex(brand.gold));
+  const labelIsLatin = pickFontForText(labelText) === "helvetica";
   let labelSize = 7.5;
-  let labelSpace = 1.2;
+  let labelSpace = labelIsLatin ? 1.2 : 0;
   const fits = () => doc.getTextWidth(labelText) + Math.max(0, labelText.length - 1) * labelSpace <= w - 6;
   doc.setFontSize(labelSize);
-  if (!fits()) { labelSpace = 0.4; }
+  if (!fits()) { labelSpace = labelIsLatin ? 0.4 : 0; }
   if (!fits()) { labelSpace = 0; }
   while (!fits() && labelSize > 5.2) { labelSize -= 0.25; doc.setFontSize(labelSize); }
   doc.text(labelText, x + w / 2, y + 5, { align: "center", charSpace: labelSpace });
 
-  // Value — main text
-  doc.setFont(fonts.body, "bold");
+  // Value — main text (may be Latin or Indic depending on translation)
+  const val = value || "—";
+  setFontForText(doc, val, "bold");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.ink));
-  const val = value || "—";
   const wrapped = doc.splitTextToSize(val, w - 6);
   const valY = y + 5 + 6 + (wrapped.length === 1 ? 3 : 0);
   wrapped.slice(0, 2).forEach((ln, i) => {
+    setFontForText(doc, ln, "bold");
     doc.text(ln, x + w / 2, valY + i * 4.6, { align: "center" });
   });
 
   // Sanskrit / sub caption
   if (sub) {
-    doc.setFont(fonts.body, "italic");
+    setFontForText(doc, sub, "italic");
     doc.setFontSize(8);
     doc.setTextColor(...hex(brand.subtle));
     doc.text(sub, x + w / 2, y + h - 3, { align: "center" });
@@ -152,11 +292,11 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(22);
   doc.setTextColor(...hex(brand.ink));
-  drawCenteredText(doc, "SATISH NUMERO WORLD", bandY + 11, { charSpace: 1.4 });
+  drawCenteredText(doc, T("brand").toUpperCase(), bandY + 11, { charSpace: 1.4 });
   doc.setFont(fonts.heading, "normal");
   doc.setFontSize(8);
   doc.setTextColor(...hex(brand.gold));
-  drawCenteredText(doc, "NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", bandY + 17.5, { charSpace: 2 });
+  drawCenteredText(doc, T("tagline"), bandY + 17.5, { charSpace: 2 });
 
   // 2) Ganesha invocation
   const gY = bandY + 26;
@@ -167,22 +307,25 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
   doc.setFont(fonts.body, "italic");
   doc.setFontSize(10);
   doc.setTextColor(...hex(brand.ink));
-  doc.text("Shri Ganeshaya Namah", page.w / 2, gY + gH + 5, { align: "center" });
+  setFontForText(doc, T("invocation"), "italic");
+  doc.text(T("invocation"), page.w / 2, gY + gH + 5, { align: "center" });
   doc.setFontSize(8);
   doc.setTextColor(...hex(brand.subtle));
-  doc.text("Vakratunda Mahakaya  ·  Suryakoti Samaprabha", page.w / 2, gY + gH + 10, { align: "center" });
+  setFontForText(doc, T("invocation_sub"), "italic");
+  doc.text(T("invocation_sub"), page.w / 2, gY + gH + 10, { align: "center" });
 
   // 3) Report title + subject name
   let y = gY + gH + 20;
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.gold));
-  drawCenteredText(doc, (reportTitle || "VEDIC KUNDALI REPORT").toUpperCase(), y, { charSpace: 1.5 });
+  drawCenteredText(doc, (reportTitle || T("vedic_kundali_report")).toUpperCase(), y, { charSpace: 1.5 });
 
   y += 8;
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(20);
   doc.setTextColor(...hex(brand.ink));
+  setFontForText(doc, src.full_name || reading.summary?.name || "—", "bold");
   doc.text(src.full_name || reading.summary?.name || "—", page.w / 2, y, { align: "center" });
 
   // Gold hairline under name
@@ -202,19 +345,19 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
   const moon = reading.moon_sign || reading.summary?.moon_sign;
 
   drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH,
-    "Date of Birth", formatDob(src.date_of_birth));
+    T("date_of_birth"), formatDob(src.date_of_birth));
   drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH,
-    "Time of Birth", src.time_of_birth || "—");
+    T("time_of_birth"), src.time_of_birth || "—");
   drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH,
-    "Place of Birth", src.place_of_birth || reading.summary?.pob || "—");
+    T("place_of_birth"), src.place_of_birth || reading.summary?.pob || "—");
 
   y += boxH + gap;
   drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH,
-    "Ascendant", asc || "—", asc && RASHI_SANSKRIT[asc] ? RASHI_SANSKRIT[asc] : null);
+    T("ascendant"), asc || "—", asc && RASHI_SANSKRIT[asc] ? RASHI_SANSKRIT[asc] : null);
   drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH,
-    "Sun Sign", sun || "—", sun && RASHI_SANSKRIT[sun] ? RASHI_SANSKRIT[sun] : null);
+    T("sun_sign"), sun || "—", sun && RASHI_SANSKRIT[sun] ? RASHI_SANSKRIT[sun] : null);
   drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH,
-    "Moon Sign", moon || "—", moon && RASHI_SANSKRIT[moon] ? RASHI_SANSKRIT[moon] : null);
+    T("moon_sign"), moon || "—", moon && RASHI_SANSKRIT[moon] ? RASHI_SANSKRIT[moon] : null);
 
   y += boxH + 10;
 
@@ -224,7 +367,7 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
     doc.setFont(fonts.heading, "bold");
     doc.setFontSize(9);
     doc.setTextColor(...hex(brand.gold));
-    drawCenteredText(doc, "NAKSHATRA REPORT  ·  MOON'S STAR", y, { charSpace: 1.4 });
+    drawCenteredText(doc, T("nakshatra_report_star"), y, { charSpace: 1.4 });
     y += 6;
 
     // Nakshatra name — English only. jsPDF's built-in Helvetica has no
@@ -234,6 +377,7 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
     doc.setFont(fonts.heading, "bold");
     doc.setFontSize(16);
     doc.setTextColor(...hex(brand.ink));
+    setFontForText(doc, nak.name || "—", "bold");
     doc.text(nak.name || "—", page.w / 2, y, { align: "center" });
     y += 6;
 
@@ -241,10 +385,11 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
     doc.setFont(fonts.body, "italic");
     doc.setFontSize(9);
     doc.setTextColor(...hex(brand.saffron));
-    const padaLine = `PADA ${nak.pada ?? "—"}${nak.range ? "   ·   " + nak.range : ""}`;
+    const padaLine = `${T("pada")} ${nak.pada ?? "—"}${nak.range ? "   ·   " + nak.range : ""}`;
     const padaLines = doc.splitTextToSize(padaLine, usable - 20);
     padaLines.slice(0, 2).forEach((ln, i) => {
-      doc.text(ln, page.w / 2, y + i * 4.5, { align: "center" });
+      setFontForText(doc, ln, "italic");
+        doc.text(ln, page.w / 2, y + i * 4.5, { align: "center" });
     });
     y += Math.min(2, padaLines.length) * 4.5 + 1;
 
@@ -262,20 +407,23 @@ function drawAstroCoverPage(doc, reading, inputs, reportTitle) {
 
     // Small attribute strip: Deity · Gana · Symbol · Quality · Ruler
     const attrs = [
-      ["Deity",   nak.deity],   ["Gana",    nak.gana],
-      ["Symbol",  nak.symbol],  ["Quality", nak.quality],
-      ["Ruler",   nak.ruler],
+      ["Deity",   nak.deity, T("deity")],
+      ["Gana",    nak.gana,  T("gana")],
+      ["Symbol",  nak.symbol, T("symbol")],
+      ["Quality", nak.quality, T("quality")],
+      ["Ruler",   nak.ruler,   T("ruler")],
     ].filter(([, v]) => v);
     if (attrs.length) {
       y += 2;
       const stripW = (usable - 10) / attrs.length;
-      attrs.forEach(([label, val], i) => {
+      attrs.forEach(([, val, tlabel], i) => {
         const cx = margin.x + 5 + stripW * i + stripW / 2;
-        doc.setFont(fonts.heading, "bold");
+        setFontForText(doc, tlabel.toUpperCase(), "bold");
         doc.setFontSize(6.5);
         doc.setTextColor(...hex(brand.gold));
-        doc.text(label.toUpperCase(), cx, y, { align: "center", charSpace: 1 });
-        doc.setFont(fonts.body, "normal");
+        const isLat = pickFontForText(tlabel) === "helvetica";
+        doc.text(tlabel.toUpperCase(), cx, y, { align: "center", charSpace: isLat ? 1 : 0 });
+        setFontForText(doc, String(val), "normal");
         doc.setFontSize(8);
         doc.setTextColor(...hex(brand.body));
         doc.text(String(val), cx, y + 4, { align: "center" });
@@ -300,11 +448,11 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(22);
   doc.setTextColor(...hex(brand.ink));
-  drawCenteredText(doc, "SATISH NUMERO WORLD", bandY + 11, { charSpace: 1.4 });
+  drawCenteredText(doc, T("brand").toUpperCase(), bandY + 11, { charSpace: 1.4 });
   doc.setFont(fonts.heading, "normal");
   doc.setFontSize(8);
   doc.setTextColor(...hex(brand.gold));
-  drawCenteredText(doc, "NUMEROLOGY  ·  ASTROLOGY  ·  TAROT", bandY + 17.5, { charSpace: 2 });
+  drawCenteredText(doc, T("tagline"), bandY + 17.5, { charSpace: 2 });
 
   // Ganesha
   const gY = bandY + 26;
@@ -313,17 +461,17 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
   doc.setFont(fonts.body, "italic");
   doc.setFontSize(10);
   doc.setTextColor(...hex(brand.ink));
-  doc.text("Shri Ganeshaya Namah", page.w / 2, gY + gH + 5, { align: "center" });
+  doc.text(T("invocation"), page.w / 2, gY + gH + 5, { align: "center" });
   doc.setFontSize(8);
   doc.setTextColor(...hex(brand.subtle));
-  doc.text("Vakratunda Mahakaya  ·  Suryakoti Samaprabha", page.w / 2, gY + gH + 10, { align: "center" });
+  doc.text(T("invocation_sub"), page.w / 2, gY + gH + 10, { align: "center" });
 
   // Report title + name
   let y = gY + gH + 20;
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(11);
   doc.setTextColor(...hex(brand.gold));
-  drawCenteredText(doc, "VEDIC NUMEROLOGY REPORT", y, { charSpace: 1.5 });
+  drawCenteredText(doc, T("vedic_numerology_report"), y, { charSpace: 1.5 });
   y += 8;
   doc.setFont(fonts.heading, "bold");
   doc.setFontSize(20);
@@ -339,9 +487,9 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
   const gap = 4;
   const boxW = (usable - gap * 2) / 3;
   const boxH = 26;
-  drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH, "Date of Birth", formatDob(src.date_of_birth));
-  drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH, "Time of Birth", src.time_of_birth || "—");
-  drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH, "Place of Birth", src.place_of_birth || reading.summary?.pob || "—");
+  drawMetaBox(doc, margin.x + (boxW + gap) * 0, y, boxW, boxH, T("date_of_birth"), formatDob(src.date_of_birth));
+  drawMetaBox(doc, margin.x + (boxW + gap) * 1, y, boxW, boxH, T("time_of_birth"), src.time_of_birth || "—");
+  drawMetaBox(doc, margin.x + (boxW + gap) * 2, y, boxW, boxH, T("place_of_birth"), src.place_of_birth || reading.summary?.pob || "—");
 
   // Row 2 — core numerology numbers
   y += boxH + gap;
@@ -362,20 +510,26 @@ function drawNumerologyCoverPage(doc, reading, inputs) {
 
   // Blessing footer strip
   y += boxH + 12;
-  y = drawFittedTitle(doc,
-    "A VEDIC NUMEROLOGY JOURNEY  ·  BASED ON JYOTISHA + CHALDEAN + LO SHU TRADITIONS",
-    y, { size: 9, color: brand.gold, maxCharSpace: 1.2 });
+  y = drawFittedTitle(doc, T("num_journey_tagline"), y, { size: 9, color: brand.gold, maxCharSpace: 1.2 });
   doc.setFont(fonts.body, "italic");
   doc.setFontSize(9.5);
   doc.setTextColor(...hex(brand.body));
-  const blessing = "May the sacred sciences of numbers illuminate the path of your name and birth.";
-  doc.text(blessing, page.w / 2, y, { align: "center" });
+  setFontForText(doc, T("num_blessing"), "italic");
+  doc.text(T("num_blessing"), page.w / 2, y, { align: "center" });
 }
 
-/** Section heading with an accent underline. */
+/** Render a Markdown reading section. Handles all supported languages —
+ *  the caller has already registered the correct Noto Sans font via
+ *  `activateScriptFontForLang` so drawMarkdown's Latin/Devanagari/Telugu
+ *  glyphs all render correctly. The `testId` and `lang` params are kept for
+ *  API compatibility with earlier snapshot-based fallbacks. */
+async function drawReadingBody(doc, markdown, y /* , testId, lang */) {
+  drawMarkdown(doc, markdown, y);
+}
+
 function drawSectionHeading(doc, text, y) {
   const { margin, brand } = LAYOUT;
-  doc.setFont(LAYOUT.fonts.heading, "bold");
+  setFontForText(doc, text, "bold");
   doc.setFontSize(14);
   doc.setTextColor(...hex(brand.ink));
   doc.text(text, margin.x, y);
@@ -402,6 +556,7 @@ function drawParagraph(doc, text, y, opts = {}) {
   const lines = doc.splitTextToSize(text || "", maxW);
   for (const line of lines) {
     if (y > page.h - margin.y - 5) { doc.addPage(); y = margin.y; }
+    setFontForText(doc, line, style);
     doc.text(line, margin.x, y);
     y += leading;
   }
@@ -413,29 +568,28 @@ function drawParagraph(doc, text, y, opts = {}) {
  *  Prevents "RAVI KUM" style right-edge clipping we hit on long subject
  *  names ("DETAILED VEDIC KUNDALI READING FOR <NAME>"). */
 function drawFittedTitle(doc, text, y, { size = 14, weight = "bold", color, maxCharSpace = 1.1 } = {}) {
-  const { page, margin, brand, fonts } = LAYOUT;
+  const { page, margin, brand } = LAYOUT;
   const maxW = page.w - margin.x * 2;
-  doc.setFont(fonts.heading, weight);
+  setFontForText(doc, text, weight);
   doc.setFontSize(size);
   doc.setTextColor(...hex(color || brand.ink));
 
-  // First try: honour maxCharSpace. If overflows, drop char-spacing then font.
-  let charSpace = maxCharSpace;
+  // charSpace only makes sense for Latin — Indic scripts already have
+  // natural inter-glyph spacing that gets ugly if we spread letters.
+  const isLatin = pickFontForText(text) === "helvetica";
+  let charSpace = isLatin ? maxCharSpace : 0;
   const measure = () => doc.getTextWidth(text) + (text.length - 1) * charSpace;
-  if (measure() > maxW) { charSpace = 0.3; }
+  if (isLatin && measure() > maxW) { charSpace = 0.3; }
   if (measure() > maxW) {
     charSpace = 0;
-    // Shrink size until it fits (down to a floor of 9pt).
     let s = size;
     while (s > 9 && doc.getTextWidth(text) > maxW) {
       s -= 0.5;
       doc.setFontSize(s);
     }
   }
-  // Route through drawCenteredText so the final position accounts for
-  // charSpace — jsPDF's align:"center" measures width without letter-spacing.
   const trueWidth = doc.getTextWidth(text) + Math.max(0, text.length - 1) * charSpace;
-  doc.text(text, (page.w - trueWidth) / 2, y, { charSpace });
+  doc.text(text, (page.w - trueWidth) / 2, y, charSpace ? { charSpace } : undefined);
   return y + Math.max(6, size * 0.55);
 }
 
@@ -459,7 +613,7 @@ function drawMarkdown(doc, md, y) {
     const h2 = block.match(/^##\s+(.+)/);
     const h1 = block.match(/^#\s+(.+)/);
     if (h3) {
-      doc.setFont(LAYOUT.fonts.heading, "bold");
+      setFontForText(doc, h3[1], "bold");
       doc.setFontSize(11);
       doc.setTextColor(...hex(brand.gold));
       doc.text(h3[1], margin.x, y);
@@ -471,14 +625,14 @@ function drawMarkdown(doc, md, y) {
       continue;
     }
     if (h1) {
-      // Backend often opens the AI reading with a top-level title ("# Vedic
-      // Kundali Reading for <name>") that duplicates the page heading. Render
-      // it as a subdued sub-heading so nothing leaks as literal "# ".
-      doc.setFont(LAYOUT.fonts.heading, "bold");
+      setFontForText(doc, h1[1], "bold");
       doc.setFontSize(12);
       doc.setTextColor(...hex(brand.saffron));
       const wrapped = doc.splitTextToSize(h1[1], page.w - margin.x * 2);
-      wrapped.forEach((ln, i) => doc.text(ln, LAYOUT.page.w / 2, y + i * 5.5, { align: "center" }));
+      wrapped.forEach((ln, i) => {
+        setFontForText(doc, ln, "bold");
+        doc.text(ln, LAYOUT.page.w / 2, y + i * 5.5, { align: "center" });
+      });
       y += wrapped.length * 5.5 + 3;
       continue;
     }
@@ -524,8 +678,10 @@ function drawFooter(doc) {
     doc.setFont(LAYOUT.fonts.body, "italic");
     doc.setFontSize(8);
     doc.setTextColor(...hex(brand.subtle));
-    doc.text("Satish Numero World", margin.x, page.h - 8);
-    doc.text(`Page ${i} of ${total}`, page.w - margin.x, page.h - 8, { align: "right" });
+    setFontForText(doc, T("brand"), "italic");
+    doc.text(T("brand"), margin.x, page.h - 8);
+    setFontForText(doc, T("page_of", { i, n: total }), "italic");
+    doc.text(T("page_of", { i, n: total }), page.w - margin.x, page.h - 8, { align: "right" });
   }
 }
 
@@ -534,21 +690,28 @@ function drawFooter(doc) {
 function drawPlanetaryPositions(doc, r, y) {
   const planets = r.chart?.planets;
   if (!planets) return y;
-  y = drawSectionHeading(doc, "Planetary Positions", y + 4);
-  // Backend planets can arrive as either an object keyed by planet code (older
-  // shape) or an array of {name, code, rashi_english, degree, nakshatra,
-  // navamsha_sign_english, states, retrograde ...}. Normalise to rows.
+  y = drawSectionHeading(doc, T("planetary_positions"), y + 4);
   const list = Array.isArray(planets) ? planets : Object.values(planets);
+  // Localised state labels — the backend emits states in English
+  // ("Retrograde", "Vargottam", "Exalted", "Debilitated"); map them onto the
+  // corresponding pdf.state_* i18n keys so the column reads natively in the
+  // reader's language.
+  const STATE_MAP = {
+    "Direct": T("state_direct"),
+    "Retrograde": T("state_retrograde"),
+    "Vargottam": T("state_vargottam"),
+    "Exalted": T("state_exalted"),
+    "Debilitated": T("state_debilitated"),
+  };
+  const localiseState = (s) => STATE_MAP[s] || s;
   const rows = list.map((p) => {
     const stateBits = [];
-    // `states` is the authoritative source (Retrograde, Vargottam, Exalted,
-    // Debilitated). Fall back to the legacy retrograde bool for older payloads.
     if (Array.isArray(p.states) && p.states.length) {
-      stateBits.push(...p.states);
+      stateBits.push(...p.states.map(localiseState));
     } else if (p.retrograde) {
-      stateBits.push("Retrograde");
+      stateBits.push(T("state_retrograde"));
     }
-    const state = stateBits.length ? stateBits.join(", ") : "Direct";
+    const state = stateBits.length ? stateBits.join(", ") : T("state_direct");
     return [
       p.name || p.code || "—",
       p.rashi_english || p.rashi || "—",
@@ -562,7 +725,7 @@ function drawPlanetaryPositions(doc, r, y) {
   });
   autoTable(doc, {
     startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
-    head: [["Graha", "Rashi", "Degree", "House", "Navamsha", "States"]],
+    head: [[T("col_graha"), T("col_rashi"), T("col_degree"), T("col_house"), T("col_navamsha"), T("col_states")]],
     body: rows, theme: "grid",
     styles: { font: LAYOUT.fonts.body, fontSize: 9, cellPadding: 1.8, textColor: hex(LAYOUT.brand.body) },
     headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], font: LAYOUT.fonts.heading, fontStyle: "bold", fontSize: 9, halign: "center" },
@@ -573,6 +736,7 @@ function drawPlanetaryPositions(doc, r, y) {
       3: { halign: "center" },
       5: { textColor: hex(LAYOUT.brand.saffron), fontStyle: "italic" },
     },
+    didParseCell: tableFontHook,
   });
   return doc.lastAutoTable.finalY + 4;
 }
@@ -580,52 +744,49 @@ function drawPlanetaryPositions(doc, r, y) {
 function drawVimshottariMahadasha(doc, r, y) {
   const md = r.chart?.dasha?.mahadashas;
   if (!md?.length) return y;
-  y = drawSectionHeading(doc, "Vimshottari Mahadasha  ·  120-Year Cycle", y + 4);
+  y = drawSectionHeading(doc, T("vimshottari_title"), y + 4);
 
-  // Intro copy (mirrors the reference PDF's paragraph above the table).
   const cur = r.chart?.dasha?.current;
   const curLord   = cur?.mahadasha;
   const curAntar  = cur?.antardasha;
   const curPratya = cur?.pratyantardasha;
-  const intro = "Vimshottari Mahadasha is the primary Vedic timing system spanning 120 years. Each planet rules for a set period, colouring the events, opportunities and lessons of that phase of life.";
-  y = drawParagraph(doc, intro, y, { size: 9.5, leading: 5, color: LAYOUT.brand.body });
+  y = drawParagraph(doc, T("vimshottari_intro"), y, { size: 9.5, leading: 5, color: LAYOUT.brand.body });
   if (curLord) {
     doc.setFont(LAYOUT.fonts.heading, "bold");
     doc.setFontSize(9.5);
     doc.setTextColor(...hex(LAYOUT.brand.saffron));
     const chain = [curLord, curAntar, curPratya].filter(Boolean).join(" — ");
-    doc.text(`Currently running:  ${chain}`, LAYOUT.margin.x, y);
+    setFontForText(doc, `${T("currently_running")}:  ${chain}`, "bold");
+    doc.text(`${T("currently_running")}:  ${chain}`, LAYOUT.margin.x, y);
     y += 6;
   }
 
   const rows = md.map((m) => [
-    m.lord + (m.lord === curLord ? "   (current)" : ""),
+    m.lord + (m.lord === curLord ? `   ${T("current_marker")}` : ""),
     new Date(m.start).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
     new Date(m.end).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
     String(m.years),
   ]);
   autoTable(doc, {
     startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
-    head: [["Mahadasha Lord", "Starts", "Ends", "Years"]],
+    head: [[T("col_mahadasha_lord"), T("col_starts"), T("col_ends"), T("col_years")]],
     body: rows, theme: "striped",
     styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 2, textColor: hex(LAYOUT.brand.body) },
     headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
     alternateRowStyles: { fillColor: [253, 250, 240] },
     columnStyles: { 0: { fontStyle: "bold" }, 3: { halign: "right" } },
+    didParseCell: tableFontHook,
   });
   return doc.lastAutoTable.finalY + 4;
 }
 
 function drawNumerologyCore(doc, num, y) {
   if (!num) return y;
-  y = drawSectionHeading(doc, "Numerology Overview", y + 4);
+  y = drawSectionHeading(doc, T("numerology_overview"), y + 4);
   const rows = ["mulank", "bhagyank", "naamank"]
     .filter((k) => num[k]?.number)
     .map((k) => {
       const e = num[k];
-      // Backend fields: e.planet (Sanskrit), e.planet_english, e.traits.
-      // Older code called these "name" / "essence"; keep the fallback so any
-      // future refactor doesn't silently blank the column.
       const planet = e.planet_english
         ? (e.planet && !e.planet_english.toLowerCase().includes(e.planet.toLowerCase())
             ? `${e.planet} (${e.planet_english})`
@@ -636,11 +797,12 @@ function drawNumerologyCore(doc, num, y) {
     });
   autoTable(doc, {
     startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
-    head: [["Category", "#", "Name", "Essence"]],
+    head: [["", T("col_number"), T("col_planet"), T("col_essence")]],
     body: rows, theme: "grid",
     styles: { font: LAYOUT.fonts.body, fontSize: 9.5, cellPadding: 2, textColor: hex(LAYOUT.brand.body), overflow: "linebreak" },
     headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold" },
     columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 12, halign: "center" }, 2: { cellWidth: 30 }, 3: { cellWidth: "auto" } },
+    didParseCell: tableFontHook,
   });
   return doc.lastAutoTable.finalY + 4;
 }
@@ -653,6 +815,7 @@ function drawLoShu(doc, lo, y) {
     startY: y, margin: { left: LAYOUT.margin.x + 30, right: LAYOUT.margin.x + 30 },
     body: rows, theme: "grid",
     styles: { font: LAYOUT.fonts.heading, fontSize: 20, fontStyle: "bold", cellPadding: 8, halign: "center", valign: "middle", textColor: hex(LAYOUT.brand.saffron), lineColor: hex(LAYOUT.brand.subtle), lineWidth: 0.4, minCellHeight: 25 },
+    didParseCell: tableFontHook,
   });
   return doc.lastAutoTable.finalY + 4;
 }
@@ -667,6 +830,7 @@ function drawVedicPlanetChart(doc, vc, y) {
     startY: y, margin: { left: LAYOUT.margin.x + 30, right: LAYOUT.margin.x + 30 },
     body: rows, theme: "grid",
     styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 4, halign: "center", valign: "middle", textColor: hex(LAYOUT.brand.body), lineColor: hex(LAYOUT.brand.subtle), lineWidth: 0.4, minCellHeight: 20 },
+    didParseCell: tableFontHook,
   });
   y = doc.lastAutoTable.finalY + 4;
   if (vc.dominant?.length) {
@@ -870,6 +1034,7 @@ async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all"
     doc.setFont(fonts.body, "bold");
     doc.setFontSize(11);
     doc.setTextColor(...hex(brand.ink));
+    setFontForText(doc, value, "bold");
     doc.text(value, page.w / 2, y + 5, { align: "center" });
     return y + 8;
   };
@@ -878,10 +1043,10 @@ async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all"
     // Page 2 layout: D1 chart + caption, followed by planetary positions
     // rendered by the caller below. Chart occupies the top ~110 mm.
     let y = margin.y;
-    y = heading("KUNDALI LAGNA CHART  ·  D1", y + 2);
+    y = heading(T("kundali_lagna_d1"), y + 2);
     const { h } = drawSnapshot(doc, d1Snap, margin.x, y, usableW, 100);
     y += h + 2;
-    caption("ASCENDANT (LAGNA)", asc, y);
+    caption(T("ascendant_lagna"), asc, y);
     // Return so caller can continue with planetary positions on same page.
     return y + 10;
   }
@@ -890,17 +1055,17 @@ async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all"
     // Page 3 layout: Chandra Rashi (top half) + Navamsha D9 (bottom half).
     let y = margin.y;
     if (chSnap) {
-      y = heading("CHANDRA RASHI CHART", y + 2);
+      y = heading(T("chandra_rashi_chart"), y + 2);
       const { h } = drawSnapshot(doc, chSnap, margin.x, y, usableW, 95);
       y += h + 2;
-      y = caption("CHANDRA LAGNA", chandLag, y);
+      y = caption(T("chandra_lagna"), chandLag, y);
       y += 6;
     }
     if (navSnap) {
-      y = heading("NAVAMSHA CHART  ·  D9", y + 2);
+      y = heading(T("navamsha_chart_d9"), y + 2);
       const { h } = drawSnapshot(doc, navSnap, margin.x, y, usableW, 95);
       y += h + 2;
-      caption("NAVAMSHA ASCENDANT", navAsc, y);
+      caption(T("navamsha_ascendant"), navAsc, y);
     }
     return;
   }
@@ -932,7 +1097,7 @@ async function drawNumerologyGridsFromScreen(doc, num, y, containerTestId) {
     return y;
   }
 
-  y = drawSectionHeading(doc, "Lo Shu Grid  &  Vedic Planetary Chart", y + 4);
+  y = drawSectionHeading(doc, T("lo_shu_vedic_title"), y + 4);
   const usableW = page.w - margin.x * 2;
   const remaining = page.h - margin.y - y - 6;
   const { h } = drawSnapshot(doc, snap, margin.x, y, usableW, remaining);
@@ -1002,8 +1167,11 @@ function drawKundaliChartsPage(doc, reading) {
 // The Basic builder uses the same skeleton without the AI-driven detail depth.
 
 export async function buildBasicPdf(reading, inputs) {
+  const lang = pickPdfLang(inputs, reading);
+  bindLang(lang);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawAstroCoverPage(doc, reading, inputs, "Vedic Kundali Report");
+  await activateScriptFontForLang(doc, lang);
+  drawAstroCoverPage(doc, reading, inputs, T("vedic_kundali_report"));
 
   // Page 2: D1 chart on top, Planetary Positions table below
   doc.addPage();
@@ -1039,21 +1207,25 @@ export async function buildBasicPdf(reading, inputs) {
     doc.addPage();
     let y = LAYOUT.margin.y;
     const name = (inputs?.full_name || reading.summary?.name || "your reading").toUpperCase();
-    y = drawFittedTitle(doc, `DETAILED VEDIC KUNDALI READING FOR ${name}`, y, { size: 14 });
+    y = drawFittedTitle(doc, T("detailed_kundali_reading_for", { name }), y, { size: 14 });
     doc.setDrawColor(...hex(LAYOUT.brand.gold));
     doc.setLineWidth(0.3);
     doc.line(LAYOUT.margin.x + 20, y - 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y - 3);
     y += 6;
-    drawMarkdown(doc, reading.advice, y);
+    await drawReadingBody(doc, reading.advice, y, "basic-advice", pickPdfLang(inputs, reading));
   }
 
   drawFooter(doc);
+  restoreFonts();
   return doc;
 }
 
 export async function buildPremiumAstroPdf(reading, inputs) {
+  const lang = pickPdfLang(inputs, reading);
+  bindLang(lang);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  drawAstroCoverPage(doc, reading, inputs, "Vedic Kundali Report");
+  await activateScriptFontForLang(doc, lang);
+  drawAstroCoverPage(doc, reading, inputs, T("vedic_kundali_report"));
 
   // Page 2: D1 Lagna Chart + Planetary Positions
   doc.addPage();
@@ -1089,7 +1261,7 @@ export async function buildPremiumAstroPdf(reading, inputs) {
     doc.addPage();
     let y = LAYOUT.margin.y;
     const name = (inputs?.full_name || reading.summary?.name || "you").toUpperCase();
-    y = drawFittedTitle(doc, `DETAILED VEDIC KUNDALI READING FOR ${name}`, y, { size: 14 });
+    y = drawFittedTitle(doc, T("detailed_kundali_reading_for", { name }), y, { size: 14 });
     doc.setDrawColor(...hex(LAYOUT.brand.gold));
     doc.setLineWidth(0.3);
     doc.line(LAYOUT.margin.x + 20, y - 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y - 3);
@@ -1097,17 +1269,21 @@ export async function buildPremiumAstroPdf(reading, inputs) {
     doc.setFont(LAYOUT.fonts.heading, "bold");
     doc.setFontSize(10);
     doc.setTextColor(...hex(LAYOUT.brand.saffron));
-    drawCenteredText(doc, "DETAILED PLANETARY READING", y, { charSpace: 1.5 });
+    drawCenteredText(doc, T("detailed_planetary_reading"), y, { charSpace: 1.5 });
     y += 8;
-    drawMarkdown(doc, reading.advice, y);
+    await drawReadingBody(doc, reading.advice, y, "premium-advice", pickPdfLang(inputs, reading));
   }
 
   drawFooter(doc);
+  restoreFonts();
   return doc;
 }
 
 export async function buildPremiumNumerologyPdf(reading, inputs) {
+  const lang = pickPdfLang(inputs, reading);
+  bindLang(lang);
   const doc = new jsPDF({ unit: "mm", format: "a4" });
+  await activateScriptFontForLang(doc, lang);
   drawNumerologyCoverPage(doc, reading, inputs);
 
   const num = reading.chart?.numerology;
@@ -1127,13 +1303,12 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
   if (dasha?.mahadashas?.length) {
     doc.addPage();
     y = LAYOUT.margin.y;
-    y = drawSectionHeading(doc, "Vedic Numerology Mahadasha  ·  81-Year Cycle", y + 2);
+    y = drawSectionHeading(doc, T("num_mahadasha_title"), y + 2);
     // Intro copy
-    const intro = "The Vedic Numerology Mahadasha divides life into nine 9-year cycles governed by planetary rulers derived from your Mulank. Each Mahadasha awakens themes that shape work, relationships, and inner growth.";
-    y = drawParagraph(doc, intro, y, { size: 9.5, leading: 5 });
+    y = drawParagraph(doc, T("num_mahadasha_intro"), y, { size: 9.5, leading: 5 });
     const cur = dasha.current?.mahadasha;
     const rows = dasha.mahadashas.map((m) => [
-      `${m.number}${m.number === cur ? "   (current)" : ""}`,
+      `${m.number}${m.number === cur ? `   ${T("current_marker")}` : ""}`,
       m.name || NUMEROLOGY_RULERS[m.number] || "—",
       new Date(m.start).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
       new Date(m.end).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }),
@@ -1141,13 +1316,14 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
     ]);
     autoTable(doc, {
       startY: y, margin: { left: LAYOUT.margin.x, right: LAYOUT.margin.x },
-      head: [["#", "Ruler", "Starts", "Ends", "Years"]],
+      head: [[T("col_hash"), T("col_ruler"), T("col_starts"), T("col_ends"), T("col_years")]],
       body: rows, theme: "striped",
       styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 2, textColor: hex(LAYOUT.brand.body) },
       headStyles: { fillColor: hex(LAYOUT.brand.ink), textColor: [255, 255, 255], fontStyle: "bold", halign: "center" },
       alternateRowStyles: { fillColor: [253, 250, 240] },
       columnStyles: { 0: { halign: "center", fontStyle: "bold" }, 4: { halign: "right" } },
-    });
+      didParseCell: tableFontHook,
+  });
   }
 
   // Page 5+: Numerology AI reading (only if backend returns one)
@@ -1155,7 +1331,7 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
     doc.addPage();
     y = LAYOUT.margin.y;
     const name = (inputs?.full_name || reading.summary?.name || "you").toUpperCase();
-    y = drawFittedTitle(doc, `DETAILED VEDIC NUMEROLOGY READING FOR ${name}`, y, { size: 14 });
+    y = drawFittedTitle(doc, T("detailed_numerology_reading_for", { name }), y, { size: 14 });
     doc.setDrawColor(...hex(LAYOUT.brand.gold));
     doc.setLineWidth(0.3);
     doc.line(LAYOUT.margin.x + 20, y - 3, LAYOUT.page.w - LAYOUT.margin.x - 20, y - 3);
@@ -1164,5 +1340,6 @@ export async function buildPremiumNumerologyPdf(reading, inputs) {
   }
 
   drawFooter(doc);
+  restoreFonts();
   return doc;
 }
