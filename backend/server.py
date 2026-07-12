@@ -1560,21 +1560,41 @@ def _split_into_chunks(text: str, max_chars: int = 1800) -> list[str]:
 LANG_NAMES = {
     "en": "English",
     "hi": "Hindi (Devanagari script)",
-    "te": "Telugu",
-    "ta": "Tamil",
+    "te": "Telugu (Telugu script — తెలుగు లిపి)",
+    "ta": "Tamil (Tamil script — தமிழ் எழுத்து)",
+}
+
+# Sample of the native alphabet for each language — used in the prompt so
+# Claude cannot fall back to Roman transliteration ("guru" instead of "గురు").
+LANG_SCRIPT_SAMPLES = {
+    "hi": "हिन्दी वर्णमाला (क ख ग घ, अ आ इ ई)",
+    "te": "తెలుగు అక్షరమాల (అ ఆ ఇ ఈ, క ఖ గ ఘ)",
+    "ta": "தமிழ் எழுத்துக்கள் (அ ஆ இ ஈ, க ங ச ஞ)",
 }
 
 
 def _lang_instruction(lang: Optional[str]) -> str:
-    """Return a system-prompt suffix instructing Claude to respond in the user's language."""
+    """Return a system-prompt suffix instructing Claude to respond in the
+    user's language — with a HARD requirement to use the native script
+    (Devanagari / Telugu / Tamil alphabets), never Roman transliteration."""
     code = (lang or "en").lower()
     if code == "en" or code not in LANG_NAMES:
         return ""
+    sample = LANG_SCRIPT_SAMPLES.get(code, "")
     return (
-        f" CRITICAL: Write the ENTIRE response in {LANG_NAMES[code]}. "
-        f"Sanskrit/Vedic terms (kundali, graha, nakshatra, rashi, bhava, dasha, antardasha) "
-        f"should be written in the native script of {LANG_NAMES[code]} (e.g. कुंडली, నక్షత్రం, கிரகம்). "
-        f"Keep all Markdown headings, line breaks, and structure exactly as instructed, but translate all text content."
+        f"\n\nCRITICAL LANGUAGE REQUIREMENT: Write the ENTIRE response in "
+        f"{LANG_NAMES[code]}. "
+        f"You MUST use the native alphabet — {sample}. "
+        f"DO NOT use Roman/Latin/English transliteration anywhere in the "
+        f"response body. Every noun, every verb, every Sanskrit/Vedic term "
+        f"(kundali → కుండలి / कुंडली / குண்டலி, graha → గ్రహము / ग्रह / கிரகம், "
+        f"nakshatra → నక్షత్రము / नक्षत्र / நட்சத்திரம், rashi → రాశి / राशि / ராசி, "
+        f"bhava → భావము / भाव / பாவம், dasha → దశ / दशा / தசை, mahadasha, "
+        f"antardasha, mulank, bhagyank) must appear in the native script. "
+        f"The ONLY exceptions where Latin letters are allowed: the user's "
+        f"personal name if it was originally supplied in Latin, and standard "
+        f"date/time/number tokens (12:30, 1990, 4th, etc.). "
+        f"Keep all Markdown structure (##, **bold**, blank lines) exactly."
     )
 
 
@@ -2254,15 +2274,21 @@ async def translate_reading(
         raise HTTPException(status_code=400, detail="Nothing to translate")
 
     target_name = LANG_NAMES[target]
+    sample = LANG_SCRIPT_SAMPLES.get(target, "")
     system = (
         "You are a professional translator specialising in Vedic astrology and numerology "
         "content. Translate the user's text into " + target_name + ". "
         "Rules: (1) Preserve ALL Markdown formatting exactly — headings (#, ##), bold (**), "
         "italics (*), lists, blank lines. (2) Do NOT add or remove content, do NOT summarise. "
-        "(3) Translate Sanskrit/Vedic technical terms (kundali, graha, nakshatra, rashi, "
-        "bhava, dasha, antardasha, mahadasha, lagna) into the native script of "
-        + target_name + " where natural. (4) Keep proper nouns (person names, place names, "
-        "planet names in English like Sun/Moon/Mars if they appear that way) readable. "
+        "(3) HARD REQUIREMENT — the ENTIRE output must be in the native alphabet "
+        + f"({sample}). "
+        "Do NOT use Roman/Latin transliteration for ANY word. "
+        "Every noun, every Sanskrit/Vedic term (kundali, graha, nakshatra, rashi, "
+        "bhava, dasha, antardasha, mahadasha, lagna, mulank, bhagyank) must appear "
+        "in the native script. Planet names too: Sun→సూర్యుడు/सूर्य/சூரியன், "
+        "Moon→చంద్రుడు/चंद्र/சந்திரன், Mars→మంగళుడు/मंगल/செவ்வாய், etc. "
+        "(4) The ONLY Latin letters allowed are: personal names that were originally "
+        "supplied in Latin, and standard date/number/time tokens. "
         "(5) Output ONLY the translated text — no preamble, no explanation, no wrapping quotes."
     )
 
@@ -2312,16 +2338,21 @@ async def translate_text(body: TranslateTextIn, user: dict = Depends(get_current
         return {"lang": target, "translated": text}
 
     target_name = LANG_NAMES[target]
+    sample = LANG_SCRIPT_SAMPLES.get(target, "")
     system = (
         "You are a professional translator specialising in Vedic astrology and numerology "
         "content. Translate the user's text into " + target_name + ". "
         "Rules: (1) Preserve ALL Markdown formatting exactly — headings (#, ##), bold (**), "
         "italics (*), lists, blank lines. (2) Do NOT add or remove content, do NOT summarise. "
-        "(3) Translate Sanskrit/Vedic technical terms (kundali, graha, nakshatra, rashi, "
-        "bhava, dasha, antardasha, mahadasha, lagna, mulank, bhagyank, naamank) into the "
-        "native script of " + target_name + " where natural. (4) Keep proper nouns "
-        "(person names, place names) readable. (5) Output ONLY the translated text — no "
-        "preamble, no explanation, no wrapping quotes."
+        "(3) HARD REQUIREMENT — the ENTIRE output must be in the native alphabet "
+        + f"({sample}). "
+        "Do NOT use Roman/Latin transliteration for ANY word. "
+        "Every noun, every Sanskrit/Vedic term (kundali, graha, nakshatra, rashi, "
+        "bhava, dasha, antardasha, mahadasha, lagna, mulank, bhagyank, naamank) must appear "
+        "in the native script. Planet names too: Sun→సూర్యుడు/सूर्य/சூரியன், etc. "
+        "(4) The ONLY Latin letters allowed are: personal names supplied in Latin, and "
+        "standard date/number tokens. "
+        "(5) Output ONLY the translated text — no preamble, no explanation, no wrapping quotes."
     )
 
     chunks = _split_into_chunks(text, max_chars=1800)
