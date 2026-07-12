@@ -823,14 +823,32 @@ function drawLoShu(doc, lo, y) {
 function drawVedicPlanetChart(doc, vc, y) {
   if (!vc?.grid) return y;
   y = drawSectionHeading(doc, "Vedic Planetary Chart  ·  Grahas", y + 4);
+  // Match on-screen + Lo Shu style: repeat the digit by its count when
+  // present (e.g. "111" for count=3), single faded digit when missing.
   const rows = vc.grid.map((row) =>
-    row.map((c) => `${c.digit}\n${c.graha}${c.count > 0 ? `  ×${c.count}` : ""}`)
+    row.map((c) => {
+      const digitStr = c.count > 0 ? String(c.digit).repeat(c.count) : String(c.digit);
+      return `${digitStr}\n${c.graha}${c.count > 1 ? `  ×${c.count}` : ""}`;
+    })
   );
   autoTable(doc, {
     startY: y, margin: { left: LAYOUT.margin.x + 30, right: LAYOUT.margin.x + 30 },
     body: rows, theme: "grid",
     styles: { font: LAYOUT.fonts.body, fontSize: 10, cellPadding: 4, halign: "center", valign: "middle", textColor: hex(LAYOUT.brand.body), lineColor: hex(LAYOUT.brand.subtle), lineWidth: 0.4, minCellHeight: 20 },
-    didParseCell: tableFontHook,
+    didParseCell: (data) => {
+      tableFontHook(data);
+      // Fade missing-digit cells (count=0) like the on-screen chart.
+      const rowIdx = data.row.index;
+      const colIdx = data.column.index;
+      const cell = vc.grid[rowIdx]?.[colIdx];
+      if (cell && cell.count === 0) {
+        data.cell.styles.textColor = hex(LAYOUT.brand.subtle);
+        data.cell.styles.fillColor = [253, 251, 247];
+      } else if (cell) {
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.fillColor = [250, 243, 220];
+      }
+    },
   });
   y = doc.lastAutoTable.finalY + 4;
   if (vc.dominant?.length) {

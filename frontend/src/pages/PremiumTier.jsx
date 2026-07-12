@@ -784,12 +784,15 @@ export default function PremiumTier() {
                               <div
                                 className="font-heading leading-none"
                                 style={{
-                                  fontSize: "1.25rem",
+                                  // Match Lo Shu display: repeat digit by count when present,
+                                  // shrink & fade when the digit is missing from the DOB.
+                                  fontSize: filled ? "1.6rem" : "1.15rem",
                                   color: filled ? "#B85C00" : "rgba(139,94,26,0.35)",
-                                  fontWeight: 700,
+                                  fontWeight: filled ? 700 : 400,
+                                  letterSpacing: filled && cell.count > 1 ? "0.02em" : "normal",
                                 }}
                               >
-                                {cell.digit}
+                                {filled ? String(cell.digit).repeat(cell.count) : cell.digit}
                               </div>
                               <div
                                 className="font-accent text-[8.5px] mt-1 tracking-wider leading-tight text-center"
