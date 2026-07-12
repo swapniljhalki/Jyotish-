@@ -306,10 +306,21 @@ def compute_lo_shu_grid(dob: date) -> dict:
 # counts, but arranged so the user sees which planetary energies dominate
 # their chart at a glance.
 #
-# Grid layout (3×3, natural digit order — the traditional Vedic chart):
-#   1 | 2 | 3     Surya   | Chandra | Guru
-#   4 | 5 | 6     Rahu    | Budha   | Shukra
-#   7 | 8 | 9     Ketu    | Shani   | Mangala
+# Grid layout follows the classical Vedic order used across Indian
+# numerology references (also known as the "Chaldean Vedic" grid):
+#   3 | 1 | 9      Guru    | Surya | Mangala
+#   6 | 7 | 5      Shukra  | Ketu  | Budha
+#   2 | 8 | 4      Chandra | Shani | Rahu
+# Grid layout follows the classical astroleaf-style Vedic numerology grid —
+# the same layout used across most Indian numerology references:
+#     3 | 1 | 9      Guru    | Surya  | Mangala
+#     6 | 7 | 5      Shukra  | Ketu   | Budha
+#     2 | 8 | 4      Chandra | Shani  | Rahu
+VEDIC_GRID_LAYOUT: tuple[tuple[int, ...], ...] = (
+    (3, 1, 9),
+    (6, 7, 5),
+    (2, 8, 4),
+)
 VEDIC_PLANET_MAP: dict[int, dict[str, str]] = {
     1: {"graha": "Surya",    "english": "Sun",     "element": "Fire",   "day": "Sunday",    "color": "Deep Red",
         "essence": "Authority, vitality, leadership, willpower."},
@@ -355,13 +366,12 @@ def compute_vedic_planet_chart(dob: date) -> dict:
             counts[str(d)] += 1
 
     grid: list[list[dict]] = []
-    for row_start in (1, 4, 7):
-        row = []
-        for offset in (0, 1, 2):
-            n = row_start + offset
+    for row in VEDIC_GRID_LAYOUT:
+        cells = []
+        for n in row:
             planet = VEDIC_PLANET_MAP[n]
             cnt = counts[str(n)]
-            row.append({
+            cells.append({
                 "digit":   n,
                 "count":   cnt,
                 "present": cnt > 0,
@@ -372,7 +382,7 @@ def compute_vedic_planet_chart(dob: date) -> dict:
                 "color":   planet["color"],
                 "essence": planet["essence"],
             })
-        grid.append(row)
+        grid.append(cells)
 
     # Dominant grahas — top 3 by count (excluding 0-count entries).
     dominant = sorted(
