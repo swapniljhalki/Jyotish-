@@ -44,21 +44,54 @@ export default function About() {
             </div>
 
             <div className="fade-up delay-200">
-              <div className="sb-card sb-card-hover">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.5} />
-                  <span className="text-[11px] font-bold tracking-widest uppercase text-[#5C3A09]">My approach</span>
+              <div className="relative rounded-3xl overflow-hidden border border-[rgba(212,175,55,0.35)] shadow-[0_25px_60px_-15px_rgba(92,58,9,0.35)] bg-[#FDFBF7]">
+                <img
+                  src="https://customer-assets.emergentagent.com/job_kundali-chart-1/artifacts/l8wzt5o0_1762450702486.jfif"
+                  alt="Satissh Jhalki, professional Vedic astrologer and numerologist"
+                  className="w-full h-[440px] md:h-[500px] object-cover object-center"
+                  data-testid="about-astrologer-photo"
+                />
+                {/* soft golden top-highlight */}
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[rgba(212,175,55,0.15)] to-transparent" />
+                {/* Name plate below the photo — never covers the face */}
+                <div className="px-6 py-5 border-t border-[rgba(212,175,55,0.35)] bg-white">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.5} />
+                    <span className="text-[10px] font-bold tracking-widest uppercase text-[#5C3A09]">
+                      The astrologer
+                    </span>
+                  </div>
+                  <p className="font-heading text-2xl md:text-3xl leading-tight text-[#2A1A05] mt-1">
+                    Satissh Jhalki
+                  </p>
+                  <p className="text-[13px] text-[#6B3410] mt-0.5">
+                    Numerologist • Vedic Astrologer • Tarot Reader
+                  </p>
                 </div>
-                <h3 className="font-heading font-bold text-2xl md:text-3xl text-[#2A1A05] mb-5 tracking-tight">
-                  Traditional knowledge, intuitive interpretation, practical guidance.
-                </h3>
-                <p className="text-[15px] text-[#6B3410] leading-relaxed">
-                  Every reading is personalized because no two individuals share the same journey.
-                  Whether you are seeking answers about love, marriage, career growth, finances, family
-                  matters, or spiritual development, my goal is to provide meaningful insights that help
-                  you make informed decisions with greater confidence.
-                </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* MY APPROACH */}
+      <section className="sb-section pt-0">
+        <div className="sb-container">
+          <div className="max-w-3xl mx-auto fade-up">
+            <div className="sb-card sb-card-hover">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="h-4 w-4 text-[#FF8C00]" strokeWidth={1.5} />
+                <span className="text-[11px] font-bold tracking-widest uppercase text-[#5C3A09]">My approach</span>
+              </div>
+              <h3 className="font-heading font-bold text-2xl md:text-3xl text-[#2A1A05] mb-5 tracking-tight">
+                Traditional knowledge, intuitive interpretation, practical guidance.
+              </h3>
+              <p className="text-[15px] text-[#6B3410] leading-relaxed">
+                Every reading is personalized because no two individuals share the same journey.
+                Whether you are seeking answers about love, marriage, career growth, finances, family
+                matters, or spiritual development, my goal is to provide meaningful insights that help
+                you make informed decisions with greater confidence.
+              </p>
             </div>
           </div>
         </div>
