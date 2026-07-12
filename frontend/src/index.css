@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Anek+Telugu:wght@400;500;600;700&family=Hind+Guntur:wght@400;500;600;700&family=Tenali+Ramakrishna&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -45,24 +45,74 @@
   .font-accent  { font-family: 'Cinzel', serif; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; }
   .font-body    { font-family: 'Outfit', sans-serif; font-weight: 500; }
 
-  /* Native-script overrides: when user selects an Indic language, swap to Noto for that script. */
+  /* Native-script overrides: when user selects an Indic language, swap to
+     script-appropriate fonts. `!important` is used here because many app
+     utility classes (`.sb-lead`, `.sb-eyebrow`, `.sb-btn-primary`, etc.)
+     hard-code Latin font-families — Outfit / Cinzel / Cormorant Garamond
+     have NO Telugu / Devanagari / Tamil glyphs, so the browser falls back
+     to whatever system font has them, producing broken (non-shaping)
+     conjuncts. Forcing the correct Indic font via `!important` is the
+     simplest, safest way to guarantee proper OpenType shaping everywhere. */
   html[lang="hi"] .font-heading,
   html[lang="hi"] .font-body,
   html[lang="hi"] .font-accent,
+  html[lang="hi"] .sb-h1, html[lang="hi"] .sb-h2, html[lang="hi"] .sb-lead,
+  html[lang="hi"] .sb-eyebrow, html[lang="hi"] .sb-btn-primary,
+  html[lang="hi"] .sb-btn-outline, html[lang="hi"] .sb-nav-link,
   html[lang="hi"] h1, html[lang="hi"] h2, html[lang="hi"] h3, html[lang="hi"] h4, html[lang="hi"] h5,
-  html[lang="hi"] body { font-family: 'Noto Sans Devanagari', 'Outfit', sans-serif; letter-spacing: normal; text-transform: none; }
+  html[lang="hi"] body,
+  html[lang="hi"] p, html[lang="hi"] span, html[lang="hi"] a,
+  html[lang="hi"] button, html[lang="hi"] label, html[lang="hi"] li,
+  html[lang="hi"] input, html[lang="hi"] textarea, html[lang="hi"] select {
+    font-family: 'Noto Sans Devanagari', 'Outfit', sans-serif !important;
+    letter-spacing: normal;
+    text-transform: none;
+  }
 
+  /* Telugu: 'Hind Guntur' (Indian Type Foundry) for body — sharp, highly
+     readable, complete OpenType Telugu shaping. 'Anek Telugu' for headings
+     — variable-weight display face with elegant contrast and full conjunct
+     support. Both fall back to Noto Sans Telugu for any rare glyph. */
   html[lang="te"] .font-heading,
-  html[lang="te"] .font-body,
+  html[lang="te"] .sb-h1, html[lang="te"] .sb-h2,
+  html[lang="te"] h1, html[lang="te"] h2, html[lang="te"] h3, html[lang="te"] h4, html[lang="te"] h5 {
+    font-family: 'Anek Telugu', 'Noto Sans Telugu', 'Cormorant Garamond', serif !important;
+    letter-spacing: normal;
+    font-weight: 600;
+  }
   html[lang="te"] .font-accent,
-  html[lang="te"] h1, html[lang="te"] h2, html[lang="te"] h3, html[lang="te"] h4, html[lang="te"] h5,
-  html[lang="te"] body { font-family: 'Noto Sans Telugu', 'Outfit', sans-serif; letter-spacing: normal; text-transform: none; }
+  html[lang="te"] .sb-eyebrow {
+    font-family: 'Tenali Ramakrishna', 'Anek Telugu', 'Noto Sans Telugu', 'Cinzel', serif !important;
+    letter-spacing: 0.06em;
+    text-transform: none;
+  }
+  html[lang="te"] .font-body,
+  html[lang="te"] .sb-lead, html[lang="te"] .sb-btn-primary,
+  html[lang="te"] .sb-btn-outline, html[lang="te"] .sb-nav-link,
+  html[lang="te"] body,
+  html[lang="te"] p, html[lang="te"] span, html[lang="te"] a,
+  html[lang="te"] button, html[lang="te"] label, html[lang="te"] li,
+  html[lang="te"] input, html[lang="te"] textarea, html[lang="te"] select {
+    font-family: 'Hind Guntur', 'Noto Sans Telugu', 'Outfit', sans-serif !important;
+    letter-spacing: normal;
+    text-transform: none;
+  }
 
   html[lang="ta"] .font-heading,
   html[lang="ta"] .font-body,
   html[lang="ta"] .font-accent,
+  html[lang="ta"] .sb-h1, html[lang="ta"] .sb-h2, html[lang="ta"] .sb-lead,
+  html[lang="ta"] .sb-eyebrow, html[lang="ta"] .sb-btn-primary,
+  html[lang="ta"] .sb-btn-outline, html[lang="ta"] .sb-nav-link,
   html[lang="ta"] h1, html[lang="ta"] h2, html[lang="ta"] h3, html[lang="ta"] h4, html[lang="ta"] h5,
-  html[lang="ta"] body { font-family: 'Noto Sans Tamil', 'Outfit', sans-serif; letter-spacing: normal; text-transform: none; }
+  html[lang="ta"] body,
+  html[lang="ta"] p, html[lang="ta"] span, html[lang="ta"] a,
+  html[lang="ta"] button, html[lang="ta"] label, html[lang="ta"] li,
+  html[lang="ta"] input, html[lang="ta"] textarea, html[lang="ta"] select {
+    font-family: 'Noto Sans Tamil', 'Outfit', sans-serif !important;
+    letter-spacing: normal;
+    text-transform: none;
+  }
 }
 
 /* --- Zodiac wheel image background (user-provided) with ivory veil for readability --- */
