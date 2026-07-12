@@ -35,9 +35,9 @@ export default function Login() {
       <div className="hidden md:flex relative overflow-hidden border-r border-[rgba(212,175,55,0.15)]">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://customer-assets.emergentagent.com/job_kundali-chart-1/artifacts/kckqjwat_download.jfif')" }}
+          style={{ backgroundImage: "url('https://customer-assets.emergentagent.com/job_kundali-chart-1/artifacts/ygnek7sx_download%20%282%29.jfif')" }}
           data-testid="login-deity-image"
-          aria-label="Lord Narasimha with Goddess Lakshmi"
+          aria-label="Lord Lakshmi Narasimha with Goddess Lakshmi and Prahlada"
         />
         {/* Stronger dark gradient anchored to the bottom so the overlay text
             stays legible against the bright deity portrait. */}
