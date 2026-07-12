@@ -36,8 +36,10 @@ import Profile from "./pages/Profile";
 function Shell({ children }) {
   return (
     <>
-      <TranslationDisclaimerBanner />
-      <Navbar />
+      <div className="sticky top-0 z-50">
+        <TranslationDisclaimerBanner />
+        <Navbar />
+      </div>
       {children}
       <Footer />
     </>

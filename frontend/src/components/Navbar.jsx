@@ -129,7 +129,7 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-[rgba(253,251,247,0.85)] border-b border-[rgba(92,58,9,0.08)]">
+    <header className="backdrop-blur-xl bg-[rgba(253,251,247,0.85)] border-b border-[rgba(92,58,9,0.08)]">
       <div className="sb-container h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 group shrink-0" data-testid="nav-logo">
           <img
