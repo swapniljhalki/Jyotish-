@@ -1412,8 +1412,8 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
         "8th-grade reader would understand. Prefer short common words over fancy or "
         "poetic ones. Sentences ≤ 15 words. Avoid flowery language and complicated "
         "grammar. Be warm, encouraging but honest. "
-        "LENGTH: aim for ~180–240 words TOTAL in 5 short sections with Markdown "
-        "headings. Each section = 2–3 short sentences."
+        "LENGTH: aim for ~280–360 words TOTAL in 5 short sections with Markdown "
+        "headings. Each section = 3–4 short sentences."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -1673,9 +1673,9 @@ def _basic_prompts(body: "AstroIn", chart: dict):
         "(rashi, graha, bhava, nakshatra, dasha), add a 2–3 word plain-English "
         "meaning in brackets the first time. Be specific to the placements provided, "
         "never generic. Be warm but concise. "
-        "LENGTH: aim for ~250–320 words TOTAL across all sections. Each section = "
-        "2–3 short sentences (not paragraphs). Structure with the exact Markdown ## "
-        "section headings asked below."
+        "LENGTH: aim for ~380–480 words TOTAL across all sections. Each section = "
+        "3–4 short sentences. Structure with the exact Markdown ## section headings "
+        "asked below."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -1697,7 +1697,7 @@ def _basic_prompts(body: "AstroIn", chart: dict):
         f"## Health & Vitality\n"
         f"## Spiritual Path\n"
         f"## Current Focus & Remedies\n\n"
-        f"Each section: 2–3 short sentences only. Total reading: 250–320 words. "
+        f"Each section: 3–4 short sentences. Total reading: 380–480 words. "
         f"Simple everyday English. No poetic phrasing. "
         f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style farewell. "
         f"End cleanly after the last section."
@@ -1913,8 +1913,8 @@ def _premium_prompts(body: "AstroIn", chart: dict):
         "long adjectives, and complicated grammar. When you must use a Vedic term, "
         "add a 2–3 word plain-English meaning in brackets the first time. Be warm, "
         "insightful and specific — but concise. "
-        "LENGTH: aim for ~320–400 words TOTAL across all sections. Each section = "
-        "2–3 short sentences. Structure with clear Markdown-style headings."
+        "LENGTH: aim for ~500–600 words TOTAL across all sections. Each section = "
+        "3–4 short sentences. Structure with clear Markdown-style headings."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -1924,11 +1924,11 @@ def _premium_prompts(body: "AstroIn", chart: dict):
         f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']})\n\n"
         f"Planetary placements:\n{planet_lines}\n\n"
         f"{dasha_line}\n\n"
-        f"Write the reading with these sections, each 2–3 short sentences:\n"
+        f"Write the reading with these sections, each 3–4 short sentences:\n"
         f"## Overall Personality\n## Career & Dharma\n## Wealth & Finances\n"
         f"## Relationships & Marriage\n## Health & Vitality\n## Spiritual Path\n"
         f"## Current Focus & Remedies\n\n"
-        f"Total reading: 320–400 words. Simple everyday English. No poetic phrasing. "
+        f"Total reading: 500–600 words. Simple everyday English. No poetic phrasing. "
         f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style farewell. "
         f"End cleanly after the last section."
     )
@@ -1984,8 +1984,8 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         "complicated grammar. When you must use a term like Mulank / Bhagyank / Lo "
         "Shu, add a 2–3 word plain-English meaning in brackets the first time. Be "
         "warm, specific and practical. "
-        "LENGTH: aim for ~320–400 words TOTAL across all sections with clear "
-        "Markdown-style headings. Each section = 2–3 short sentences. "
+        "LENGTH: aim for ~500–600 words TOTAL across all sections with clear "
+        "Markdown-style headings. Each section = 3–4 short sentences. "
         "Do NOT end with a Sanskrit blessing or 'Om…' farewell — finish cleanly "
         "after the last section."
         + _lang_instruction(body.lang)
@@ -2004,11 +2004,11 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         f"Lo Shu grid — numbers PRESENT in DOB: {lo_shu_present}\n"
         f"Lo Shu grid — numbers MISSING (karmic gaps): {lo_shu_missing}\n\n"
         f"{dasha_line}\n\n"
-        f"Write the reading with these sections, each 2–3 short sentences:\n"
+        f"Write the reading with these sections, each 3–4 short sentences:\n"
         f"## Numerology Blueprint\n## Personality & Inner Nature\n## Career & Purpose\n"
         f"## Wealth & Prosperity\n## Relationships & Bonds\n## Health & Vitality\n"
         f"## Current Dasha Focus & Remedies\n\n"
-        f"Total reading: 320–400 words. Simple everyday English. No poetic phrasing. "
+        f"Total reading: 500–600 words. Simple everyday English. No poetic phrasing. "
         f"End cleanly after the last section — no closing blessing."
     )
     return system, user_msg
