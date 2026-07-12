@@ -592,3 +592,12 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - **Also tightened `/numerology/reading` prompt** in `server.py` — now uses the same "SIMPLE, EVERYDAY English / 8th-grade reader / ≤15-word sentences" rules and reduced to **180–240 words** (from ~280), matching the Basic/Premium tone changes.
 - **Verified end-to-end**: Playwright test — logged in as premium, filled Numerology form, generated reading, translator toolbar rendered with 4 pills, generated reading was in the new simpler style (visible in screenshot).
 - **data-testids added**: `numerology-translator`, `numerology-translator-btn-{en/hi/te/ta}`, `numerology-translator-ai-notice`.
+
+
+## Feb 12, 2026 (later still) — Admin credentials rotated to SNW admin
+- Rotated `/app/backend/.env` `ADMIN_EMAIL` → `snw_admin@satishnumeroworld.com`, `ADMIN_PASSWORD` → `SNW_admin_0709` per user request. Existing `_seed_admin` startup logic automatically created the new admin and rotated its password.
+- Deleted the legacy `admin@vedic.com` account from Mongo since it is superseded by the SNW admin.
+- **Admin link visibility**: already gated by `user.role === "admin"` in `Navbar.jsx` — invisible on the landing page for unauthenticated visitors and regular users. No change needed.
+- **All Readings page**: already implemented at `/admin?tab=readings` (Admin.jsx, `admin-tab-readings`). Uses `GET /api/admin/readings` which joins user email + name onto every reading. Verified live — logged in as new SNW admin, 318 readings from all users rendered in a single table with View drill-down.
+- Also updated `/app/memory/test_credentials.md` with the new SNW admin credentials.
+- ⚠️ **Production**: user must set the same `ADMIN_EMAIL` / `ADMIN_PASSWORD` env vars on the production deployment for the SNW admin to be created there. Just redeploy will NOT be enough unless those envs are updated in the Emergent production environment.
