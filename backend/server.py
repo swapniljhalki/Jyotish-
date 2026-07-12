@@ -208,6 +208,12 @@ class TranslateReadingIn(BaseModel):
     lang: str  # target language code: hi | te | ta (en returns original)
 
 
+class TranslateTextIn(BaseModel):
+    text: str
+    lang: str  # target language code
+    source_lang: Optional[str] = "en"
+
+
 # --- auth helpers ---
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get("access_token")
@@ -1398,10 +1404,16 @@ async def numerology_reading(body: NumerologyIn, user: dict = Depends(get_curren
     cur_pd_n = cur.get("pratyantardasha")
 
     system = (
-        "You are a Vedic numerologist (ank-jyotishi) writing a personal reading for a modern "
-        "audience. Use a warm, encouraging but honest tone. Reference traditional terminology "
-        "(Mulank, Bhagyank, Naamank, ruling graha, Mahadasha, Antardasha, Pratyantardasha) "
-        "with brief translations. Aim for ~280 words in 5 short sections with Markdown headings."
+        "You are a Vedic numerologist (ank-jyotishi) writing a personal reading. "
+        "Reference traditional terminology (Mulank, Bhagyank, Naamank, ruling graha, "
+        "Mahadasha, Antardasha, Pratyantardasha) with a brief 2–3 word plain-English "
+        "meaning in brackets the first time. "
+        "LANGUAGE RULES (very important): use SIMPLE, EVERYDAY English — the kind an "
+        "8th-grade reader would understand. Prefer short common words over fancy or "
+        "poetic ones. Sentences ≤ 15 words. Avoid flowery language and complicated "
+        "grammar. Be warm, encouraging but honest. "
+        "LENGTH: aim for ~180–240 words TOTAL in 5 short sections with Markdown "
+        "headings. Each section = 2–3 short sentences."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -2280,6 +2292,49 @@ async def translate_reading(
         {"$set": {f"translations.{target}": payload}},
     )
     return {"lang": target, "cached": False, **payload}
+
+
+@api.post("/translate")
+async def translate_text(body: TranslateTextIn, user: dict = Depends(get_current_user)):
+    """Stateless translation of an arbitrary piece of AI-generated text
+    (used by pages that don't persist their reading, e.g. the Numerology page).
+    No DB caching — the frontend caches results in component state.
+    Chunks the input at paragraph boundaries and translates chunks in parallel
+    to keep first-call latency under Cloudflare's 100 s edge timeout."""
+    target = (body.lang or "en").lower().strip()
+    source = (body.source_lang or "en").lower().strip()
+    if target not in LANG_NAMES:
+        raise HTTPException(status_code=400, detail="Unsupported language")
+    text = (body.text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Empty text")
+    if target == source:
+        return {"lang": target, "translated": text}
+
+    target_name = LANG_NAMES[target]
+    system = (
+        "You are a professional translator specialising in Vedic astrology and numerology "
+        "content. Translate the user's text into " + target_name + ". "
+        "Rules: (1) Preserve ALL Markdown formatting exactly — headings (#, ##), bold (**), "
+        "italics (*), lists, blank lines. (2) Do NOT add or remove content, do NOT summarise. "
+        "(3) Translate Sanskrit/Vedic technical terms (kundali, graha, nakshatra, rashi, "
+        "bhava, dasha, antardasha, mahadasha, lagna, mulank, bhagyank, naamank) into the "
+        "native script of " + target_name + " where natural. (4) Keep proper nouns "
+        "(person names, place names) readable. (5) Output ONLY the translated text — no "
+        "preamble, no explanation, no wrapping quotes."
+    )
+
+    chunks = _split_into_chunks(text, max_chars=1800)
+    if len(chunks) <= 1:
+        translated = await _ask_claude(system, text, f"tr-text-{user['id']}-{target}")
+    else:
+        results = await asyncio.gather(*[
+            _ask_claude(system, c, f"tr-text-{user['id']}-{target}-{i}")
+            for i, c in enumerate(chunks)
+        ])
+        translated = "\n\n".join(r.strip() for r in results)
+
+    return {"lang": target, "translated": translated}
 
 
 @api.delete("/readings/{reading_id}")

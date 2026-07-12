@@ -6,6 +6,7 @@ import api, { formatApiError } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import NumberCard from "../components/NumberCard";
 import AdviceMarkdown from "../components/AdviceMarkdown";
+import LiveTextTranslator from "../components/LiveTextTranslator";
 
 export default function Numerology() {
   const { user } = useAuth();
@@ -14,6 +15,8 @@ export default function Numerology() {
   const [dob, setDob] = useState("");
   const [result, setResult] = useState(null);
   const [advice, setAdvice] = useState("");
+  const [display, setDisplay] = useState("");
+  const [sourceLang, setSourceLang] = useState("en");
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [readingLoading, setReadingLoading] = useState(false);
@@ -42,14 +45,18 @@ export default function Numerology() {
   const fetchReading = async () => {
     setErr("");
     setAdvice("");
+    setDisplay("");
     setReadingLoading(true);
     try {
+      const lang = (i18n.resolvedLanguage || "en").toLowerCase().split("-")[0];
       const { data } = await api.post("/numerology/reading", {
         full_name: fullName,
         date_of_birth: dob,
-        lang: i18n.resolvedLanguage,
+        lang,
       });
       setAdvice(data.advice);
+      setDisplay(data.advice);
+      setSourceLang(lang || "en");
     } catch (e2) {
       setErr(formatApiError(e2.response?.data?.detail) || e2.message);
     } finally {
@@ -189,7 +196,15 @@ export default function Numerology() {
                   </button>
                 </div>
               ) : (
-                <AdviceMarkdown testId="numerology-advice">{advice}</AdviceMarkdown>
+                <>
+                  <LiveTextTranslator
+                    sourceLang={sourceLang}
+                    original={advice}
+                    onView={(_v, text) => setDisplay(text)}
+                    testIdPrefix="numerology-translator"
+                  />
+                  <AdviceMarkdown testId="numerology-advice">{display || advice}</AdviceMarkdown>
+                </>
               )}
             </div>
           </div>

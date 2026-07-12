@@ -582,3 +582,13 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - Also fixed a pre-existing syntax-error-inducing duplicate block at the end of server.py (leftover copy of the `/api/bookings` return statement below `app.include_router` calls) that had been silently blocking one hot-reload cycle.
 - Backend confirmed healthy after change (curl `/api/auth/me` returns 401 as expected).
 - Effect: every new Basic and Premium reading (and its PDF export) will use markedly simpler English and be roughly half the previous length. Existing saved readings are unchanged — user can re-generate if they want the shorter form.
+
+
+## Feb 12, 2026 (later still) — Translation for the standalone Numerology report
+- **New stateless `POST /api/translate` endpoint** in `/app/backend/server.py`. Body: `{text, lang, source_lang="en"}`. Chunks the input at paragraph boundaries and translates chunks in parallel via Claude Sonnet 4.5 to stay under Cloudflare's 100 s edge timeout for large readings. No DB persistence — used for reading pages that don't save to the archive.
+- **`TranslateTextIn`** pydantic model added.
+- **New `/app/frontend/src/components/LiveTextTranslator.jsx`**: sibling of `ReadingTranslator` but for non-persisted live text. Same UI (source pill + 3 target pills, saffron active state, cached-dot indicator, AI disclaimer notice, `data-testid` per pill). Local state cache — resets on source text change (e.g. user regenerates with a different name/DOB). Auto-fetches into current UI language when source text is set.
+- **Wired into `/app/frontend/src/pages/Numerology.jsx`**: after the AI reading is generated, the `LiveTextTranslator` is rendered above the `AdviceMarkdown`, and the markdown reads from `display` (translator's onView payload) with fallback to the original `advice`. Source language is captured from `i18n.resolvedLanguage` at generation time so switching languages later triggers a proper translation (not another regeneration).
+- **Also tightened `/numerology/reading` prompt** in `server.py` — now uses the same "SIMPLE, EVERYDAY English / 8th-grade reader / ≤15-word sentences" rules and reduced to **180–240 words** (from ~280), matching the Basic/Premium tone changes.
+- **Verified end-to-end**: Playwright test — logged in as premium, filled Numerology form, generated reading, translator toolbar rendered with 4 pills, generated reading was in the new simpler style (visible in screenshot).
+- **data-testids added**: `numerology-translator`, `numerology-translator-btn-{en/hi/te/ta}`, `numerology-translator-ai-notice`.
