@@ -1106,20 +1106,16 @@ async function drawKundaliChartsFromScreen(doc, reading, testIds, layout = "all"
  *  Premium Numerology PDF so the coloured cells match what the user sees.
  *  Falls back to the vector tables if the on-screen container isn't found. */
 async function drawNumerologyGridsFromScreen(doc, num, y, containerTestId) {
-  const { page, margin, brand, fonts } = LAYOUT;
-  const snap = await snapshotByTestId(containerTestId);
-  if (!snap) {
-    // Vector fallback
-    y = drawLoShu(doc, num?.lo_shu, y);
-    y = drawVedicPlanetChart(doc, num?.vedic_chart, y);
-    return y;
-  }
-
-  y = drawSectionHeading(doc, T("lo_shu_vedic_title"), y + 4);
-  const usableW = page.w - margin.x * 2;
-  const remaining = page.h - margin.y - y - 6;
-  const { h } = drawSnapshot(doc, snap, margin.x, y, usableW, remaining);
-  return y + h + 4;
+  // Prefer the vector renderers here: they draw Lo Shu and the Vedic
+  // Planetary Chart one below the other in generous "expanded" form with
+  // native page-break handling. Snapshotting the tall on-screen stack would
+  // compress both grids to fit the remaining page height, so vector is a
+  // strictly better fit for the PDF layout the user requested.
+  // (drawLoShu / drawVedicPlanetChart each render their own section heading.)
+  y = drawLoShu(doc, num?.lo_shu, y);
+  y = drawVedicPlanetChart(doc, num?.vedic_chart, y);
+  void containerTestId; // signature preserved for callers
+  return y;
 }
 
 

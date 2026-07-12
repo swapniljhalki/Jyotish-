@@ -696,16 +696,16 @@ export default function PremiumTier() {
                   empty cells are growth areas. Complete lines (&ldquo;arrows&rdquo;) reveal specific karmic gifts and lessons.
                 </p>
 
-                <div className="grid md:grid-cols-2 gap-6 items-start" data-testid="premium-numerology-charts">
-                  {/* LEFT — Lo Shu magic-square grid ------------------------ */}
-                  <div>
-                    <div className="font-accent text-[10px] uppercase tracking-widest mb-2 text-center" style={{ color: "#B85C00" }}>
+                <div className="flex flex-col gap-10 items-center" data-testid="premium-numerology-charts">
+                  {/* TOP — Lo Shu magic-square grid ------------------------ */}
+                  <div className="w-full max-w-[440px]">
+                    <div className="font-accent text-[11px] uppercase tracking-widest mb-3 text-center" style={{ color: "#B85C00" }}>
                       Lo Shu Grid · Jeevan Ank Yantra
                     </div>
                     <div
                       className="grid grid-cols-3 rounded-md overflow-hidden mx-auto"
                       style={{
-                        width: "min(280px, 100%)",
+                        width: "min(420px, 100%)",
                         border: "2px solid #5C3A09",
                         background: "#FDFBF7",
                       }}
@@ -727,7 +727,7 @@ export default function PremiumTier() {
                             <div
                               className="font-heading"
                               style={{
-                                fontSize: filled ? "2rem" : "1.4rem",
+                                fontSize: filled ? "2.6rem" : "1.8rem",
                                 lineHeight: 1,
                                 color: filled ? "#B85C00" : "rgba(139,94,26,0.35)",
                                 fontWeight: filled ? 700 : 400,
@@ -737,7 +737,7 @@ export default function PremiumTier() {
                             </div>
                             {filled && cell.count > 1 && (
                               <div
-                                className="absolute top-1 right-2 font-accent text-[9px]"
+                                className="absolute top-2 right-3 font-accent text-[11px]"
                                 style={{ color: "#B85C00" }}
                               >
                                 ×{cell.count}
@@ -747,21 +747,21 @@ export default function PremiumTier() {
                         );
                       })}
                     </div>
-                    <p className="mt-3 text-[10.5px] font-body italic text-center" style={{ color: "#5C3A09" }}>
+                    <p className="mt-3 text-[11px] font-body italic text-center" style={{ color: "#5C3A09" }}>
                       3×3 magic square (every line sums to 15).
                     </p>
                   </div>
 
-                  {/* RIGHT — Vedic Planetary Chart (digits mapped to grahas) - */}
+                  {/* BOTTOM — Vedic Planetary Chart (digits mapped to grahas) - */}
                   {result.chart.numerology.vedic_chart && (
-                    <div data-testid="premium-vedic-planet-chart">
-                      <div className="font-accent text-[10px] uppercase tracking-widest mb-2 text-center" style={{ color: "#B85C00" }}>
+                    <div className="w-full max-w-[440px]" data-testid="premium-vedic-planet-chart">
+                      <div className="font-accent text-[11px] uppercase tracking-widest mb-3 text-center" style={{ color: "#B85C00" }}>
                         Vedic Planetary Chart · Grahas
                       </div>
                       <div
                         className="grid grid-cols-3 rounded-md overflow-hidden mx-auto"
                         style={{
-                          width: "min(280px, 100%)",
+                          width: "min(420px, 100%)",
                           border: "2px solid #5C3A09",
                           background: "#FDFBF7",
                         }}
@@ -772,7 +772,7 @@ export default function PremiumTier() {
                             <div
                               key={cell.digit}
                               data-testid={`vedic-chart-cell-${cell.digit}`}
-                              className="relative flex flex-col items-center justify-center px-1 py-2"
+                              className="relative flex flex-col items-center justify-center px-2 py-3"
                               style={{
                                 aspectRatio: "1 / 1",
                                 borderRight: idx % 3 !== 2 ? "1px solid rgba(139,94,26,0.4)" : "none",
@@ -786,7 +786,7 @@ export default function PremiumTier() {
                                 style={{
                                   // Match Lo Shu display: repeat digit by count when present,
                                   // shrink & fade when the digit is missing from the DOB.
-                                  fontSize: filled ? "1.6rem" : "1.15rem",
+                                  fontSize: filled ? "2.2rem" : "1.6rem",
                                   color: filled ? "#B85C00" : "rgba(139,94,26,0.35)",
                                   fontWeight: filled ? 700 : 400,
                                   letterSpacing: filled && cell.count > 1 ? "0.02em" : "normal",
@@ -795,14 +795,14 @@ export default function PremiumTier() {
                                 {filled ? String(cell.digit).repeat(cell.count) : cell.digit}
                               </div>
                               <div
-                                className="font-accent text-[8.5px] mt-1 tracking-wider leading-tight text-center"
+                                className="font-accent text-[10px] mt-1.5 tracking-wider leading-tight text-center"
                                 style={{ color: filled ? "#5C3A09" : "rgba(139,94,26,0.4)" }}
                               >
                                 {cell.graha}
                               </div>
                               {filled && cell.count > 1 && (
                                 <div
-                                  className="absolute top-1 right-2 font-accent text-[9px]"
+                                  className="absolute top-2 right-3 font-accent text-[11px]"
                                   style={{ color: "#B85C00" }}
                                 >
                                   ×{cell.count}
@@ -812,7 +812,7 @@ export default function PremiumTier() {
                           );
                         })}
                       </div>
-                      <p className="mt-3 text-[10.5px] font-body italic text-center" style={{ color: "#5C3A09" }}>
+                      <p className="mt-3 text-[11px] font-body italic text-center" style={{ color: "#5C3A09" }}>
                         Same digits, arranged by their ruling graha.
                       </p>
                     </div>
