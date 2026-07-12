@@ -204,6 +204,10 @@ class ShareIn(BaseModel):
     enabled: bool
 
 
+class TranslateReadingIn(BaseModel):
+    lang: str  # target language code: hi | te | ta (en returns original)
+
+
 # --- auth helpers ---
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get("access_token")
@@ -1517,6 +1521,30 @@ async def _ask_claude(system: str, user_msg: str, session_id: str) -> str:
         raise HTTPException(status_code=502, detail=f"AI service error: {e}")
 
 
+def _split_into_chunks(text: str, max_chars: int = 1800) -> list[str]:
+    """Split Markdown text into chunks not exceeding max_chars, preserving
+    paragraph boundaries (splits on blank lines). Only splits at paragraph
+    edges so headings/lists never get torn mid-list."""
+    if len(text) <= max_chars:
+        return [text]
+    paragraphs = text.split("\n\n")
+    chunks: list[str] = []
+    buf: list[str] = []
+    buf_len = 0
+    for p in paragraphs:
+        p_len = len(p) + 2  # +2 for the "\n\n" separator
+        if buf and buf_len + p_len > max_chars:
+            chunks.append("\n\n".join(buf))
+            buf = [p]
+            buf_len = p_len
+        else:
+            buf.append(p)
+            buf_len += p_len
+    if buf:
+        chunks.append("\n\n".join(buf))
+    return chunks
+
+
 LANG_NAMES = {
     "en": "English",
     "hi": "Hindi (Devanagari script)",
@@ -2147,6 +2175,88 @@ async def get_reading(reading_id: str, user: dict = Depends(get_current_user)):
     if not r:
         raise HTTPException(status_code=404, detail="Reading not found")
     return r
+
+
+@api.post("/readings/{reading_id}/translate")
+async def translate_reading(
+    reading_id: str,
+    body: TranslateReadingIn,
+    user: dict = Depends(get_current_user),
+):
+    """Translate a stored reading's AI-generated text (advice + numerology_advice + summary
+    signs) into the target language. Result is cached in the DB under
+    `translations.<lang>` so repeat requests are free.
+
+    Only translates AI-generated free-form text — structural fields (chart, planet
+    positions, numerology numbers, dates) are language-agnostic and reused as-is
+    from the source document by the frontend."""
+    target = (body.lang or "en").lower().strip()
+    if target not in LANG_NAMES:
+        raise HTTPException(status_code=400, detail="Unsupported language")
+
+    r = await db.readings.find_one({"id": reading_id, "user_id": user["id"]}, {"_id": 0})
+    if not r:
+        raise HTTPException(status_code=404, detail="Reading not found")
+
+    source = ((r.get("inputs") or {}).get("lang") or "en").lower()
+
+    # If asking for the source language, return the original fields — no LLM call.
+    if target == source or target == "en" and source == "en":
+        return {
+            "lang": target,
+            "cached": True,
+            "advice": r.get("advice") or "",
+            "numerology_advice": r.get("numerology_advice") or "",
+        }
+
+    cached = ((r.get("translations") or {}).get(target)) or None
+    if cached and cached.get("advice"):
+        return {"lang": target, "cached": True, **cached}
+
+    advice_src = (r.get("advice") or "").strip()
+    numerology_src = (r.get("numerology_advice") or "").strip()
+    if not advice_src and not numerology_src:
+        raise HTTPException(status_code=400, detail="Nothing to translate")
+
+    target_name = LANG_NAMES[target]
+    system = (
+        "You are a professional translator specialising in Vedic astrology and numerology "
+        "content. Translate the user's text into " + target_name + ". "
+        "Rules: (1) Preserve ALL Markdown formatting exactly — headings (#, ##), bold (**), "
+        "italics (*), lists, blank lines. (2) Do NOT add or remove content, do NOT summarise. "
+        "(3) Translate Sanskrit/Vedic technical terms (kundali, graha, nakshatra, rashi, "
+        "bhava, dasha, antardasha, mahadasha, lagna) into the native script of "
+        + target_name + " where natural. (4) Keep proper nouns (person names, place names, "
+        "planet names in English like Sun/Moon/Mars if they appear that way) readable. "
+        "(5) Output ONLY the translated text — no preamble, no explanation, no wrapping quotes."
+    )
+
+    async def _translate(text: str) -> str:
+        if not text:
+            return ""
+        # Chunk the text at paragraph boundaries and translate chunks in parallel.
+        # A single 6-7KB advice would take 40-60s serially; chunked-parallel gets
+        # us under Cloudflare's 100s edge timeout on cold calls.
+        chunks = _split_into_chunks(text, max_chars=1800)
+        if len(chunks) <= 1:
+            return await _ask_claude(system, text, f"tr-{reading_id}-{target}")
+        results = await asyncio.gather(*[
+            _ask_claude(system, c, f"tr-{reading_id}-{target}-{i}")
+            for i, c in enumerate(chunks)
+        ])
+        return "\n\n".join(r.strip() for r in results)
+
+    advice_out, numerology_out = await asyncio.gather(
+        _translate(advice_src),
+        _translate(numerology_src),
+    )
+
+    payload = {"advice": advice_out, "numerology_advice": numerology_out}
+    await db.readings.update_one(
+        {"id": reading_id, "user_id": user["id"]},
+        {"$set": {f"translations.{target}": payload}},
+    )
+    return {"lang": target, "cached": False, **payload}
 
 
 @api.delete("/readings/{reading_id}")

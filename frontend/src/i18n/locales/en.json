@@ -4,6 +4,11 @@
     "translation": "This translation is generated using AI and may not be fully accurate. Please refer to the original text or seek professional translation for important purposes.",
     "dismiss": "Dismiss"
   },
+  "translator": {
+    "label": "View reading in",
+    "original": "original",
+    "ai_notice": "AI-translated from the original. May not be fully accurate — switch back for the original text."
+  },
   "nav": {
     "grahas": "Grahas",
     "nakshatras": "Nakshatras",

@@ -544,3 +544,30 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - Dismissal persists via `sessionStorage` (key `snw_translation_disclaimer_dismissed`) — hidden for the rest of the tab session once closed, reappears in a fresh session.
 - data-testid: `translation-disclaimer-banner`, `translation-disclaimer-dismiss`.
 - Verified on landing page via screenshot: banner renders above Navbar with correct copy in English.
+
+
+## Feb 12, 2026 (later) — Saved-reading on-demand translation
+- **New endpoint `POST /api/readings/{id}/translate`** in `/app/backend/server.py`:
+  - Body: `{lang: "hi"|"te"|"ta"|"en"}`.
+  - Auth: user must own the reading.
+  - If target == source (or already in `reading.translations.<lang>`) returns the cached copy instantly.
+  - Otherwise splits `advice` + `numerology_advice` into paragraph-boundary chunks (`_split_into_chunks`, max 1800 chars per chunk) and fires all chunks in parallel to Claude Sonnet 4.5 via `_ask_claude` — reduces first-call latency below Cloudflare's 100 s edge timeout for the largest premium readings (~13 KB combined text).
+  - Result is persisted at `readings.translations.<lang> = {advice, numerology_advice}` for permanent per-language caching.
+- **`TranslateReadingIn` pydantic model** added next to `ShareIn`.
+- **New helper `_split_into_chunks(text, max_chars)`** preserves Markdown paragraph boundaries so headings/lists never tear mid-chunk.
+- **New frontend component `/app/frontend/src/components/ReadingTranslator.jsx`**:
+  - Pill row showing the source language (with "original" tag) plus every other supported language (hi/te/ta).
+  - Click → POST /translate → cache in local state + surface toast on error.
+  - On mount, auto-requests translation into the current UI language if it differs from source (makes "switch site language then open saved reading" flow feel automatic).
+  - Visual indicator: active view = solid saffron pill; already-cached (but not viewed) = small dot on pill.
+  - Shows an "AI-translated — switch back for original" notice while a translation is active.
+- **`ReadingDetail.jsx` integration**:
+  - Holds `view` + `display` state (advice + numerology_advice currently shown).
+  - Advice section reads from `display.advice` instead of `r.advice`.
+  - `ResultActions` (both the main PDF button and the numerology-dasha PDF button) receive a merged reading with the translated text AND `inputs.lang = <view>` so `pickPdfLang` in pdfBuilders switches to the Noto Devanagari/Telugu font and renders the translated PDF in the target script.
+- **Locale strings** added to en/hi/te/ta json for `translator.label`, `translator.original`, `translator.ai_notice`.
+- **Verified**: Endpoint tested via curl — first uncached call to `hi` succeeded and cached the result; subsequent call returned in <25 ms with `cached: true`. Preview UI screenshot confirms the pill row + banner render correctly on the reading detail page.
+- **Known caveat**: The Emergent LLM Key budget on this workspace was exhausted (`Current cost: 17.14, Max budget: 17.00`) so a fresh Telugu translation currently returns a 502 — user needs to top up the Universal Key balance (Profile → Universal Key → Add Balance) to test uncached calls further. Code path is verified — Hindi translation ran successfully before the budget cap.
+
+### Data-testids added
+- `reading-translator`, `translator-btn-en/hi/te/ta`, `translator-ai-notice`.

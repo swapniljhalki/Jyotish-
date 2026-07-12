@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import ResultActions from "../components/ResultActions";
 import ReadingCover from "../components/ReadingCover";
 import AdviceMarkdown from "../components/AdviceMarkdown";
+import ReadingTranslator from "../components/ReadingTranslator";
 import snwLogo from "../assets/snw-logo.jpg";
 
 export default function ReadingDetail() {
@@ -21,6 +22,11 @@ export default function ReadingDetail() {
   const [err, setErr] = useState("");
   const [toggling, setToggling] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Language view state for on-demand translation
+  //   view:    "source" or a lang code like "hi" / "te" / "ta"
+  //   display: { advice, numerology_advice } — currently visible copy
+  const [view, setView] = useState("source");
+  const [display, setDisplay] = useState({ advice: "", numerology_advice: "" });
   const resultRef = useRef(null);
   const dashaRef  = useRef(null);
 
@@ -29,6 +35,10 @@ export default function ReadingDetail() {
       try {
         const { data } = await api.get(`/readings/${id}`);
         setR(data);
+        setDisplay({
+          advice: data.advice || "",
+          numerology_advice: data.numerology_advice || "",
+        });
       } catch (e) {
         setErr(formatApiError(e.response?.data?.detail) || e.message);
       }
@@ -127,11 +137,37 @@ export default function ReadingDetail() {
           )}
         </div>
 
+        {/* Translator toolbar — on-demand Claude translation of AI text */}
+        <ReadingTranslator
+          readingId={r.id}
+          sourceLang={r.inputs?.lang || "en"}
+          original={{
+            advice: r.advice || "",
+            numerology_advice: r.numerology_advice || "",
+          }}
+          preCached={r.translations || {}}
+          onView={(v, payload) => {
+            setView(v);
+            setDisplay({
+              advice: payload?.advice || "",
+              numerology_advice: payload?.numerology_advice || "",
+            });
+          }}
+        />
+
         {/* Print & PDF download — builder depends on the saved reading's tier */}
         <ResultActions
           testIdPrefix="reading-detail"
           pdfType={r.tier === "premium" ? "premium-astro" : "basic"}
-          reading={r}
+          reading={{
+            ...r,
+            advice: display.advice,
+            numerology_advice: display.numerology_advice,
+            inputs: {
+              ...(r.inputs || {}),
+              lang: view === "source" ? (r.inputs?.lang || "en") : view,
+            },
+          }}
           filename={`Reading-${r.tier}-${(r.summary?.ascendant || r.id).slice(0, 24)}`}
         />
 
@@ -231,7 +267,7 @@ export default function ReadingDetail() {
                 <div className="ornate-divider mb-4">
                   <span className="font-accent text-xs" style={{ color: "#5C3A09", fontWeight: 600 }}>Reading</span>
                 </div>
-                <AdviceMarkdown testId="reading-premium-advice">{r.advice}</AdviceMarkdown>
+                <AdviceMarkdown testId="reading-premium-advice">{display.advice}</AdviceMarkdown>
               </section>
             </div>
           ) : (
@@ -252,7 +288,7 @@ export default function ReadingDetail() {
                 </section>
               )}
               <section data-pdf-page="advice" className="premium-card p-8 md:p-12">
-                <AdviceMarkdown testId="reading-basic-advice">{r.advice}</AdviceMarkdown>
+                <AdviceMarkdown testId="reading-basic-advice">{display.advice}</AdviceMarkdown>
               </section>
             </div>
           )}
@@ -264,7 +300,15 @@ export default function ReadingDetail() {
             <ResultActions
               testIdPrefix="reading-dasha"
               pdfType={r.tier === "premium" ? "premium-numerology" : null}
-              reading={r}
+              reading={{
+                ...r,
+                advice: display.advice,
+                numerology_advice: display.numerology_advice,
+                inputs: {
+                  ...(r.inputs || {}),
+                  lang: view === "source" ? (r.inputs?.lang || "en") : view,
+                },
+              }}
               filename={`Numerology-Dasha-${(r.summary?.ascendant || r.id).slice(0, 18)}`}
             />
             {/* Printable: clean combined-table view */}
