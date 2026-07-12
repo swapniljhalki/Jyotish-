@@ -1630,14 +1630,20 @@ def _basic_prompts(body: "AstroIn", chart: dict):
     )
 
     system = (
-        "You are a senior Vedic astrologer (Jyotishi) writing a thoughtful, detailed reading "
-        "for a modern audience. Reference the given placements — including the Moon's nakshatra "
-        "and its deity / symbol — where they meaningfully shape the personality, life path or "
-        "remedies. Use warm, encouraging but honest language. Use traditional Vedic terminology "
-        "(rashi, graha, bhava, nakshatra) with brief plain-English translations. Be specific to "
-        "the placements provided, never generic. Aim for ~500–600 words. Structure with the "
-        "exact Markdown ## section headings asked below; keep each section to 2–4 short "
-        "paragraphs."
+        "You are a senior Vedic astrologer (Jyotishi) writing a clear, easy-to-read "
+        "reading for a general audience. Reference the given placements — including "
+        "the Moon's nakshatra and its deity / symbol — where they meaningfully shape "
+        "personality, life path or remedies. "
+        "LANGUAGE RULES (very important): use SIMPLE, EVERYDAY English — the kind an "
+        "8th-grade reader would understand. Prefer short common words over fancy or "
+        "poetic ones. Use short sentences (15 words max). Avoid flowery language, "
+        "long adjectives, and complicated grammar. When you must use a Vedic term "
+        "(rashi, graha, bhava, nakshatra, dasha), add a 2–3 word plain-English "
+        "meaning in brackets the first time. Be specific to the placements provided, "
+        "never generic. Be warm but concise. "
+        "LENGTH: aim for ~250–320 words TOTAL across all sections. Each section = "
+        "2–3 short sentences (not paragraphs). Structure with the exact Markdown ## "
+        "section headings asked below."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -1659,6 +1665,8 @@ def _basic_prompts(body: "AstroIn", chart: dict):
         f"## Health & Vitality\n"
         f"## Spiritual Path\n"
         f"## Current Focus & Remedies\n\n"
+        f"Each section: 2–3 short sentences only. Total reading: 250–320 words. "
+        f"Simple everyday English. No poetic phrasing. "
         f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style farewell. "
         f"End cleanly after the last section."
     )
@@ -1858,18 +1866,23 @@ def _premium_prompts(body: "AstroIn", chart: dict):
     )
 
     system = (
-        "You are a senior Vedic astrologer (Jyotishi) writing a detailed premium reading. "
-        "Reference the specific planetary placements given — including the outer modern grahas "
-        "Uranus and Neptune when their placements meaningfully shape the personality, "
-        "career or spiritual path (treat them as auxiliary indicators, never overriding the "
-        "classical Parashari nine grahas). When a planet's STATES include Retrograde (vakri), "
-        "Combust (asta), Exalted (uchcha), Debilitated (neecha) or Vargottam, weave the "
-        "implications of those states into your interpretation — they are central to a "
-        "classical reading. When the current Vimshottari Dasha is provided, dedicate the "
-        "'Current Focus & Remedies' section to interpreting that dasha period (mahadasha "
-        "lord's themes flavoured by the antardasha lord). Use traditional Vedic terminology "
-        "with brief translations. Be insightful, specific and warm. Aim for ~550–700 words. "
-        "Structure with clear Markdown-style headings."
+        "You are a senior Vedic astrologer (Jyotishi) writing a premium reading. "
+        "Reference the specific planetary placements given — including the outer "
+        "modern grahas Uranus and Neptune when their placements meaningfully shape "
+        "the personality, career or spiritual path (treat them as auxiliary indicators, "
+        "never overriding the classical Parashari nine grahas). When a planet's STATES "
+        "include Retrograde (vakri), Combust (asta), Exalted (uchcha), Debilitated "
+        "(neecha) or Vargottam, weave the implications of those states into your "
+        "interpretation. When the current Vimshottari Dasha is provided, dedicate "
+        "the 'Current Focus & Remedies' section to interpreting that period. "
+        "LANGUAGE RULES (very important): use SIMPLE, EVERYDAY English — the kind an "
+        "8th-grade reader would understand. Prefer short common words over fancy or "
+        "poetic ones. Use short sentences (15 words max). Avoid flowery language, "
+        "long adjectives, and complicated grammar. When you must use a Vedic term, "
+        "add a 2–3 word plain-English meaning in brackets the first time. Be warm, "
+        "insightful and specific — but concise. "
+        "LENGTH: aim for ~320–400 words TOTAL across all sections. Each section = "
+        "2–3 short sentences. Structure with clear Markdown-style headings."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -1879,10 +1892,11 @@ def _premium_prompts(body: "AstroIn", chart: dict):
         f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']})\n\n"
         f"Planetary placements:\n{planet_lines}\n\n"
         f"{dasha_line}\n\n"
-        f"Write the reading with these sections, each 2–4 sentences:\n"
+        f"Write the reading with these sections, each 2–3 short sentences:\n"
         f"## Overall Personality\n## Career & Dharma\n## Wealth & Finances\n"
         f"## Relationships & Marriage\n## Health & Vitality\n## Spiritual Path\n"
         f"## Current Focus & Remedies\n\n"
+        f"Total reading: 320–400 words. Simple everyday English. No poetic phrasing. "
         f"Do NOT end with a closing blessing, Sanskrit invocation, or 'Om … namah'-style farewell. "
         f"End cleanly after the last section."
     )
@@ -1927,13 +1941,21 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
 
     system = (
         "You are a senior Vedic numerologist grounded in Jyotisha, Chaldean and Lo Shu "
-        "traditions. Write a detailed premium numerology reading tying together the "
-        "Mulank (root number), Bhagyank (destiny), Naamank (name expression), the Lo Shu "
-        "grid presence/gaps, and the current Vedic Numerology Mahadasha. Use each planet's "
-        "traits as a lens on personality, career, wealth, relationships and remedial "
-        "actions. Aim for ~550–700 words with clear Markdown-style headings. Use warm, "
-        "specific and practical language. Do NOT end with a Sanskrit blessing or 'Om…' "
-        "farewell — finish cleanly after the last section."
+        "traditions. Write a premium numerology reading tying together the Mulank "
+        "(root number), Bhagyank (destiny), Naamank (name expression), the Lo Shu "
+        "grid presence/gaps, and the current Vedic Numerology Mahadasha. Use each "
+        "planet's traits as a lens on personality, career, wealth, relationships and "
+        "remedial actions. "
+        "LANGUAGE RULES (very important): use SIMPLE, EVERYDAY English — the kind an "
+        "8th-grade reader would understand. Prefer short common words over fancy or "
+        "poetic ones. Use short sentences (15 words max). Avoid flowery language and "
+        "complicated grammar. When you must use a term like Mulank / Bhagyank / Lo "
+        "Shu, add a 2–3 word plain-English meaning in brackets the first time. Be "
+        "warm, specific and practical. "
+        "LENGTH: aim for ~320–400 words TOTAL across all sections with clear "
+        "Markdown-style headings. Each section = 2–3 short sentences. "
+        "Do NOT end with a Sanskrit blessing or 'Om…' farewell — finish cleanly "
+        "after the last section."
         + _lang_instruction(body.lang)
     )
     user_msg = (
@@ -1950,10 +1972,11 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         f"Lo Shu grid — numbers PRESENT in DOB: {lo_shu_present}\n"
         f"Lo Shu grid — numbers MISSING (karmic gaps): {lo_shu_missing}\n\n"
         f"{dasha_line}\n\n"
-        f"Write the reading with these sections, each 2–4 sentences:\n"
+        f"Write the reading with these sections, each 2–3 short sentences:\n"
         f"## Numerology Blueprint\n## Personality & Inner Nature\n## Career & Purpose\n"
         f"## Wealth & Prosperity\n## Relationships & Bonds\n## Health & Vitality\n"
         f"## Current Dasha Focus & Remedies\n\n"
+        f"Total reading: 320–400 words. Simple everyday English. No poetic phrasing. "
         f"End cleanly after the last section — no closing blessing."
     )
     return system, user_msg

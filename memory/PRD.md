@@ -571,3 +571,14 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 
 ### Data-testids added
 - `reading-translator`, `translator-btn-en/hi/te/ta`, `translator-ai-notice`.
+
+
+## Feb 12, 2026 (later still) — Simpler & shorter reading language
+- Updated all three AI prompt builders in `/app/backend/server.py` (`_basic_prompts`, `_premium_prompts`, `_premium_numerology_prompts`) to enforce:
+  - **8th-grade reading level English** — short common words, no poetic/flowery phrasing, sentences ≤ 15 words.
+  - **Shorter word counts** — Basic: 500–600 → **250–320 words**. Premium astrology + Premium numerology: 550–700 → **320–400 words** each.
+  - Each section reduced from "2–4 paragraphs" / "2–4 sentences" to **"2–3 short sentences"**.
+  - Vedic terms still allowed but must include a brief 2–3 word plain-English meaning in brackets on first use.
+- Also fixed a pre-existing syntax-error-inducing duplicate block at the end of server.py (leftover copy of the `/api/bookings` return statement below `app.include_router` calls) that had been silently blocking one hot-reload cycle.
+- Backend confirmed healthy after change (curl `/api/auth/me` returns 401 as expected).
+- Effect: every new Basic and Premium reading (and its PDF export) will use markedly simpler English and be roughly half the previous length. Existing saved readings are unchanged — user can re-generate if they want the shorter form.
