@@ -536,3 +536,11 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - Chart planet codes (Su/Mo/Ma etc.) inside the kundali diamond snapshots stay English — they're baked into the on-screen React SVG that gets html-to-image snapshotted.
 - AI advice text (`reading.advice`) — when the reading was originally generated in Hindi/Telugu by Claude, jsPDF now renders it correctly (via Noto Sans). Older English readings display English advice regardless of PDF language setting.
 
+
+
+## Feb 12, 2026 — AI translation disclaimer banner
+- Added `/app/frontend/src/components/TranslationDisclaimerBanner.jsx` — thin, dismissible banner shown at the very top of every page (mounted inside `Shell` in `/app/frontend/src/App.js` above the Navbar) warning users that translated UI + AI-generated content may not be fully accurate. Uses warm palette (`#FFF4E5` with `#FF8C00` accent) consistent with the app.
+- Copy is fully localised — `disclaimer.label` / `disclaimer.translation` / `disclaimer.dismiss` added to en.json, hi.json, te.json and ta.json so the banner itself reads in the user's selected language.
+- Dismissal persists via `sessionStorage` (key `snw_translation_disclaimer_dismissed`) — hidden for the rest of the tab session once closed, reappears in a fresh session.
+- data-testid: `translation-disclaimer-banner`, `translation-disclaimer-dismiss`.
+- Verified on landing page via screenshot: banner renders above Navbar with correct copy in English.

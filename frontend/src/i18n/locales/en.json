@@ -1,4 +1,9 @@
 {
+  "disclaimer": {
+    "label": "Disclaimer:",
+    "translation": "This translation is generated using AI and may not be fully accurate. Please refer to the original text or seek professional translation for important purposes.",
+    "dismiss": "Dismiss"
+  },
   "nav": {
     "grahas": "Grahas",
     "nakshatras": "Nakshatras",

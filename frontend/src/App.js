@@ -8,6 +8,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
+import TranslationDisclaimerBanner from "./components/TranslationDisclaimerBanner";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -35,6 +36,7 @@ import Profile from "./pages/Profile";
 function Shell({ children }) {
   return (
     <>
+      <TranslationDisclaimerBanner />
       <Navbar />
       {children}
       <Footer />
