@@ -234,6 +234,27 @@ def _lo_shu_digits(dob: date) -> list[int]:
     return digits
 
 
+def _vedic_grid_digits(dob: date) -> list[int]:
+    """Return the multiset of DOB digits used to build the *Vedic Planetary*
+    grid (as distinct from the Lo Shu grid).
+
+    Follows the Indian numerology tradition of using only the LAST TWO digits
+    of the birth year — the century prefix (e.g. "19" from 1990, "20" from
+    2015) is treated as calendar bookkeeping and dropped so the chart
+    reflects the person's own life-cycle digits rather than the era they
+    were born into. Zeros are still excluded (0 is not a graha cell).
+
+    Day, month, Mulank and Bhagyank are included the same way as the Lo Shu
+    grid so the driver + conductor numbers still reinforce the chart.
+    """
+    year_last2 = f"{dob.year % 100:02d}"
+    raw = list(f"{year_last2}{dob.month:02d}{dob.day:02d}")
+    digits = [int(c) for c in raw if c != "0"]
+    digits.append(compute_mulank(dob))
+    digits.append(compute_bhagyank(dob))
+    return digits
+
+
 def compute_lo_shu_grid(dob: date) -> dict:
     """Build the Lo Shu (Vedic Numerology) grid for a date of birth.
 
@@ -346,8 +367,12 @@ VEDIC_PLANET_MAP: dict[int, dict[str, str]] = {
 def compute_vedic_planet_chart(dob: date) -> dict:
     """Vedic planetary (Chaldean) numerology chart.
 
-    Uses the same DOB-digit multiset as the Lo Shu grid, but arranges the
-    3×3 grid by *natural digit order* so each cell corresponds to a graha.
+    Uses only day + month + LAST TWO digits of the year + Mulank + Bhagyank
+    (zeros excluded). The century prefix of the year (e.g. "19" from 1990,
+    "20" from 2015) is intentionally dropped — this matches the Indian
+    numerology tradition where the chart reflects the person's own life-cycle
+    digits rather than the era they were born into.
+
     A cell is "present" if that digit appears at least once in the DOB.
 
     Returns:
@@ -356,10 +381,11 @@ def compute_vedic_planet_chart(dob: date) -> dict:
           "counts": {1..9: n},
           "dominant":  [ints, sorted by count desc, top 3 ],
           "missing":   [ints not present in DOB],
+          "derivation": "human-readable explanation string",
           "label":     "Vedic Planetary Numerology Chart"
         }
     """
-    digits = _lo_shu_digits(dob)
+    digits = _vedic_grid_digits(dob)
     counts: dict[str, int] = {str(n): 0 for n in range(1, 10)}
     for d in digits:
         if 1 <= d <= 9:
@@ -397,6 +423,11 @@ def compute_vedic_planet_chart(dob: date) -> dict:
         "counts":   counts,
         "dominant": dominant,
         "missing":  missing,
+        "derivation": (
+            f"Day + month + last two digits of year "
+            f"({dob.day}, {dob.month:02d}, {dob.year % 100:02d}) "
+            f"+ Mulank + Bhagyank (zeros ignored)."
+        ),
     }
 
 
