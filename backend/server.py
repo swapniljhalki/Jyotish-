@@ -2477,6 +2477,14 @@ async def admin_get_reading(reading_id: str, admin: dict = Depends(require_admin
     return r
 
 
+@admin_api.delete("/readings")
+async def admin_delete_all_readings(admin: dict = Depends(require_admin)):
+    """Nuke every reading in the database. Destructive, admin-only, no undo."""
+    res = await db.readings.delete_many({})
+    logger.warning("Admin %s deleted ALL readings — count=%s", admin.get("email"), res.deleted_count)
+    return {"deleted": res.deleted_count}
+
+
 # --- startup ---
 @app.on_event("startup")
 async def startup_event():

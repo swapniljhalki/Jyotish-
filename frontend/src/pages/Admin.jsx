@@ -40,6 +40,33 @@ export default function Admin() {
       setReadings(data.readings);
     } catch (e) { setErr(formatApiError(e.response?.data?.detail) || e.message); }
   };
+  const [deletingAll, setDeletingAll] = useState(false);
+  const deleteAllReadings = async () => {
+    // Two-step confirm: browser confirm() + require typing DELETE. Cheap,
+    // dependency-free, and the destruction is total (all users, all tiers).
+    const confirm1 = window.confirm(
+      `⚠️  DELETE ALL ${readings.length} READINGS?\n\n` +
+      "This will permanently remove every reading in the database for every user.\n" +
+      "This action cannot be undone.\n\nClick OK to continue."
+    );
+    if (!confirm1) return;
+    const typed = window.prompt('Type DELETE (all caps) to confirm:', "");
+    if (typed !== "DELETE") {
+      toast.info("Cancelled — nothing was deleted.");
+      return;
+    }
+    setDeletingAll(true);
+    try {
+      const { data } = await api.delete("/admin/readings");
+      toast.success(`Deleted ${data.deleted} readings.`);
+      setReadings([]);
+      setReadingDetail(null);
+    } catch (e) {
+      toast.error(formatApiError(e.response?.data?.detail) || e.message);
+    } finally {
+      setDeletingAll(false);
+    }
+  };
   const openReading = async (id) => {
     try {
       const { data } = await api.get(`/admin/readings/${id}`);
@@ -161,6 +188,20 @@ export default function Admin() {
 
           <TabsContent value="readings" className="mt-6">
             <div className="glass-card p-4 md:p-6" data-testid="admin-readings-table">
+              {readings.length > 0 && (
+                <div className="mb-4 flex justify-end">
+                  <Button
+                    variant="destructive"
+                    onClick={deleteAllReadings}
+                    disabled={deletingAll}
+                    data-testid="admin-delete-all-readings-btn"
+                    className="bg-red-700 hover:bg-red-800 text-white font-accent text-xs tracking-widest"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {deletingAll ? "Deleting…" : `Delete all readings (${readings.length})`}
+                  </Button>
+                </div>
+              )}
               {readings.length === 0 ? (
                 <p className="text-zinc-800 font-body italic text-center py-10">No readings yet.</p>
               ) : (
