@@ -3,11 +3,18 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import PlaceOfBirthInput from "./PlaceOfBirthInput";
 
-export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birth" }) {
+export default function BirthForm({
+  onSubmit,
+  loading,
+  cta,
+  testIdPrefix = "birth",
+  showFocusArea = false,
+}) {
   const [full_name, setFullName] = useState("");
   const [date_of_birth, setDob] = useState("");
   const [time_of_birth, setTob] = useState("");
   const [place_of_birth, setPob] = useState("");
+  const [focus_area, setFocusArea] = useState("");
   // Latitude/longitude are captured when the user picks from the dropdown.
   // Kept locally for now — easy to forward to the backend later if we want
   // to compute charts without re-geocoding on the server.
@@ -15,7 +22,9 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
 
   const submit = (e) => {
     e.preventDefault();
-    onSubmit({ full_name, date_of_birth, time_of_birth, place_of_birth });
+    const payload = { full_name, date_of_birth, time_of_birth, place_of_birth };
+    if (showFocusArea) payload.focus_area = focus_area.trim();
+    onSubmit(payload);
   };
 
   return (
@@ -57,6 +66,26 @@ export default function BirthForm({ onSubmit, loading, cta, testIdPrefix = "birt
           />
         </div>
       </div>
+      {showFocusArea && (
+        <div>
+          <Label htmlFor={`${testIdPrefix}-focus`} className="font-accent text-[10px] text-zinc-700">
+            Area of Focus (optional)
+          </Label>
+          <textarea
+            id={`${testIdPrefix}-focus`}
+            value={focus_area}
+            onChange={(e) => setFocusArea(e.target.value)}
+            rows={3}
+            maxLength={500}
+            placeholder="Please write your problem area (ex- career, finance, relationships etc) which needs to be focussed"
+            data-testid={`${testIdPrefix}-focus-area-input`}
+            className="mt-2 w-full rounded-md bg-[#121824] border border-[rgba(212,175,55,0.2)] text-zinc-100 placeholder-zinc-500 focus:border-[#FF9933] focus:outline-none px-3 py-2 text-sm font-body leading-relaxed resize-y"
+          />
+          <p className="mt-1 text-[10px] text-zinc-500">
+            The AI reading will pay extra attention to this area if provided.
+          </p>
+        </div>
+      )}
       <button
         type="submit"
         disabled={loading}

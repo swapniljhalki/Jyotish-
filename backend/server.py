@@ -179,6 +179,10 @@ class AstroIn(BaseModel):
     place_of_birth: str
     full_name: Optional[str] = None
     lang: Optional[str] = "en"
+    # Free-text field where premium users describe the area of life they
+    # want the AI reading to focus on (career, finance, marriage, health…).
+    # Passed through to the LLM prompt when non-empty. Ignored by Basic tier.
+    focus_area: Optional[str] = None
 
 
 class ForgotPasswordIn(BaseModel):
@@ -1917,13 +1921,20 @@ def _premium_prompts(body: "AstroIn", chart: dict):
         "3–4 short sentences. Structure with clear Markdown-style headings."
         + _lang_instruction(body.lang)
     )
+    focus = (body.focus_area or "").strip()
+    focus_block = (
+        f"\nUSER'S AREA OF FOCUS (weave this into every relevant section, and dedicate the\n"
+        f"'Current Focus & Remedies' section to actionable guidance around it): {focus}\n"
+        if focus else ""
+    )
     user_msg = (
         f"Generate a DETAILED Vedic kundali interpretation.\n\n"
         f"Native: {body.full_name or 'Seeker'}\n"
         f"DOB: {body.date_of_birth} | TOB: {body.time_of_birth} | POB: {body.place_of_birth}\n"
         f"Ascendant (Lagna): {chart['ascendant_english']} ({chart['ascendant']})\n\n"
         f"Planetary placements:\n{planet_lines}\n\n"
-        f"{dasha_line}\n\n"
+        f"{dasha_line}\n"
+        f"{focus_block}\n"
         f"Write the reading with these sections, each 3–4 short sentences:\n"
         f"## Overall Personality\n## Career & Dharma\n## Wealth & Finances\n"
         f"## Relationships & Marriage\n## Health & Vitality\n## Spiritual Path\n"
@@ -2003,8 +2014,14 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         f"— traits: {naa.get('traits','—')}\n\n"
         f"Lo Shu grid — numbers PRESENT in DOB: {lo_shu_present}\n"
         f"Lo Shu grid — numbers MISSING (karmic gaps): {lo_shu_missing}\n\n"
-        f"{dasha_line}\n\n"
-        f"Write the reading with these sections, each 3–4 short sentences:\n"
+        f"{dasha_line}\n"
+        + (
+            f"\nUSER'S AREA OF FOCUS (weave this into every relevant section, and dedicate "
+            f"the 'Current Dasha Focus & Remedies' section to actionable guidance around it): "
+            f"{body.focus_area.strip()}\n\n"
+            if body.focus_area and body.focus_area.strip() else "\n"
+        )
+        + f"Write the reading with these sections, each 3–4 short sentences:\n"
         f"## Numerology Blueprint\n## Personality & Inner Nature\n## Career & Purpose\n"
         f"## Wealth & Prosperity\n## Relationships & Bonds\n## Health & Vitality\n"
         f"## Current Dasha Focus & Remedies\n\n"

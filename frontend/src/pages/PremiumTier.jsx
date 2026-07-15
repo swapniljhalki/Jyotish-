@@ -245,7 +245,7 @@ export default function PremiumTier() {
           </div>
         ) : (
           <div className="sb-card max-w-2xl mx-auto fade-up">
-            <BirthForm onSubmit={submit} loading={loading} cta={t("premium.cta_cast")} testIdPrefix="premium" />
+            <BirthForm onSubmit={submit} loading={loading} cta={t("premium.cta_cast")} testIdPrefix="premium" showFocusArea />
             {err && <div className="mt-4 text-sm text-red-600 font-medium" data-testid="premium-error">{err}</div>}
           </div>
         )}
