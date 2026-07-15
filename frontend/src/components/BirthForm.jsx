@@ -3,6 +3,45 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import PlaceOfBirthInput from "./PlaceOfBirthInput";
 
+// Common life areas users tend to ask about — one-click alternatives to
+// typing into the "Area of Focus" textarea. Order is loosely by frequency
+// in the incoming premium reads on this platform.
+const FOCUS_CHIPS = [
+  "Career",
+  "Finance",
+  "Relationships",
+  "Marriage",
+  "Health",
+  "Education",
+  "Spiritual",
+];
+
+/** Return the current chips already listed in `text`, in insertion order.
+ *  Splits on comma OR newline so users who typed "career, health" or one
+ *  chip per line both work naturally. */
+function _existingChips(text) {
+  return (text || "")
+    .split(/[,\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function _hasChip(text, chip) {
+  return _existingChips(text).some(
+    (t) => t.toLowerCase() === chip.toLowerCase()
+  );
+}
+
+/** Toggle `chip` in `text`: remove if present, append (comma-separated)
+ *  if not. Preserves any freeform text the user already typed. */
+function _toggleChip(text, chip) {
+  const items = _existingChips(text);
+  const idx = items.findIndex((t) => t.toLowerCase() === chip.toLowerCase());
+  if (idx >= 0) items.splice(idx, 1);
+  else items.push(chip);
+  return items.join(", ");
+}
+
 export default function BirthForm({
   onSubmit,
   loading,
@@ -71,6 +110,35 @@ export default function BirthForm({
           <Label htmlFor={`${testIdPrefix}-focus`} className="font-accent text-[10px] text-zinc-700">
             Area of Focus (optional)
           </Label>
+          {/* Quick-pick chips — click to toggle the chip in the textarea.
+              Cheaper than typing for the 80% of users who just want a
+              common area (career, finance, etc.). Chips already present in
+              the textarea show a filled/active state and clicking removes
+              them, so users can't accidentally duplicate an entry. */}
+          <div
+            className="mt-2 flex flex-wrap gap-1.5"
+            data-testid={`${testIdPrefix}-focus-chips`}
+          >
+            {FOCUS_CHIPS.map((chip) => {
+              const active = _hasChip(focus_area, chip);
+              return (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setFocusArea((prev) => _toggleChip(prev, chip))}
+                  data-testid={`${testIdPrefix}-focus-chip-${chip.toLowerCase()}`}
+                  className={
+                    "px-3 py-1 rounded-full border text-[11px] font-accent tracking-wider transition-colors " +
+                    (active
+                      ? "bg-[#FF9933] border-[#FF9933] text-white"
+                      : "bg-transparent border-[rgba(212,175,55,0.4)] text-zinc-500 hover:text-zinc-800 hover:border-[#FF9933]")
+                  }
+                >
+                  {chip}
+                </button>
+              );
+            })}
+          </div>
           <textarea
             id={`${testIdPrefix}-focus`}
             value={focus_area}
@@ -82,7 +150,7 @@ export default function BirthForm({
             className="mt-2 w-full rounded-md bg-[#121824] border border-[rgba(212,175,55,0.2)] text-zinc-100 placeholder-zinc-500 focus:border-[#FF9933] focus:outline-none px-3 py-2 text-sm font-body leading-relaxed resize-y"
           />
           <p className="mt-1 text-[10px] text-zinc-500">
-            The AI reading will pay extra attention to this area if provided.
+            Tap a chip to add it, or type your own. The AI reading will pay extra attention to this area if provided.
           </p>
         </div>
       )}
