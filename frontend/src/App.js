@@ -32,6 +32,8 @@ import PublicReading from "./pages/PublicReading";
 import BookConsultation from "./pages/BookConsultation";
 import MyBookings from "./pages/MyBookings";
 import Profile from "./pages/Profile";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import PrivacyNotice from "./components/PrivacyNotice";
 
 function Shell({ children }) {
   return (
@@ -42,6 +44,7 @@ function Shell({ children }) {
       </div>
       {children}
       <Footer />
+      <PrivacyNotice />
     </>
   );
 }
@@ -83,6 +86,7 @@ function Router() {
         <Route path="/pricing" element={<Shell><Pricing /></Shell>} />
         <Route path="/testimonials" element={<Shell><Testimonials /></Shell>} />
         <Route path="/about" element={<Shell><About /></Shell>} />
+        <Route path="/privacy" element={<Shell><PrivacyPolicy /></Shell>} />
         <Route path="/basic" element={<Shell><ProtectedRoute><BasicTier /></ProtectedRoute></Shell>} />
         <Route path="/premium" element={<Shell><ProtectedRoute><PremiumTier /></ProtectedRoute></Shell>} />
         <Route path="/admin" element={<Shell><ProtectedRoute><Admin /></ProtectedRoute></Shell>} />
