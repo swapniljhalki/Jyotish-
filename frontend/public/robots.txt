@@ -1,0 +1,15 @@
+# robots.txt for Satish Numero World
+# Allow all major crawlers to index the whole marketing surface.
+# Block API + admin + user-scoped pages that would either error under
+# unauthenticated crawl or leak nothing useful to search.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+Disallow: /readings
+Disallow: /verify-email
+Disallow: /reset-password
+
+Sitemap: https://satishnumeroworld.com/sitemap.xml
