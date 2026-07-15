@@ -131,13 +131,22 @@ export default function Navbar() {
   return (
     <header className="backdrop-blur-xl bg-[rgba(253,251,247,0.85)] border-b border-[rgba(92,58,9,0.08)]">
       <div className="sb-container h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group shrink-0" data-testid="nav-logo">
-          <img
-            src="/snw-logo.jpg"
-            alt="Satish Numero World"
-            className="h-10 w-10 rounded-full object-cover ring-1 ring-[rgba(92,58,9,0.15)] group-hover:ring-[#FF8C00] transition-all"
-          />
-        </Link>
+        {/* Left cluster: 69900 label + Logo */}
+        <div className="flex items-center gap-3 shrink-0">
+          <span
+            data-testid="nav-badge-left"
+            className="font-bold text-sm md:text-base tracking-wider text-[#5C3A09]"
+          >
+            69900
+          </span>
+          <Link to="/" className="flex items-center gap-3 group" data-testid="nav-logo">
+            <img
+              src="/snw-logo.jpg"
+              alt="Satish Numero World"
+              className="h-10 w-10 rounded-full object-cover ring-1 ring-[rgba(92,58,9,0.15)] group-hover:ring-[#FF8C00] transition-all"
+            />
+          </Link>
+        </div>
 
         <nav className="hidden lg:flex items-center gap-7">
           {/* About sits first */}
@@ -188,6 +197,12 @@ export default function Navbar() {
               >
                 <LogOut className="h-4 w-4" /> {t("nav.logout")}
               </button>
+              <span
+                data-testid="nav-badge-right"
+                className="font-bold text-sm md:text-base tracking-wider text-[#5C3A09]"
+              >
+                69900
+              </span>
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-2">
@@ -197,6 +212,12 @@ export default function Navbar() {
               <Link to="/register" data-testid="nav-register-link">
                 <button className="sb-btn-primary text-sm py-2.5 px-5">{t("nav.begin_journey")}</button>
               </Link>
+              <span
+                data-testid="nav-badge-right"
+                className="font-bold text-sm md:text-base tracking-wider text-[#5C3A09]"
+              >
+                69900
+              </span>
             </div>
           )}
 
