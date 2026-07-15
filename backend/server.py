@@ -2467,6 +2467,14 @@ async def admin_list_emails(admin: dict = Depends(require_admin)):
     return {"emails": emails}
 
 
+@admin_api.delete("/emails")
+async def admin_delete_all_emails(admin: dict = Depends(require_admin)):
+    """Wipe the entire admin email outbox. Destructive, admin-only, no undo."""
+    res = await db.email_outbox.delete_many({})
+    logger.warning("Admin %s cleared ALL emails — count=%s", admin.get("email"), res.deleted_count)
+    return {"deleted": res.deleted_count}
+
+
 @admin_api.get("/readings")
 async def admin_list_readings(admin: dict = Depends(require_admin)):
     """List all readings across all users (admin view)."""

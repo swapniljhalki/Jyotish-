@@ -67,6 +67,25 @@ export default function Admin() {
       setDeletingAll(false);
     }
   };
+  const [clearingEmails, setClearingEmails] = useState(false);
+  const clearAllEmails = async () => {
+    const ok = window.confirm(
+      `⚠️  CLEAR ALL ${emails.length} EMAILS from the outbox?\n\n` +
+      "This will permanently remove every email log entry.\n" +
+      "This action cannot be undone.\n\nClick OK to continue."
+    );
+    if (!ok) return;
+    setClearingEmails(true);
+    try {
+      const { data } = await api.delete("/admin/emails");
+      toast.success(`Cleared ${data.deleted} emails.`);
+      setEmails([]);
+    } catch (e) {
+      toast.error(formatApiError(e.response?.data?.detail) || e.message);
+    } finally {
+      setClearingEmails(false);
+    }
+  };
   const openReading = async (id) => {
     try {
       const { data } = await api.get(`/admin/readings/${id}`);
@@ -267,6 +286,20 @@ export default function Admin() {
 
           <TabsContent value="emails" className="mt-6">
             <div className="space-y-3" data-testid="admin-emails-list">
+              {emails.length > 0 && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="destructive"
+                    onClick={clearAllEmails}
+                    disabled={clearingEmails}
+                    data-testid="admin-clear-all-emails-btn"
+                    className="bg-red-700 hover:bg-red-800 text-white font-accent text-xs tracking-widest"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {clearingEmails ? "Clearing…" : `Clear all emails (${emails.length})`}
+                  </Button>
+                </div>
+              )}
               {emails.length === 0 && (
                 <p className="text-zinc-800 font-body italic text-center py-10">No emails yet.</p>
               )}
