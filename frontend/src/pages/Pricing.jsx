@@ -129,7 +129,7 @@ export default function Pricing() {
                   <Sparkles className={`h-4 w-4 ${isDark ? "text-[#B8860B]" : "text-[#FF8C00]"}`} strokeWidth={1.5} />
                   <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#B8860B]" : "text-[#5C3A09]"}`}>{tier.name}</span>
                 </div>
-                <div className={`font-heading font-bold text-5xl md:text-6xl tracking-tight mb-8 ${isDark ? "text-white" : "text-[#2A1A05]"}`}>
+                <div className={`font-heading font-bold text-5xl md:text-6xl tracking-tight mb-8 ${isDark ? "!text-white" : "text-[#2A1A05]"}`}>
                   {tier.price}
                 </div>
                 <ul className="space-y-3 mb-10 flex-1">
