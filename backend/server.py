@@ -1293,7 +1293,11 @@ async def stats_visit(request: Request):
 
 
 @api.get("/stats/visitors")
-async def stats_visitors():
+async def stats_visitors(user: dict = Depends(get_current_user)):
+    """Site visitor counters — admin-only view. Non-admin users get 403 so
+    the numbers aren't leaked to logged-in seekers or public visitors."""
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
     doc = await db.site_stats.find_one({"_id": "global"}) or {}
     today = datetime.now(timezone.utc).date().isoformat()
     return {
@@ -1301,6 +1305,16 @@ async def stats_visitors():
         "unique_visitors": len(doc.get("unique_ips", [])),
         "today_views": int(doc.get("daily", {}).get(today, 0)),
     }
+
+
+@api.post("/stats/reset")
+async def stats_reset(user: dict = Depends(get_current_user)):
+    """Zero-out all visitor counters. Admin-only, no undo."""
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    await db.site_stats.delete_one({"_id": "global"})
+    logger.warning("Admin %s reset all visitor counters", user.get("email"))
+    return {"ok": True, "reset": True}
 
 
 # --- Numerology (calculation: free / public; AI reading: premium-only) ---

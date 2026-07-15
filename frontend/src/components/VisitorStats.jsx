@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { Users, Eye, Sparkles } from "lucide-react";
 import api from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 const SESSION_KEY = "snw_visit_recorded_v1";
 
 export default function VisitorStats() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // Record visit once per browser session (avoid double-counting refreshes)
+      // Record visit once per browser session (avoid double-counting refreshes).
+      // Fires for EVERY visitor — anonymous, logged-in, admin — so the counter
+      // reflects actual traffic even though the display is admin-only.
       if (!sessionStorage.getItem(SESSION_KEY)) {
         try {
           await api.post("/stats/visit");
@@ -19,6 +24,10 @@ export default function VisitorStats() {
           console.warn("VisitorStats: failed to record visit", e?.message || e);
         }
       }
+      // Only admins can see the counters — skip the fetch for everyone else
+      // (endpoint would return 403 anyway; skipping saves a network round-trip
+      // and prevents noisy console errors).
+      if (!isAdmin) return;
       try {
         const { data } = await api.get("/stats/visitors");
         if (!cancelled) setStats(data);
@@ -27,9 +36,11 @@ export default function VisitorStats() {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [isAdmin]);
 
-  if (!stats) return null;
+  // Non-admins see nothing. The section (with the border-top divider) is
+  // simply not rendered so the landing page ends cleanly for them.
+  if (!isAdmin || !stats) return null;
 
   const items = [
     { icon: Eye, label: "Total Visits", value: stats.total_views, accent: "text-[#FFD700]" },
