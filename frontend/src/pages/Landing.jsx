@@ -147,7 +147,7 @@ export default function Landing() {
                     <span className={`text-[11px] font-bold tracking-widest uppercase ${isDark ? "text-[#B8860B]" : "text-[#5C3A09]"}`}>{tier.name}</span>
                   </div>
                   <div className="flex items-baseline gap-2 mb-3">
-                    <span className={`font-heading font-bold text-5xl md:text-6xl tracking-tight ${isDark ? "text-white" : "text-[#2A1A05]"}`}>{tier.price}</span>
+                    <span className={`font-heading font-bold text-5xl md:text-6xl tracking-tight ${isDark ? "!text-white" : "text-[#2A1A05]"}`}>{tier.price}</span>
                     {tier.period && <span className={`text-sm ${isDark ? "text-[#B8860B]/70" : "text-[#5C3A09]"}`}>{tier.period}</span>}
                   </div>
                   <p className={`text-[15px] italic mb-8 ${isDark ? "text-[#FDFBF7]/80" : "text-[#6B3410]"}`}>{tier.tagline}</p>
