@@ -49,6 +49,7 @@ from scheduler import (
     google_auth_url,
     exchange_code_for_tokens,
     refresh_access_token,
+    fetch_google_userinfo,
     create_calendar_event_with_meet,
     extract_meet_url,
 )
@@ -823,6 +824,9 @@ async def _get_google_credentials() -> Optional[dict]:
 @api.get("/scheduler/config")
 async def scheduler_get_config():
     cfg = await _get_scheduler_config()
+    gc = await _get_google_credentials()
+    expected_email = (os.environ.get("ASTROLOGER_EMAIL") or "").lower().strip()
+    connected_email = ((gc or {}).get("email") or "").lower().strip()
     return {
         "weekly_rules":     cfg["weekly_rules"],
         "slot_minutes":     cfg["slot_minutes"],
@@ -831,7 +835,10 @@ async def scheduler_get_config():
         "price_inr":        CONSULTATION["amount_paise"] / 100,
         "duration_minutes": cfg["slot_minutes"],
         "label":            CONSULTATION["label"],
-        "google_connected": (await _get_google_credentials()) is not None,
+        "google_connected": gc is not None,
+        "google_email":     (gc or {}).get("email"),
+        "astrologer_email": os.environ.get("ASTROLOGER_EMAIL") or None,
+        "email_matches":    bool(expected_email) and connected_email == expected_email,
         "payment_mode":     "live" if rzp_is_live() else "mock",
     }
 
@@ -1079,6 +1086,16 @@ async def scheduler_oauth_callback(code: Optional[str] = None, state: Optional[s
 
     now = datetime.now(timezone.utc)
     expiry = (now + timedelta(seconds=int(tokens.get("expires_in", 3500)))).isoformat()
+
+    # Also fetch the connected Google account's email so we can display it
+    # in the admin panel and warn if it doesn't match ASTROLOGER_EMAIL.
+    connected_email = None
+    try:
+        info = await fetch_google_userinfo(tokens.get("access_token", ""))
+        connected_email = info.get("email")
+    except Exception as e:
+        logger.warning("Could not fetch Google userinfo after OAuth: %s", e)
+
     await db.app_config.update_one(
         {"id": "google_calendar"},
         {"$set": {
@@ -1088,6 +1105,8 @@ async def scheduler_oauth_callback(code: Optional[str] = None, state: Optional[s
             "expiry":        expiry,
             "scope":         tokens.get("scope", ""),
             "connected_at":  now.isoformat(),
+            "email":         connected_email,
+            "needs_reconnect": False,
         }},
         upsert=True,
     )

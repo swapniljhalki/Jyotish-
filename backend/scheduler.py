@@ -160,6 +160,20 @@ async def refresh_access_token(refresh_token: str) -> dict:
     return r.json()
 
 
+async def fetch_google_userinfo(access_token: str) -> dict:
+    """Return {email, name, picture, ...} for the Google account that
+    granted `access_token`. Requires the `userinfo.email` scope (already
+    in SCOPES). Used right after OAuth to record which Google account the
+    astrologer connected."""
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+    r.raise_for_status()
+    return r.json()
+
+
 async def create_calendar_event_with_meet(
     *,
     access_token: str,

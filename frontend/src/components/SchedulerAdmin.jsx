@@ -91,10 +91,30 @@ export default function SchedulerAdmin() {
                 ? <CheckCircle2 className="inline-block h-5 w-5 ml-2 text-green-400" />
                 : <AlertCircle className="inline-block h-5 w-5 ml-2 text-orange-400" />}
             </h3>
-            <p className="font-body text-sm text-zinc-700 mt-2 max-w-xl">
+            {/* Expected astrologer email + currently-connected Google email */}
+            {cfg.astrologer_email && (
+              <p className="mt-2 text-xs font-body text-zinc-700" data-testid="scheduler-expected-email">
+                Expected astrologer email:{" "}
+                <span className="font-accent text-[#FFD700]">{cfg.astrologer_email}</span>
+              </p>
+            )}
+            {cfg.google_connected && (
+              <p className="mt-1 text-xs font-body text-zinc-700" data-testid="scheduler-connected-email">
+                Connected Google account:{" "}
+                <span className="font-accent text-[#FFD700]">
+                  {cfg.google_email || "(unknown — reconnect to capture)"}
+                </span>
+                {cfg.google_email && cfg.astrologer_email && (
+                  cfg.email_matches
+                    ? <span className="ml-2 text-green-400">✓ matches</span>
+                    : <span className="ml-2 text-orange-400">⚠ does NOT match — reconnect with the expected account</span>
+                )}
+              </p>
+            )}
+            <p className="font-body text-sm text-zinc-700 mt-3 max-w-xl">
               {cfg.google_connected
                 ? "Bookings will receive real Google Meet links and land on the astrologer's calendar."
-                : "Until you connect, paid bookings receive a placeholder meet.google.com link (stub mode). Connect once with the astrologer's Gmail to enable real Meet auto-generation."}
+                : "Until you connect, paid bookings receive a placeholder meet.google.com link (stub mode). Click Connect Google below and sign in with the expected astrologer email to enable real Meet auto-generation."}
             </p>
           </div>
           {cfg.google_connected ? (
