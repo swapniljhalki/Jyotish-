@@ -1984,8 +1984,26 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
     mul = num.get("mulank") or {}
     bha = num.get("bhagyank") or {}
     naa = num.get("naamank") or {}
-    lo_shu_present = ", ".join(str(d) for d in (num.get("lo_shu") or {}).get("present", [])) or "—"
-    lo_shu_missing = ", ".join(str(d) for d in (num.get("lo_shu") or {}).get("missing", [])) or "—"
+
+    # Vedic Planetary Numerology Grid — the ONLY grid we base the AI reading
+    # on. Extract dominant grahas (digits that appear one or more times) and
+    # the missing grahas (digits absent from the DOB) so Claude can interpret
+    # planetary strengths and gaps.
+    vg = num.get("vedic_chart") or {}
+    vg_grid = vg.get("grid") or []
+    dominant_lines = []
+    missing_lines = []
+    for row in vg_grid:
+        for cell in row:
+            planet = f"{cell.get('digit')} · {cell.get('graha','—')} ({cell.get('english','—')})"
+            if cell.get("count", 0) > 0:
+                dominant_lines.append(
+                    f"- {planet}, count={cell['count']}, essence: {cell.get('essence','—')}"
+                )
+            else:
+                missing_lines.append(f"- {planet}, essence: {cell.get('essence','—')}")
+    dominant_block = "\n".join(dominant_lines) if dominant_lines else "  (none — extremely rare)"
+    missing_block  = "\n".join(missing_lines)  if missing_lines  else "  (none — very balanced grid)"
 
     dasha = chart.get("numerology_dasha") or {}
     cur_md_num = (dasha.get("current") or {}).get("mahadasha")
@@ -2002,18 +2020,25 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         )
 
     system = (
-        "You are a senior Vedic numerologist grounded in Jyotisha, Chaldean and Lo Shu "
-        "traditions. Write a premium numerology reading tying together the Mulank "
-        "(root number), Bhagyank (destiny), Naamank (name expression), the Lo Shu "
-        "grid presence/gaps, and the current Vedic Numerology Mahadasha. Use each "
-        "planet's traits as a lens on personality, career, wealth, relationships and "
-        "remedial actions. "
+        "You are a senior Vedic numerologist grounded in Jyotisha and the "
+        "Chaldean-Vedic tradition. Write a premium numerology reading based "
+        "STRICTLY on the Vedic Planetary Numerology Grid (the 3×3 chart that "
+        "maps each DOB digit to its ruling graha: 1=Surya, 2=Chandra, "
+        "3=Guru, 4=Rahu, 5=Budha, 6=Shukra, 7=Ketu, 8=Shani, 9=Mangala). "
+        "Do NOT reference the Lo Shu grid, its planes, or Lo Shu number "
+        "meanings anywhere — treat that framework as out of scope for this "
+        "reading. Tie your interpretation together using the Mulank (root), "
+        "Bhagyank (destiny), Naamank (name), the DOMINANT grahas in the "
+        "Vedic grid (digits present, with weight from their count), the "
+        "MISSING grahas (karmic gaps), and the current Vedic Numerology "
+        "Mahadasha. Use each planet's traits as a lens on personality, "
+        "career, wealth, relationships and remedial actions. "
         "LANGUAGE RULES (very important): use SIMPLE, EVERYDAY English — the kind an "
         "8th-grade reader would understand. Prefer short common words over fancy or "
         "poetic ones. Use short sentences (15 words max). Avoid flowery language and "
-        "complicated grammar. When you must use a term like Mulank / Bhagyank / Lo "
-        "Shu, add a 2–3 word plain-English meaning in brackets the first time. Be "
-        "warm, specific and practical. "
+        "complicated grammar. When you must use a term like Mulank / Bhagyank / graha, "
+        "add a 2–3 word plain-English meaning in brackets the first time. Be warm, "
+        "specific and practical. "
         "LENGTH: aim for ~500–600 words TOTAL across all sections with clear "
         "Markdown-style headings. Each section = 3–4 short sentences. "
         "Do NOT end with a Sanskrit blessing or 'Om…' farewell — finish cleanly "
@@ -2021,7 +2046,8 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         + _lang_instruction(body.lang)
     )
     user_msg = (
-        f"Generate a DETAILED Vedic numerology interpretation.\n\n"
+        f"Generate a DETAILED Vedic numerology interpretation based ONLY on "
+        f"the Vedic Planetary Grid (ignore the Lo Shu framework).\n\n"
         f"Native: {body.full_name or 'Seeker'}\n"
         f"DOB: {body.date_of_birth}\n\n"
         f"Core numbers:\n"
@@ -2031,8 +2057,13 @@ def _premium_numerology_prompts(body: "AstroIn", chart: dict):
         f"— traits: {bha.get('traits','—')}\n"
         f"- Naamank (Name): {naa.get('number','—')} · {naa.get('planet_english','—')} "
         f"— traits: {naa.get('traits','—')}\n\n"
-        f"Lo Shu grid — numbers PRESENT in DOB: {lo_shu_present}\n"
-        f"Lo Shu grid — numbers MISSING (karmic gaps): {lo_shu_missing}\n\n"
+        f"Vedic Planetary Grid derivation: {vg.get('derivation','—')}\n\n"
+        f"DOMINANT grahas (present in DOB — the stronger this count, the "
+        f"more prominent that planet's themes are in the native's life):\n"
+        f"{dominant_block}\n\n"
+        f"MISSING grahas (absent from DOB — karmic gaps to consciously "
+        f"cultivate through remedies and lifestyle):\n"
+        f"{missing_block}\n\n"
         f"{dasha_line}\n"
         + (
             f"\nUSER'S AREA OF FOCUS (weave this into every relevant section, and dedicate "
