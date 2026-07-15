@@ -244,13 +244,19 @@ def _vedic_grid_digits(dob: date) -> list[int]:
     reflects the person's own life-cycle digits rather than the era they
     were born into. Zeros are still excluded (0 is not a graha cell).
 
-    Day, month, Mulank and Bhagyank are included the same way as the Lo Shu
-    grid so the driver + conductor numbers still reinforce the chart.
+    Day, month and Bhagyank are always included. The **Mulank is added only
+    when the day-of-month is two digits (10–31)** — for single-digit days
+    (1–9) the Mulank equals the day itself, so adding it again would
+    double-count that graha's presence in the grid.
     """
     year_last2 = f"{dob.year % 100:02d}"
     raw = list(f"{year_last2}{dob.month:02d}{dob.day:02d}")
     digits = [int(c) for c in raw if c != "0"]
-    digits.append(compute_mulank(dob))
+    if dob.day >= 10:
+        # 2-digit day → Mulank is a derived number distinct from the day
+        # digits; include it as an extra grid contribution.
+        digits.append(compute_mulank(dob))
+    # else: 1-digit day is already its own Mulank — don't double-count.
     digits.append(compute_bhagyank(dob))
     return digits
 
@@ -426,7 +432,9 @@ def compute_vedic_planet_chart(dob: date) -> dict:
         "derivation": (
             f"Day + month + last two digits of year "
             f"({dob.day}, {dob.month:02d}, {dob.year % 100:02d}) "
-            f"+ Mulank + Bhagyank (zeros ignored)."
+            + (f"+ Mulank ({compute_mulank(dob)}) " if dob.day >= 10 else "")
+            + f"+ Bhagyank ({compute_bhagyank(dob)}). Zeros ignored."
+            + ("" if dob.day >= 10 else " Mulank is omitted because it equals the single-digit day.")
         ),
     }
 
