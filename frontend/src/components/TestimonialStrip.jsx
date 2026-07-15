@@ -34,6 +34,18 @@ const TESTIMONIALS = [
     author: "R.P",
     place: "Chennai",
   },
+  {
+    text:
+      "Sir, gave a detailed account of the issues between the root number and driver number, and all the dashes and Dosha, in a very friendly manner he explained everything and the solutions...",
+    author: "Khushi",
+    place: "Rajasthan",
+  },
+  {
+    text:
+      "Sir, excellent ga chepparu na life lo em jarigayo avi clear cut ga unnai nenu first numerology ni nammalenu miru cheppina prthidhi na life lo jarigai like helth issues and na success inka future lo ela undalo chala baga chepparu. Numerology ni 100% namochhu ani nenu chepthunnanu once again Tq so much sir...",
+    author: "Mamtha Rai",
+    place: "Hyderabad",
+  },
 ];
 
 const ROTATION_MS = 7000;
