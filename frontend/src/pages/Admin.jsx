@@ -157,6 +157,7 @@ export default function Admin() {
                     <TableHead className="text-zinc-700 font-accent text-[10px]">Name</TableHead>
                     <TableHead className="text-zinc-700 font-accent text-[10px]">Tier</TableHead>
                     <TableHead className="text-zinc-700 font-accent text-[10px]">Role</TableHead>
+                    <TableHead className="text-zinc-700 font-accent text-[10px]">Focus area</TableHead>
                     <TableHead className="text-zinc-700 font-accent text-[10px]">Provider</TableHead>
                     <TableHead className="text-zinc-700 font-accent text-[10px]">Verified</TableHead>
                     <TableHead className="text-zinc-700 font-accent text-[10px]"></TableHead>
@@ -181,6 +182,17 @@ export default function Admin() {
                       </TableCell>
                       <TableCell className="font-body">
                         <span className={u.role === "admin" ? "text-[#FFD700]" : "text-zinc-700"}>{u.role}</span>
+                      </TableCell>
+                      <TableCell
+                        className="text-zinc-800 font-body text-xs max-w-[220px]"
+                        data-testid={`admin-user-focus-${u.email}`}
+                        title={u.latest_focus_area || ""}
+                      >
+                        {u.latest_focus_area ? (
+                          <span className="text-[#FF9933] block truncate">{u.latest_focus_area}</span>
+                        ) : (
+                          <span className="text-zinc-500">—</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-zinc-700 font-body text-xs">{u.auth_provider}</TableCell>
                       <TableCell className="text-xs">
@@ -230,6 +242,7 @@ export default function Admin() {
                       <TableHead className="text-zinc-700 font-accent text-[10px]">Date</TableHead>
                       <TableHead className="text-zinc-700 font-accent text-[10px]">User</TableHead>
                       <TableHead className="text-zinc-700 font-accent text-[10px]">Tier</TableHead>
+                      <TableHead className="text-zinc-700 font-accent text-[10px]">Focus area</TableHead>
                       <TableHead className="text-zinc-700 font-accent text-[10px]">Ascendant</TableHead>
                       <TableHead className="text-zinc-700 font-accent text-[10px]">Sun</TableHead>
                       <TableHead className="text-zinc-700 font-accent text-[10px]">Moon</TableHead>
@@ -255,6 +268,17 @@ export default function Admin() {
                           }>
                             {r.tier}
                           </span>
+                        </TableCell>
+                        <TableCell
+                          className="text-zinc-800 font-body text-xs max-w-[200px]"
+                          data-testid={`admin-reading-focus-${r.id}`}
+                          title={r.focus_area || ""}
+                        >
+                          {r.focus_area ? (
+                            <span className="text-[#FF9933] block truncate">{r.focus_area}</span>
+                          ) : (
+                            <span className="text-zinc-500">—</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-zinc-800 font-body text-sm">{r.summary?.ascendant || "—"}</TableCell>
                         <TableCell className="text-zinc-800 font-body text-sm">{r.summary?.sun_sign || "—"}</TableCell>

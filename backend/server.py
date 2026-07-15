@@ -2447,7 +2447,34 @@ async def public_reading(share_token: str):
 @admin_api.get("/users")
 async def admin_list_users(admin: dict = Depends(require_admin)):
     users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
-    return {"users": [public_user(u) for u in users]}
+    # Enrich each user with their most recent focus_area (if any). This is
+    # captured on the Premium form when the user picks/types their area of
+    # focus, and is persisted inside the reading's `inputs`. Aggregating the
+    # latest one here lets the admin see at-a-glance what each user cares
+    # about most recently without opening every reading.
+    pipeline = [
+        {"$match": {"inputs.focus_area": {"$exists": True, "$ne": ""}}},
+        {"$sort": {"created_at": -1}},
+        {"$group": {
+            "_id": "$user_id",
+            "latest_focus_area": {"$first": "$inputs.focus_area"},
+            "latest_focus_at":   {"$first": "$created_at"},
+        }},
+    ]
+    latest_by_uid = {}
+    async for row in db.readings.aggregate(pipeline):
+        latest_by_uid[row["_id"]] = {
+            "latest_focus_area": row.get("latest_focus_area"),
+            "latest_focus_at":   row.get("latest_focus_at"),
+        }
+    out = []
+    for u in users:
+        pu = public_user(u)
+        extra = latest_by_uid.get(u.get("id")) or {}
+        pu["latest_focus_area"] = extra.get("latest_focus_area")
+        pu["latest_focus_at"]   = extra.get("latest_focus_at")
+        out.append(pu)
+    return {"users": out}
 
 
 @admin_api.patch("/users/{user_id}")
@@ -2505,6 +2532,9 @@ async def admin_list_readings(admin: dict = Depends(require_admin)):
         u = users_by_id.get(r.get("user_id"), {})
         r["user_email"] = u.get("email")
         r["user_name"] = u.get("name")
+        # Surface the focus_area (captured on the Premium form) as a top-level
+        # field so the admin table can show it without expanding `inputs`.
+        r["focus_area"] = (r.get("inputs") or {}).get("focus_area") or ""
     return {"readings": readings}
 
 
