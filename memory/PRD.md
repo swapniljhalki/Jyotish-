@@ -601,3 +601,13 @@ Users no longer wait 30–90s for the "Detailed Reading" section to appear.
 - **All Readings page**: already implemented at `/admin?tab=readings` (Admin.jsx, `admin-tab-readings`). Uses `GET /api/admin/readings` which joins user email + name onto every reading. Verified live — logged in as new SNW admin, 318 readings from all users rendered in a single table with View drill-down.
 - Also updated `/app/memory/test_credentials.md` with the new SNW admin credentials.
 - ⚠️ **Production**: user must set the same `ADMIN_EMAIL` / `ADMIN_PASSWORD` env vars on the production deployment for the SNW admin to be created there. Just redeploy will NOT be enough unless those envs are updated in the Emergent production environment.
+
+
+## Feb 15, 2026 — Admin reset for visitor counters
+- **Executed the pending user request** ("reset the total user visits and unique seekers and today count to 0") by calling `POST /api/stats/reset` as the SNW admin. Verified: `{total_views: 0, unique_visitors: 0, today_views: 0}`.
+- **Added a self-serve "Reset counters" button** in `/app/frontend/src/components/VisitorStats.jsx` so the admin can zero out the counters from the landing page anytime without needing curl:
+  - Pill button (saffron hover, `RotateCcw` icon) rendered below the 3 stat tiles, visible only to `role === "admin"`.
+  - Two-step confirm: browser `confirm()` + typed `RESET` prompt (matching the pattern used for the "Delete all readings" flow).
+  - Optimistic local update to `{0,0,0}` on success, clears the session flag so the admin's next reload re-counts as a new visit.
+  - `data-testid="admin-reset-visitor-stats-btn"`.
+- **Verified end-to-end** — admin flow returns `200` and zeroes counters, non-admin gets `403` from `/api/stats/reset` (auth guard intact).
